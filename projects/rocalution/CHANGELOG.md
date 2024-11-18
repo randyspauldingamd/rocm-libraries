@@ -2,6 +2,11 @@
 
 Full documentation forrocALUTION is available at [https://rocm.docs.amd.com/projects/rocALUTION/en/latest/](https://rocm.docs.amd.com/projects/rocALUTION/en/latest/).
 
+## rocALUTION 3.2.2 for ROCm 6.4.0
+
+### Changed
+* Improved documentation
+
 ## rocALUTION 3.2.1 for ROCm 6.3.0
 
 ### Added
