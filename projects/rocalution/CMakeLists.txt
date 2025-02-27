@@ -95,6 +95,7 @@ else()
     gfx90a:xnack-
     gfx90a:xnack+
     gfx942
+    gfx950
     gfx1030
     gfx1100
     gfx1101

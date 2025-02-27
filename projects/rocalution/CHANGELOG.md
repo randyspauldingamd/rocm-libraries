@@ -4,6 +4,9 @@ Full documentation forrocALUTION is available at [https://rocm.docs.amd.com/proj
 
 ## (Unreleased) rocALUTION 3.2.3
 
+### Added
+* Added support for gfx950.
+
 ### Resolved issues
 
 * Fix for GPU hashing algorithm when not compiling with -O2/O3
