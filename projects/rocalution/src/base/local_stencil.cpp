@@ -149,6 +149,7 @@ namespace rocalution
         this->stencil_->Apply(*in.vector_, out->vector_);
     }
 
+    // LCOV_EXCL_START
     template <typename ValueType>
     void LocalStencil<ValueType>::MoveToAccelerator(void)
     {
@@ -162,6 +163,7 @@ namespace rocalution
         LOG_INFO("The function is not implemented (yet)!");
         FATAL_ERROR(__FILE__, __LINE__);
     }
+    // LCOV_EXCL_STOP
 
     template class LocalStencil<double>;
     template class LocalStencil<float>;

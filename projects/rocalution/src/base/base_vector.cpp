@@ -68,6 +68,7 @@ namespace rocalution
         FATAL_ERROR(__FILE__, __LINE__);
     }
 
+    // LCOV_EXCL_START
     template <typename ValueType>
     void BaseVector<ValueType>::CopyFromData(const ValueType* data)
     {
@@ -103,6 +104,7 @@ namespace rocalution
         LOG_INFO("This function is not available for this backend");
         FATAL_ERROR(__FILE__, __LINE__);
     }
+    // LCOV_EXCL_STOP
 
     template <typename ValueType>
     void BaseVector<ValueType>::CopyFromFloat(const BaseVector<float>& vec)

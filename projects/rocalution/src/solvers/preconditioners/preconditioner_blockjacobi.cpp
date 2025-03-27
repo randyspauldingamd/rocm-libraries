@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2020 Advanced Micro Devices, Inc. All rights Reserved.
+ * Copyright (C) 2018-2025 Advanced Micro Devices, Inc. All rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -56,6 +56,7 @@ namespace rocalution
         this->Clear();
     }
 
+    // LCOV_EXCL_START
     template <class OperatorType, class VectorType, typename ValueType>
     void BlockJacobi<OperatorType, VectorType, ValueType>::Print(void) const
     {
@@ -63,6 +64,7 @@ namespace rocalution
 
         this->local_precond_->Print();
     }
+    // LCOV_EXCL_STOP
 
     template <class OperatorType, class VectorType, typename ValueType>
     void BlockJacobi<OperatorType, VectorType, ValueType>::Set(

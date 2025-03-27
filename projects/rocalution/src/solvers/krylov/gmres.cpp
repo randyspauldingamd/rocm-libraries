@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2021 Advanced Micro Devices, Inc. All rights Reserved.
+ * Copyright (C) 2018-2025 Advanced Micro Devices, Inc. All rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,6 +65,7 @@ namespace rocalution
         this->Clear();
     }
 
+    // LCOV_EXCL_START
     template <class OperatorType, class VectorType, typename ValueType>
     void GMRES<OperatorType, VectorType, ValueType>::Print(void) const
     {
@@ -105,6 +106,7 @@ namespace rocalution
             LOG_INFO("GMRES(" << this->size_basis_ << ") ends");
         }
     }
+    // LCOV_EXCL_STOP
 
     template <class OperatorType, class VectorType, typename ValueType>
     void GMRES<OperatorType, VectorType, ValueType>::Build(void)

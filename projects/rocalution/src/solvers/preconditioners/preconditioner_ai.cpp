@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2021 Advanced Micro Devices, Inc. All rights Reserved.
+ * Copyright (C) 2018-2025 Advanced Micro Devices, Inc. All rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,6 +55,7 @@ namespace rocalution
         this->Clear();
     }
 
+    // LCOV_EXCL_START
     template <class OperatorType, class VectorType, typename ValueType>
     void AIChebyshev<OperatorType, VectorType, ValueType>::Print(void) const
     {
@@ -65,6 +66,7 @@ namespace rocalution
             LOG_INFO("AI matrix nnz = " << this->AIChebyshev_.GetNnz());
         }
     }
+    // LCOV_EXCL_STOP
 
     template <class OperatorType, class VectorType, typename ValueType>
     void AIChebyshev<OperatorType, VectorType, ValueType>::Set(int       p,
@@ -226,6 +228,7 @@ namespace rocalution
         this->matrix_pattern_ = NULL;
     }
 
+    // LCOV_EXCL_START
     template <class OperatorType, class VectorType, typename ValueType>
     void FSAI<OperatorType, VectorType, ValueType>::Print(void) const
     {
@@ -237,6 +240,7 @@ namespace rocalution
                                                  - this->FSAI_L_.GetM());
         }
     }
+    // LCOV_EXCL_STOP
 
     template <class OperatorType, class VectorType, typename ValueType>
     void FSAI<OperatorType, VectorType, ValueType>::Set(int power)
@@ -378,6 +382,7 @@ namespace rocalution
         this->Clear();
     }
 
+    // LCOV_EXCL_START
     template <class OperatorType, class VectorType, typename ValueType>
     void SPAI<OperatorType, VectorType, ValueType>::Print(void) const
     {
@@ -388,6 +393,7 @@ namespace rocalution
             LOG_INFO("SPAI matrix nnz = " << this->SPAI_.GetNnz());
         }
     }
+    // LCOV_EXCL_STOP
 
     template <class OperatorType, class VectorType, typename ValueType>
     void SPAI<OperatorType, VectorType, ValueType>::Build(void)
@@ -493,6 +499,7 @@ namespace rocalution
         this->Clear();
     }
 
+    // LCOV_EXCL_START
     template <class OperatorType, class VectorType, typename ValueType>
     void TNS<OperatorType, VectorType, ValueType>::Print(void) const
     {
@@ -510,6 +517,7 @@ namespace rocalution
             }
         }
     }
+    // LCOV_EXCL_STOP
 
     template <class OperatorType, class VectorType, typename ValueType>
     void TNS<OperatorType, VectorType, ValueType>::Set(bool imp)

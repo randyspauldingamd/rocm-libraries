@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights Reserved.
+ * Copyright (C) 2018-2025 Advanced Micro Devices, Inc. All rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -93,6 +93,7 @@ namespace rocalution
         return this->itsolver_tol_;
     }
 
+    // LCOV_EXCL_START
     void SolverDescr::Print(void) const
     {
         switch(this->tri_solver_alg_)
@@ -113,6 +114,7 @@ namespace rocalution
             break;
         }
     }
+    // LCOV_EXCL_STOP
 
     void SolverDescr::EnableIterativeSolverTolerance(void)
     {
@@ -537,6 +539,7 @@ namespace rocalution
         this->omega_ = omega;
     }
 
+    // LCOV_EXCL_START
     template <class OperatorType, class VectorType, typename ValueType>
     void FixedPoint<OperatorType, VectorType, ValueType>::Print(void) const
     {
@@ -564,6 +567,7 @@ namespace rocalution
     {
         LOG_INFO("Fixed Point Iteration solver ends");
     }
+    // LCOV_EXCL_STOP
 
     template <class OperatorType, class VectorType, typename ValueType>
     void FixedPoint<OperatorType, VectorType, ValueType>::ReBuildNumeric(void)

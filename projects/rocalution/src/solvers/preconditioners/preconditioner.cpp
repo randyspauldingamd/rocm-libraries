@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights Reserved.
+ * Copyright (C) 2018-2025 Advanced Micro Devices, Inc. All rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -50,6 +50,7 @@ namespace rocalution
         log_debug(this, "Preconditioner::~Preconditioner()", "destructor");
     }
 
+    // LCOV_EXCL_START
     template <class OperatorType, class VectorType, typename ValueType>
     void Preconditioner<OperatorType, VectorType, ValueType>::PrintStart_(void) const
     {
@@ -61,6 +62,7 @@ namespace rocalution
     {
         // do nothing
     }
+    // LCOV_EXCL_STOP
 
     template <class OperatorType, class VectorType, typename ValueType>
     void Preconditioner<OperatorType, VectorType, ValueType>::SolveZeroSol(const VectorType& rhs,
@@ -85,11 +87,13 @@ namespace rocalution
         this->Clear();
     }
 
+    // LCOV_EXCL_START
     template <class OperatorType, class VectorType, typename ValueType>
     void Jacobi<OperatorType, VectorType, ValueType>::Print(void) const
     {
         LOG_INFO("Jacobi preconditioner");
     }
+    // LCOV_EXCL_STOP
 
     template <class OperatorType, class VectorType, typename ValueType>
     void Jacobi<OperatorType, VectorType, ValueType>::Build(void)
@@ -195,12 +199,14 @@ namespace rocalution
         this->Clear();
     }
 
+    // LCOV_EXCL_START
     template <class OperatorType, class VectorType, typename ValueType>
     void GS<OperatorType, VectorType, ValueType>::Print(void) const
     {
         LOG_INFO("Gauss-Seidel (GS) preconditioner");
         this->solver_descr_.Print();
     }
+    // LCOV_EXCL_STOP
 
     template <class OperatorType, class VectorType, typename ValueType>
     void GS<OperatorType, VectorType, ValueType>::Build(void)
@@ -291,12 +297,14 @@ namespace rocalution
         this->Clear();
     }
 
+    // LCOV_EXCL_START
     template <class OperatorType, class VectorType, typename ValueType>
     void SGS<OperatorType, VectorType, ValueType>::Print(void) const
     {
         LOG_INFO("Symmetric Gauss-Seidel (SGS) preconditioner");
         this->solver_descr_.Print();
     }
+    // LCOV_EXCL_STOP
 
     template <class OperatorType, class VectorType, typename ValueType>
     void SGS<OperatorType, VectorType, ValueType>::Build(void)
@@ -421,6 +429,7 @@ namespace rocalution
         this->Clear();
     }
 
+    // LCOV_EXCL_START
     template <class OperatorType, class VectorType, typename ValueType>
     void ILU<OperatorType, VectorType, ValueType>::Print(void) const
     {
@@ -432,6 +441,7 @@ namespace rocalution
             this->solver_descr_.Print();
         }
     }
+    // LCOV_EXCL_STOP
 
     template <class OperatorType, class VectorType, typename ValueType>
     void ILU<OperatorType, VectorType, ValueType>::Set(int p, bool level)
@@ -534,6 +544,7 @@ namespace rocalution
         this->Clear();
     }
 
+    // LCOV_EXCL_START
     template <class OperatorType, class VectorType, typename ValueType>
     void ItILU0<OperatorType, VectorType, ValueType>::Print(void) const
     {
@@ -596,6 +607,7 @@ namespace rocalution
             this->solver_descr_.Print();
         }
     }
+    // LCOV_EXCL_STOP
 
     template <class OperatorType, class VectorType, typename ValueType>
     void ItILU0<OperatorType, VectorType, ValueType>::SetAlgorithm(ItILU0Algorithm alg)
@@ -735,6 +747,7 @@ namespace rocalution
         this->Clear();
     }
 
+    // LCOV_EXCL_START
     template <class OperatorType, class VectorType, typename ValueType>
     void ILUT<OperatorType, VectorType, ValueType>::Print(void) const
     {
@@ -746,6 +759,7 @@ namespace rocalution
             this->solver_descr_.Print();
         }
     }
+    // LCOV_EXCL_STOP
 
     template <class OperatorType, class VectorType, typename ValueType>
     void ILUT<OperatorType, VectorType, ValueType>::Set(double t)
@@ -846,6 +860,7 @@ namespace rocalution
         this->Clear();
     }
 
+    // LCOV_EXCL_START
     template <class OperatorType, class VectorType, typename ValueType>
     void IC<OperatorType, VectorType, ValueType>::Print(void) const
     {
@@ -857,6 +872,7 @@ namespace rocalution
             this->solver_descr_.Print();
         }
     }
+    // LCOV_EXCL_STOP
 
     template <class OperatorType, class VectorType, typename ValueType>
     void IC<OperatorType, VectorType, ValueType>::Build(void)
@@ -945,6 +961,7 @@ namespace rocalution
         this->Clear();
     }
 
+    // LCOV_EXCL_START
     template <class OperatorType, class VectorType, typename ValueType>
     void VariablePreconditioner<OperatorType, VectorType, ValueType>::Print(void) const
     {
@@ -961,6 +978,7 @@ namespace rocalution
             LOG_INFO("VariablePreconditioner preconditioner");
         }
     }
+    // LCOV_EXCL_STOP
 
     template <class OperatorType, class VectorType, typename ValueType>
     void VariablePreconditioner<OperatorType, VectorType, ValueType>::SetPreconditioner(

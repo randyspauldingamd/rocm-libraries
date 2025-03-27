@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights Reserved.
+ * Copyright (C) 2018-2025 Advanced Micro Devices, Inc. All rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -437,6 +437,7 @@ namespace rocalution
             return _rocalution_init_base_hip_vector<ValueType>(backend_descriptor);
 #endif
 
+        // LCOV_EXCL_START
         default:
             // No backend supported!
             LOG_INFO("Rocalution was not compiled with "
@@ -445,6 +446,7 @@ namespace rocalution
                                            << " failed");
             FATAL_ERROR(__FILE__, __LINE__);
             return NULL;
+            // LCOV_EXCL_STOP
         }
     }
 
@@ -469,6 +471,7 @@ namespace rocalution
                 backend_descriptor, matrix_format, blockdim);
 #endif
 
+        // LCOV_EXCL_START
         default:
             LOG_INFO("Rocalution was not compiled with "
                      << _rocalution_backend_name[backend_descriptor.backend] << " support");
@@ -478,6 +481,7 @@ namespace rocalution
 
             FATAL_ERROR(__FILE__, __LINE__);
             return NULL;
+            // LCOV_EXCL_STOP
         }
     }
 
@@ -512,8 +516,10 @@ namespace rocalution
             return new HostMatrixMCSR<ValueType>(backend_descriptor);
         case BCSR:
             return new HostMatrixBCSR<ValueType>(backend_descriptor, blockdim);
+        // LCOV_EXCL_START
         default:
             return NULL;
+            // LCOV_EXCL_STOP
         }
     }
 
