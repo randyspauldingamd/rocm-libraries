@@ -1,14 +1,14 @@
 .. meta::
-   :description: A sparse linear algebra library with focus on exploring fine-grained parallelism on top of the AMD ROCm runtime and toolchains
-   :keywords: rocALUTION, ROCm, library, API, tool
+   :description: rocALUTION multi-node computation
+   :keywords: rocALUTION, ROCm, library, API, tool, multi-node, matrix, vectors, distributed memory
 
 .. _multi-node:
 
-**********************
-Multi-node computation
-**********************
+***********************************
+rocALUTION multi-node computation
+***********************************
 
-This document describes all the base objects (metrices and vectors) for computation on multi-node (distributed memory) systems.
+This document describes all the base objects (matrices and vectors) for computation on multi-node (distributed memory) systems.
 
 .. _multi-node1:
 
@@ -24,9 +24,11 @@ This document describes all the base objects (metrices and vectors) for computat
 
   An example for a multi-node configuration, where all nodes are connected via network. Dual socket systems with two accelerators attached to each node.
 
-To each compute node, one or more accelerators can be attached. The compute node could be any kind of shared-memory (single, dual, quad CPU) system, details on a single-node can be found in :numref:`single-node`.
+To each compute node, one or more accelerators can be attached. The compute node could be any kind of shared-memory (single, dual, quad CPU) system, details on a single-node can be found in :ref:`single-node`.
 
-.. note:: The memory of accelerator and host are physically different. All nodes can communicate with each other via network.
+.. note:: 
+
+  The memory of accelerator and host are physically different. All nodes can communicate with each other via network.
 
 For the communication channel between different nodes (and between the accelerators on single or multiple nodes) the MPI library is used.
 
@@ -54,10 +56,10 @@ Each object contains two local sub-objects. The global matrix stores interior an
 
 .. _global_objects:
 .. figure:: ../data/global_objects.png
-  :alt: global metrices and vectors
+  :alt: global matrices and vectors
   :align: center
 
-  Global metrices and vectors.
+  Global matrices and vectors.
 
 Parallel manager
 ================
@@ -86,13 +88,13 @@ To setup a parallel manager, the required information is:
 * Local size of the interior/ghost for each process
 * Communication pattern (what information need to be sent to whom)
 
-Global metrices and vectors
+Global matrices and vectors
 ===========================
 .. doxygenfunction:: rocalution::GlobalMatrix::GetInterior
 .. doxygenfunction:: rocalution::GlobalMatrix::GetGhost
 .. doxygenfunction:: rocalution::GlobalVector::GetInterior
 
-The global metrices and vectors store their data via two local objects. For the global matrix, the interior can be access via the :cpp:func:`rocalution::GlobalMatrix::GetInterior` and :cpp:func:`rocalution::GlobalMatrix::GetGhost` functions, which point to two valid local metrices. Similarily, the global vector can be accessed by :cpp:func:`rocalution::GlobalVector::GetInterior`.
+The global matrices and vectors store their data via two local objects. For the global matrix, the interior can be access via the :cpp:func:`rocalution::GlobalMatrix::GetInterior` and :cpp:func:`rocalution::GlobalMatrix::GetGhost` functions, which point to two valid local matrices. Similarily, the global vector can be accessed by :cpp:func:`rocalution::GlobalVector::GetInterior`.
 
 Asynchronous SpMV
 -----------------
@@ -186,10 +188,10 @@ To send data, ``RANK0`` requires:
 * How will the sending data (from each rank) be stored in the sending buffer (``SENDERS_INDEX_OFFSET`` - integer array). In this example, the first 30 elements will be sent to *P1* :math:`[0, 2)` and the second 30 to *P2* :math:`[2, 4)`.
 * The elements, which need to be send (``BOUNDARY_INDEX`` - integer array). In this example, the data which need to be send to *P1* and *P2* is the ghost layer, marked as ghost *P0*. The vertical stripe need to be send to *P1* and the horizontal stripe to *P2*. The numbering of local unknowns (in local indexing) for *P1* (the vertical stripes) are 1, 2 (size of 2) and stored in the ``BOUNDARY_INDEX``. After 2 elements, the elements for ``P2`` are stored, they are 2, 3 (2 elements).
 
-Metrices
+Matrices
 --------
 
-Each rank hosts two local metrices, interior and ghost matrix. They can be stored in separate files, one for each matrix. The file format could be Matrix Market (MTX) or binary.
+Each rank hosts two local matrices, interior and ghost matrix. They can be stored in separate files, one for each matrix. The file format could be Matrix Market (MTX) or binary.
 
 Vectors
 -------

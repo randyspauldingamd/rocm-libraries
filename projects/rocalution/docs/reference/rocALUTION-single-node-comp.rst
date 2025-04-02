@@ -1,14 +1,14 @@
 .. meta::
-   :description: A sparse linear algebra library with focus on exploring fine-grained parallelism on top of the AMD ROCm runtime and toolchains
-   :keywords: rocALUTION, ROCm, library, API, tool
+   :description: rocALUTION single-node computation
+   :keywords: rocALUTION, ROCm, library, API, tool, single-node, matrix, vectors, shared memory
 
 .. _single-node:
 
-***********************
-Single-node computation
-***********************
+************************************
+rocALUTION single-node computation
+************************************
 
-In this document, all base objects (metrices, vectors, and stencils) for computation on a single-node (shared-memory) system are described. A typical configuration is illustrated in the figure below.
+In this document, all base objects (matrices, vectors, and stencils) for computation on a single-node (shared memory) system are described. A typical configuration is illustrated in the figure below:
 
 .. _single-node-figure:
 .. figure:: ../data/single-node.png
@@ -17,13 +17,15 @@ In this document, all base objects (metrices, vectors, and stencils) for computa
 
   A typical single-node configuration, where gray boxes represent the cores, blue boxes represent the memory and arrows represent the bandwidth.
 
-The compute node contains none, one or more accelerators. The compute node could be any kind of shared-memory (single, dual, quad CPU) system.
+The compute node contains none, one or more accelerators. The compute node could be any kind of shared memory (single, dual, quad CPU) system.
 
-.. note:: The host and accelerator memory can be physically different.
+.. note:: 
+
+  The host and accelerator memory can be physically different.
 
 ValueType
 =========
-The value (data) type of the vectors and the metrices is defined as a template. The matrix can be of type float (32-bit), double (64-bit) and complex (64/128-bit). The vector can be float (32-bit), double (64-bit), complex (64/128-bit) and int (32/64-bit). The information about the precision of the data type is shown in the :cpp:func:`rocalution::BaseRocalution::Info` function.
+The value (data) type of the vectors and the matrices is defined as a template. The matrix can be of type float (32-bit), double (64-bit) and complex (64/128-bit). The vector can be float (32-bit), double (64-bit), complex (64/128-bit) and int (32/64-bit). The information about the precision of the data type is shown in the :cpp:func:`rocalution::BaseRocalution::Info` function.
 
 Complex support
 ===============
@@ -49,7 +51,10 @@ Allocation and free
   :outline:
 .. doxygenfunction:: rocalution::LocalMatrix::AllocateDENSE
 
-.. note:: More detailed information on the additional parameters required for matrix allocation is given in :ref:`matrix_formats`.
+.. note:: 
+
+  More detailed information on the additional parameters required for matrix allocation is given in :ref:`matrix_formats`.
+
 .. doxygenfunction:: rocalution::LocalMatrix::Clear
 
 .. _matrix_formats:
@@ -57,10 +62,15 @@ Allocation and free
 Matrix formats
 ==============
 
-Metrices, where most of the elements are equal to zero, are called sparse. In most practical applications, the number of non-zero entries is proportional to the size of the matrix (e.g. typically, if the matrix :math:`A \in \mathbb{R}^{N \times N}`, then the number of elements are of order :math:`O(N)`). To save memory, storing zero entries can be avoided by introducing a structure corresponding to the non-zero elements of the matrix. rocALUTION supports sparse CSR, MCSR, COO, ELL, DIA, HYB and dense metrices (DENSE).
+Matrices, where most of the elements are equal to zero, are called sparse. In most practical applications, the number of non-zero entries is proportional to the size of the matrix (e.g. typically, if the matrix :math:`A \in \mathbb{R}^{N \times N}`, then the number of elements are of order :math:`O(N)`). To save memory, storing zero entries can be avoided by introducing a structure corresponding to the non-zero elements of the matrix. rocALUTION supports sparse CSR, MCSR, COO, ELL, DIA, HYB and dense matrices (DENSE).
 
-.. note:: The functionality of every matrix object is different and depends on the matrix format. The CSR format provides the highest support for various functions. For a few operations, an internal conversion is performed, however, for many routines an error message is printed and the program is terminated.
-.. note:: In the current version, some of the conversions are performed on the host (disregarding the actual object allocation - host or accelerator).
+.. note:: 
+
+  The functionality of every matrix object is different and depends on the matrix format. The CSR format provides the highest support for various functions. For a few operations, an internal conversion is performed, however, for many routines an error message is printed and the program is terminated.
+
+.. note:: 
+
+  In the current version, some of the conversions are performed on the host (disregarding the actual object allocation - host or accelerator).
 
 .. code-block:: cpp
 
@@ -100,7 +110,9 @@ The most intuitive sparse format is the coordinate format (COO). It represents t
 ``coo_col_ind``   Array of ``nnz`` elements containing the column indices (integer).
 ================ ====================================================================
 
-.. note:: The COO matrix is expected to be sorted by row indices and column indices per row. Furthermore, each pair of indices should appear only once.
+.. note:: 
+
+  The COO matrix is expected to be sorted by row indices and column indices per row. Furthermore, each pair of indices should appear only once.
 
 Consider the following :math:`3 \times 5` matrix and the corresponding COO structures, with :math:`m = 3, n = 5` and :math:`\text{nnz} = 8`:
 
@@ -137,7 +149,9 @@ The CSR storage format represents a :math:`m \times n` matrix by:
 ``csr_col_ind`` Array of ``nnz`` elements containing the column indices (integer).
 =============== =========================================================================
 
-.. note:: The CSR matrix is expected to be sorted by column indices within each row. Furthermore, each pair of indices should appear only once.
+.. note:: 
+
+  The CSR matrix is expected to be sorted by column indices within each row. Furthermore, each pair of indices should appear only once.
 
 Consider the following :math:`3 \times 5` matrix and the corresponding CSR structures, with :math:`m = 3, n = 5` and :math:`\text{nnz} = 8`:
 
@@ -239,7 +253,9 @@ It represents a :math:`m \times n` matrix by:
 ``ell_col_ind`` Array of ``m times ell_width`` elements containing the column indices (integer).
 =============== ================================================================================
 
-.. note:: The ELL matrix is assumed to be stored in column-major format. Rows with less than ``ell_width`` non-zero elements are padded with zeros (``ell_val``) and :math:`-1` (``ell_col_ind``).
+.. note:: 
+
+  The ELL matrix is assumed to be stored in column-major format. Rows with less than ``ell_width`` non-zero elements are padded with zeros (``ell_val``) and :math:`-1` (``ell_col_ind``).
 
 Consider the following :math:`3 \times 5` matrix and the corresponding ELL structures, with :math:`m = 3, n = 5` and :math:`\text{ell_width} = 3`:
 
@@ -302,7 +318,7 @@ where
 HYB storage format
 ------------------
 
-The DIA and ELL formats cannot efficiently represent completely unstructured sparse metrices. To keep the memory footprint low, DIA requires the elements to belong to a few diagonals and ELL needs a fixed number of elements per row. For many applications this is a too strong restriction. A solution to this issue is to represent the more regular part of the matrix in such a format and the remaining part in COO format. The HYB format is a mixture between ELL and COO, where the maximum elements per row for the ELL part is computed by `nnz/m`. It represents a :math:`m \times n` matrix by:
+The DIA and ELL formats cannot efficiently represent completely unstructured sparse matrices. To keep the memory footprint low, DIA requires the elements to belong to a few diagonals and ELL needs a fixed number of elements per row. For many applications this is a too strong restriction. A solution to this issue is to represent the more regular part of the matrix in such a format and the remaining part in COO format. The HYB format is a mixture between ELL and COO, where the maximum elements per row for the ELL part is computed by `nnz/m`. It represents a :math:`m \times n` matrix by:
 
 =============== =========================================================================================
 ``m``           Number of rows (integer).
@@ -350,7 +366,9 @@ Access
   :outline:
 .. doxygenfunction:: rocalution::LocalVector::&operator[](int) const
 
-.. note:: Accessing elements via the *[]* operators is slow. Use this for debugging purposes only. There is no direct access to the elements of metrices due to the sparsity structure. Metrices can be imported by a copy function. For CSR metrices, this is :cpp:func:`rocalution::LocalMatrix::CopyFromCSR` and :cpp:func:`rocalution::LocalMatrix::CopyToCSR`.
+.. note:: 
+
+  Accessing elements via the *[]* operators is slow. Use this for debugging purposes only. There is no direct access to the elements of matrices due to the sparsity structure. Matrices can be imported by a copy function. For CSR matrices, this is :cpp:func:`rocalution::LocalMatrix::CopyFromCSR` and :cpp:func:`rocalution::LocalMatrix::CopyToCSR`.
 
 .. code-block:: cpp
 
@@ -411,10 +429,21 @@ With ``LeaveDataPtr``, the raw data from the object can be obtained. This leaves
   :outline:
 .. doxygenfunction:: rocalution::LocalMatrix::LeaveDataPtrDENSE
 
-.. note:: If the object is allocated on the host, then the pointers obtained from :ref:`SetDataPtr` and :ref:`LeaveDataPtr` will be on the host. If the vector object is on the accelerator, then the data pointers will be on the accelerator.
-.. note:: If the object is moved to and from the accelerator, then the original pointer will be invalid.
-.. note:: Never rely on old pointers, hidden object movement to and from the accelerator will make them invalid.
-.. note:: Whenever you pass or obtain pointers to/from a rocALUTION object, you need to use the same memory allocation/free functions. Please check the source code for that (for host *src/utils/allocate_free.cpp* and for HIP *src/base/hip/hip_allocate_free.cpp*)
+.. note:: 
+
+  If the object is allocated on the host, then the pointers obtained from :ref:`SetDataPtr` and :ref:`LeaveDataPtr` will be on the host. If the vector object is on the accelerator, then the data pointers will be on the accelerator.
+
+.. note:: 
+  
+  If the object is moved to and from the accelerator, then the original pointer will be invalid.
+
+.. note:: 
+  
+  Never rely on old pointers, hidden object movement to and from the accelerator will make them invalid.
+
+.. note:: 
+  
+  Whenever you pass or obtain pointers to/from a rocALUTION object, you need to use the same memory allocation/free functions. Please check the source code for that (for host *src/utils/allocate_free.cpp* and for HIP *src/base/hip/hip_allocate_free.cpp*)
 
 Copy CSR matrix host data
 =========================
@@ -441,14 +470,16 @@ All matrix and vector objects provide a *CopyFrom()* function. The destination o
 .. doxygenfunction:: rocalution::LocalVector::CopyFrom(const LocalVector<ValueType>&)
 .. doxygenfunction:: rocalution::LocalMatrix::CopyFrom
 
-.. note:: For vectors, the user can specify source and destination offsets and thus copy only a part of the whole vector into another vector.
+.. note:: 
+  
+  For vectors, the user can specify source and destination offsets and thus copy only a part of the whole vector into another vector.
 
 .. doxygenfunction:: rocalution::LocalVector::CopyFrom(const LocalVector<ValueType>&, int64_t, int64_t, int64_t)
 
 Clone
 =====
 
-The copy operators allow you to copy the values of the object to another object, without changing the backend specification of the object. In many algorithms, you might need auxiliary vectors or metrices. These objects can be cloned with ``CloneFrom()``.
+The copy operators allow you to copy the values of the object to another object, without changing the backend specification of the object. In many algorithms, you might need auxiliary vectors or matrices. These objects can be cloned with ``CloneFrom()``.
 
 CloneFrom
 ---------
@@ -467,7 +498,7 @@ Check
 .. doxygenfunction:: rocalution::LocalVector::Check
 .. doxygenfunction:: rocalution::LocalMatrix::Check
 
-Checks if the object contains valid data. For vectors, the function checks if the values are not infinity and not NaN (not a number). For metrices, this function checks the values and if the structure of the matrix is correct (e.g. indices cannot be negative, CSR and COO metrices have to be sorted, etc.).
+Checks if the object contains valid data. For vectors, the function checks if the values are not infinity and not NaN (not a number). For matrices, this function checks the values and if the structure of the matrix is correct (e.g. indices cannot be negative, CSR and COO matrices have to be sorted, etc.).
 
 Sort
 ====

@@ -1,12 +1,12 @@
 .. meta::
-   :description: A sparse linear algebra library with focus on exploring fine-grained parallelism on top of the AMD ROCm runtime and toolchains
-   :keywords: rocALUTION, ROCm, library, API, tool
+   :description: rocALUTION source code organization
+   :keywords: rocALUTION, ROCm, library, API, tool, source code
 
 .. _source-code-organization:
 
-********************************
-Library source code organization
-********************************
+*************************************
+rocALUTION source code organization
+*************************************
 
 The rocALUTION library is split into three major directories:
 
@@ -27,8 +27,9 @@ The primary goal is to use this technology whenever possible to decrease the com
 Each technology has its own backend implementation, dealing with platform-specific functionalities such as initialization, synchronization, reservation, etc.
 The backends are currently available for CPU (naive, OpenMP, MPI) and GPU (HIP).
 
-.. note:: Not all functions are ported and present on the accelerator backend.
-          This limited functionality is natural, since all operations can't be performed efficiently on the accelerators (e.g. sequential algorithms, I/O from the file system, etc.).
+.. note:: 
+
+  ot all functions are ported and present on the accelerator backend. This limited functionality is natural, since all operations can't be performed efficiently on the accelerators (e.g. sequential algorithms, I/O from the file system, etc.).
 
 The Operator and Vector classes
 ```````````````````````````````
@@ -37,7 +38,7 @@ While granting access to all relevant functionalities, all hardware-relevant imp
 Those linear operators and vectors are the main objects in rocALUTION.
 They can be moved to an accelerator at run-time.
 
-The linear operators are defined as local or global metrices (i.e. on a single node or distributed/multi-node) and local stencils (i.e. matrix-free linear operations).
+The linear operators are defined as local or global matrices (i.e. on a single node or distributed/multi-node) and local stencils (i.e. matrix-free linear operations).
 The only template parameter of the operators and vectors is the data type (ValueType). The figure below provides an overview of supported operators and vectors.
 
 .. _operatorsd:
@@ -61,7 +62,7 @@ The BaseMatrix and BaseVector classes
 `````````````````````````````````````
 The ``data`` is an object pointing to the ``BaseMatrix`` class from either a ``HostMatrix`` or an ``AcceleratorMatrix``.
 The ``AcceleratorMatrix`` is created by an object with an implementation in the backend and a matrix format.
-Switching between host and accelerator metrices is performed in the ``LocalMatrix`` class.
+Switching between host and accelerator matrices is performed in the ``LocalMatrix`` class.
 The ``LocalVector`` is organized in the same way.
 
 Each matrix format has its own class for the host and the accelerator backend.
@@ -117,7 +118,9 @@ In the ``src/utils`` directory, all commonly used host (de)allocation, timing, m
 Furthermore, the rocALUTION ``GlobalType``, which is the indexing type for global and distributed structures, can be adjusted in ``src/utils/types.hpp``.
 By default, rocALUTION uses 64-bit wide global indexing.
 
-.. note:: It is not recommended to switch to 32-bit global indexing.
+.. note:: 
+
+  It is not recommended to switch to 32-bit global indexing.
 
 In ``src/utils/def.hpp``:
 

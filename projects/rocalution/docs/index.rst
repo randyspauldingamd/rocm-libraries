@@ -10,20 +10,38 @@ rocALUTION documentation
 
 rocALUTION is a sparse linear algebra library with focus on exploring fine-grained parallelism on top of the AMD ROCm runtime and toolchains. To learn more, see :ref:`what-is-rocalution`
 
-You can access rocALUTION code on our `GitHub repository <https://github.com/ROCm/rocALUTION>`_.
+The rocALUTION public repository is located at `https://github.com/ROCm/rocALUTION <https://github.com/ROCm/rocALUTION>`_.
 
-Our documentation is structured as follows:
 
 .. grid:: 2
   :gutter: 3
 
   .. grid-item-card:: Install
 
-    * :ref:`linux-installation`
-    * :ref:`windows-installation`
-    * :ref:`supported-targets`
+    * :doc:`rocALUTION prerequisites <install/rocALUTION-prerequisites>`
+    * :doc:`rocALUTION installation <install/rocALUTION-general-install>`
+    
+      * :doc:`Installing rocALUTION on Linux <install/rocALUTION-linux-build-and-install>`
+      * :doc:`Installing rocALUTION on Windows <install/rocALUTION-windows-build-and-install>`
 
-  .. grid-item-card:: API reference
+.. grid:: 2
+  :gutter: 3
+
+  .. grid-item-card:: Conceptual
+
+    * :ref:`design-philosophy`
+    * :ref:`source-code-organization`
+
+  .. grid-item-card:: How to
+
+    * :doc:`Extend rocALUTION <how-to/extending-rocALUTION>`
+    * :doc:`Include rocALUTION in your source code <how-to/include-rocALUTION>`
+
+  .. grid-item-card:: Samples
+
+    * :ref:`clients`
+
+  .. grid-item-card:: Reference
 
     * :ref:`basics`
     * :ref:`single-node`
@@ -33,14 +51,9 @@ Our documentation is structured as follows:
     * :ref:`backends`
     * :ref:`api`
     * :ref:`remarks`
-    
-  .. grid-item-card:: Contribution
-
-    * :ref:`design-philosophy`
-    * :ref:`source-code-organization`
-    * :ref:`functionality-extension`
     * :ref:`functionality-table`
-    * :ref:`clients`
+
+    
 
 To contribute to the documentation, refer to
 `Contributing to ROCm  <https://rocm.docs.amd.com/en/latest/contribute/contributing.html>`_.

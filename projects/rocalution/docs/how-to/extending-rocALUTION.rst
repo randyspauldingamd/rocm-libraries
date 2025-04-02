@@ -1,18 +1,16 @@
 .. meta::
-   :description: A sparse linear algebra library with focus on exploring fine-grained parallelism on top of the AMD ROCm runtime and toolchains
-   :keywords: rocALUTION, ROCm, library, API, tool
+   :description: Extending rocALUTION functionality
+   :keywords: rocALUTION, ROCm, library, API, tool, rocALUTION functionality
 
 .. _functionality-extension:
 
-**********************************
-Functionality extension guidelines
-**********************************
+***********************************************
+Extending rocALUTION functionality
+***********************************************
 
-This document provides information about the different ways to implement user-specific routines, solvers, or preconditioners to the rocALUTION library package.
-Additional features can be added in multiple ways.
-Additional solver and preconditioner functionality that uses the existing backend functionality performs well on accelerator devices without the need for expert GPU programming knowledge.
-Also, those not interested in using accelerators are not required to perform HIP and GPU-related programming tasks to add additional functionality.
+The rocALUTION library is open source and can be extended with user-specific routines, solvers, and preconditioners.
 
+You can choose to extend rocALUTION 
 In the following sections, different levels of functionality enhancements are illustrated.
 These examples can be used as guidelines to extend rocALUTION step by step with your own routines.
 Please note, that user-added routines can also be added to the main GitHub repository using pull requests.
@@ -44,7 +42,7 @@ The new routines can be added as public member functions as shown below:
   ...
 
 For the implementation of the new API function, it is important to know the location of the availability of this functionality.
-To add support for any backend and matrix format, format conversions are required if ``MyNewFunctionality()`` is only supported for CSR metrices.
+To add support for any backend and matrix format, format conversions are required if ``MyNewFunctionality()`` is only supported for CSR matrices.
 This is subject to the API function implementation:
 
 .. code-block:: cpp
@@ -183,7 +181,7 @@ Place the host implementation in ``src/base/host/host_matrix_csr.cpp`` as we dec
   {
       // Place some asserts to verify sanity of input data
 
-      // Our algorithm works only for squared metrices
+      // Our algorithm works only for squared matrices
       assert(this->nrow_ == this->ncol_);
       assert(this->nnz_ > 0);
 
@@ -244,7 +242,7 @@ Add the HIP implementation ``src/base/hip/hip_matrix_csr.cpp`` in this case.
   {
       // Place some asserts to verify sanity of input data
 
-      // Our algorithm works only for squared metrices
+      // Our algorithm works only for squared matrices
       assert(this->nrow_ == this->ncol_);
       assert(this->nnz_ > 0);
 

@@ -1,17 +1,18 @@
 .. meta::
-   :description: A sparse linear algebra library with focus on exploring fine-grained parallelism on top of the AMD ROCm runtime and toolchains
-   :keywords: rocALUTION, ROCm, library, API, tool
+   :description: rocALUTION solvers
+   :keywords: rocALUTION, ROCm, library, API, tool, solvers
 
 .. _solver-class:
 
-*******
-Solvers
-*******
+********************
+rocALUTION solvers
+********************
 
 This document provides a category-wise listing of the solver APIs along with the information required to use them.
 
 Code structure
 ==============
+
 .. doxygenclass:: rocalution::Solver
 
 It provides an interface for:
@@ -27,6 +28,7 @@ It provides an interface for:
 
 Iterative linear solvers
 ========================
+
 .. doxygenclass:: rocalution::IterativeLinearSolver
 
 It provides an interface for:
@@ -50,7 +52,9 @@ Each iterative solver consists of a building step and a solving step. During the
 
 When the initial matrix associated with the solver is on the accelerator, the solver tries to build everything on the accelerator. However, some preconditioners and solvers (such as FSAI and AMG) must be constructed on the host before being transferred to the accelerator. If the initial matrix is on the host and you want to run the solver on the accelerator, then you need to move the solver to the accelerator, matrix, right-hand side, and solution vector.
 
-.. note:: If you have a preconditioner associated with the solver, it is moved automatically to the accelerator when you move the solver.
+.. note:: 
+
+  If you have a preconditioner associated with the solver, it is moved automatically to the accelerator when you move the solver.
 
 .. code-block:: cpp
 
@@ -107,9 +111,13 @@ Clear function and destructor
 
 The :cpp:func:`rocalution::Solver::Clear` function clears all the data which is in the solver, including the associated preconditioner. Thus, the solver is not anymore associated with this preconditioner.
 
-.. note:: The preconditioner is not deleted (via destructor), only a :cpp:func:`rocalution::Preconditioner::Clear` is called.
+.. note:: 
 
-.. note:: When the destructor of the solver class is called, it automatically calls the *Clear()* function. Be careful, when declaring your solver and preconditioner in different places - we highly recommend to manually call the *Clear()* function of the solver and not rely on the destructor of the solver.
+  The preconditioner is not deleted (via destructor), only a :cpp:func:`rocalution::Preconditioner::Clear` is called.
+
+.. note:: 
+
+  When the destructor of the solver class is called, it automatically calls the *Clear()* function. Be careful, when declaring your solver and preconditioner in different places - we highly recommend to manually call the *Clear()* function of the solver and not rely on the destructor of the solver.
 
 Numerical update
 ================
@@ -235,4 +243,6 @@ Direct linear solvers
 .. doxygenclass:: rocalution::QR
 .. doxygenclass:: rocalution::Inversion
 
-.. note:: These methods can only be used with local-type problems.
+.. note:: 
+
+  These methods can only be used with local-type problems.

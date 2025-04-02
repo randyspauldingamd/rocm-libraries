@@ -1,12 +1,12 @@
 .. meta::
-   :description: A sparse linear algebra library with focus on exploring fine-grained parallelism on top of the AMD ROCm runtime and toolchains
-   :keywords: rocALUTION, ROCm, library, API, tool
+   :description: rocALUTION examples
+   :keywords: rocALUTION, ROCm, library, API, tool, examples
 
 .. _clients:
 
-*******
-Clients
-*******
+****************************
+rocALUTION client examples
+****************************
 
 rocALUTION clients host a variety of different examples as well as a unit test package.
 For detailed instructions on how to build rocALUTION with clients, see :ref:`linux-installation` or :ref:`windows-installation`.

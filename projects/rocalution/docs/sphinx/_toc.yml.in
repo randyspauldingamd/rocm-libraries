@@ -5,28 +5,43 @@ subtrees:
   - numbered: False
     entries:
     - file: what-is-rocalution
+
   - caption: Install
     entries:
-    - file: install/linux-installation
-    - file: install/windows-installation
-    - file: install/targets
-  - caption: API reference
+    - file: install/rocALUTION-prerequisites.rst
+    - file: install/rocALUTION-general-install.rst
+    - file: install/rocALUTION-linux-build-and-install.rst
+    - file: install/rocALUTION-windows-build-and-install.rst
+  
+  - caption: Conceptual
     entries:
-    - file: api-reference/basics
-    - file: api-reference/singlenode
-    - file: api-reference/multinode
-    - file: api-reference/solvers
-    - file: api-reference/precond
-    - file: api-reference/backend
-    - file: api-reference/api
-    - file: api-reference/remarks
-  - caption: Contribution
+    - file: conceptual/rocALUTION-design.rst
+    - file: conceptual/rocALUTION-organization.rst
+    
+  - caption: How to
     entries:
-    - file: contribution/design
-    - file: contribution/orga
-    - file: contribution/guides
-    - file: contribution/functable
-    - file: contribution/clients
+    - file: how-to/extending-rocALUTION.rst
+      title: Extend rocALUTION
+    - file: how-to/include-rocALUTION.rst
+      title: Include rocALUTION
+  
+  - caption: Samples
+    entries:
+    - file: tutorials/rocALUTION-client-examples
+  
+  - caption: Reference
+    entries:
+    - file: reference/rocALUTION-api-basics.rst
+    - file: reference/rocALUTION-single-node-comp.rst
+    - file: reference/rocALUTION-multi-node-comp.rst
+    - file: reference/rocALUTION-solvers.rst
+    - file: reference/rocALUTION-preconditioners.rst
+    - file: reference/rocALUTION-accelerators.rst
+    - file: reference/rocALUTION-api.rst
+    - file: reference/rocALUTION-functionality-table.rst
+    - file: reference/rocALUTION-library-notes.rst
+
+
   - caption: About
     entries:
     - file: license

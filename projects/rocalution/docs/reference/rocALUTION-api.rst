@@ -1,12 +1,12 @@
 .. meta::
-   :description: A sparse linear algebra library with focus on exploring fine-grained parallelism on top of the AMD ROCm runtime and toolchains
-   :keywords: rocALUTION, ROCm, library, API, tool
+   :description: rocALUTION multi-node computation
+   :keywords: rocALUTION, ROCm, library, API, tool, API library.
 
 .. _api:
 
-#############
-API library
-#############
+************************
+rocALUTION API library
+************************
 
 This document provides the detailed API list.
 

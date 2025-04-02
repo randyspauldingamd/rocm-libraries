@@ -1,12 +1,12 @@
 .. meta::
-   :description: A sparse linear algebra library with focus on exploring fine-grained parallelism on top of the AMD ROCm runtime and toolchains
-   :keywords: rocALUTION, ROCm, library, API, tool
+   :description: rocALUTION preconditioners
+   :keywords: rocALUTION, ROCm, library, API, preconditioners
 
 .. _preconditioners:
 
-###############
-Preconditioners
-###############
+***************************
+rocALUTION Preconditioners
+***************************
 
 This document provides a category-wise listing of the preconditioners. All preconditioners support local operators. They can be used as a global preconditioner via block-jacobi scheme, which works locally on each interior matrix. To provide fast application, all preconditioners require extra memory to keep the approximated operator.
 
@@ -21,14 +21,20 @@ Jacobi method
 =============
 
 .. doxygenclass:: rocalution::Jacobi
-.. note:: To adjust the damping parameter :math:`\omega`, use :cpp:func:`rocalution::FixedPoint::SetRelaxation`.
+
+.. note:: 
+  
+  To adjust the damping parameter :math:`\omega`, use :cpp:func:`rocalution::FixedPoint::SetRelaxation`.
 
 (Symmetric) Gauss-Seidel or (S)SOR method
 ==========================================
 
 .. doxygenclass:: rocalution::GS
 .. doxygenclass:: rocalution::SGS
-.. note:: To adjust the relaxation parameter :math:`\omega`, use :cpp:func:`rocalution::FixedPoint::SetRelaxation`.
+
+.. note:: 
+
+  To adjust the relaxation parameter :math:`\omega`, use :cpp:func:`rocalution::FixedPoint::SetRelaxation`.
 
 Incomplete factorizations
 =========================
@@ -91,7 +97,10 @@ MultiColored (symmetric) Gauss-Seidel / (S)SOR
 .. doxygenclass:: rocalution::MultiColoredGS
 .. doxygenclass:: rocalution::MultiColoredSGS
 .. doxygenfunction:: rocalution::MultiColoredSGS::SetRelaxation
-.. note:: To change the preconditioner matrix format, use :cpp:func:`rocalution::MultiColored::SetPrecondMatrixFormat`.
+
+.. note:: 
+
+  To change the preconditioner matrix format, use :cpp:func:`rocalution::MultiColored::SetPrecondMatrixFormat`.
 
 MultiColored power(q)-pattern method ILU(p,q)
 ---------------------------------------------
@@ -99,7 +108,10 @@ MultiColored power(q)-pattern method ILU(p,q)
 .. doxygenclass:: rocalution::MultiColoredILU
 .. doxygenfunction:: rocalution::MultiColoredILU::Set(int)
 .. doxygenfunction:: rocalution::MultiColoredILU::Set(int, int, bool)
-.. note:: To change the preconditioner matrix format, use :cpp:func:`rocalution::MultiColored::SetPrecondMatrixFormat`.
+
+.. note:: 
+
+  To change the preconditioner matrix format, use :cpp:func:`rocalution::MultiColored::SetPrecondMatrixFormat`.
 
 Multi-elimination incomplete LU
 ===============================

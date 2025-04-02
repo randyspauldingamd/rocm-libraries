@@ -1,7 +1,7 @@
 .. meta::
-   :description: A sparse linear algebra library with focus on exploring fine-grained parallelism on top of the AMD ROCm runtime and toolchains
-   :keywords: rocALUTION, ROCm, library, API, tool
-
+   :description: rocALUTION functionality table
+   :keywords: rocALUTION, ROCm, library, API, functionality table
+   
 .. _functionality-table:
 
 *******************
@@ -15,8 +15,9 @@ LocalMatrix and LocalVector classes
 
 All matrix operations (except SpMV) require a CSR matrix.
 
-.. note:: If the input matrix is not a CSR matrix, an internal conversion is performed to CSR format, followed by a back conversion to the previous format after the operation.
-          In this case, a warning message on verbosity level 2 is printed.
+.. note:: 
+
+   If the input matrix is not a CSR matrix, an internal conversion is performed to CSR format, followed by a back conversion to the previous format after the operation. In this case, a warning message on verbosity level 2 is printed.
 
 ==================================================================================== =============================================================================== ======== =======
 **LocalMatrix function**                                                             **Comment**                                                                     **Host** **HIP**
@@ -157,7 +158,9 @@ All matrix operations (except SpMV) require a CSR matrix.
 Solver and preconditioner classes
 =================================
 
-.. note:: The building phase of the iterative solver also depends on the selected preconditioner.
+.. note:: 
+
+   The building phase of the iterative solver also depends on the selected preconditioner.
 
 ================================================================= ================= ======== =======
 **Solver**                                                        **Functionality** **Host** **HIP**

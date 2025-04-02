@@ -1,21 +1,20 @@
 .. meta::
-   :description: A sparse linear algebra library with focus on exploring fine-grained parallelism on top of the AMD ROCm runtime and toolchains
-   :keywords: rocALUTION, ROCm, library, API, tool
+   :description: rocALUTION API basics
+   :keywords: rocALUTION, ROCm, HIP SDK, library, API, basics
 
 .. _basics:
 
-******
-Basics
-******
+***********************
+rocALUTION API Basics
+***********************
 
-This document covers the basic information about rocALUTION APIs and their usage.
+This document covers basic information about the rocALUTION APIs and their uses.
 
 Operators and vectors
 =====================
 
-The main objects in rocALUTION are linear operators and vectors.
-All objects can be moved to an accelerator at run-time.
-The linear operators are defined as local or global metrices (i.e. on a single-node or distributed/multi-node) and local stencils (i.e. matrix-free linear operations).
+The main objects in rocALUTION are linear operators and vectors. All objects can be moved to an accelerator at run-time. Linear operators are defined as local or global matrices (i.e. on a single-node or distributed/multi-node) and local stencils (i.e. matrix-free linear operations).
+
 The only template parameter of the operators and vectors is the data type (``ValueType``).
 The operator data type could be float, double, complex float, or complex double, while the vector data type can be int, float, double, complex float or complex double (int is used mainly for the permutation vectors).
 In the current version, cross ``ValueType`` object operations are not supported. The following figure gives an overview of supported operators and vectors.
@@ -33,7 +32,7 @@ Each object contains a local copy of the hardware descriptor created by the :cpp
 Local operators and vectors
 ---------------------------
 
-The local operators and vectors correspond to the local metrices and stencils, and local vectors. The term "local" implies the fact that they stay on a single system. A system can contain several CPUs via UMA or NUMA memory system, as well as an accelerator.
+The local operators and vectors correspond to the local matrices and stencils, and local vectors. The term "local" implies the fact that they stay on a single system. A system can contain several CPUs via UMA or NUMA memory system, as well as an accelerator.
 
 .. doxygenclass:: rocalution::LocalMatrix
 .. doxygenclass:: rocalution::LocalStencil
@@ -84,7 +83,7 @@ OpenMP threshold size
 When working on a small problem, OpenMP host backend might be slightly slower than using no OpenMP.
 This is mainly attributed to the small amount of work, which every thread should perform and the large overhead of forking/joining threads.
 This can be avoided by the OpenMP threshold size parameter in rocALUTION.
-The default threshold is set to 10.000, which means that all metrices under (and equal to) this size use only one thread (irrespective of the number of OpenMP threads set in the system).
+The default threshold is set to 10.000, which means that all matrices under (and equal to) this size use only one thread (irrespective of the number of OpenMP threads set in the system).
 To modify the threshold, use :cpp:func:`set_omp_threshold_rocalution <rocalution::set_omp_threshold_rocalution>`.
 
 Accelerator selection
@@ -174,7 +173,7 @@ If file logging is enabled, all ranks write into the corresponding log files.
 Debug output
 ============
 
-Debug output prints almost every detail in the program, including object constructor/destructor, address of the object, memory allocation, data transfers, all function calls for metrices, vectors, solvers, and preconditioners.
+Debug output prints almost every detail in the program, including object constructor/destructor, address of the object, memory allocation, data transfers, all function calls for matrices, vectors, solvers, and preconditioners.
 The flag ``DEBUG_MODE`` can be set in ``src/utils/def.hpp``.
 When enabled, additional ``assert()s`` are checked during the computation.
 This might significantly reduce the performance of some operations.
