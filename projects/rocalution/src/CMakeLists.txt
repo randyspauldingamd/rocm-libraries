@@ -204,6 +204,10 @@ if(SUPPORT_HIP)
     target_link_libraries(rocalution_hip PUBLIC MPI::MPI_CXX)
   endif()
 
+  if(BUILD_SUPPORT_COMPLEX)
+    target_compile_definitions(rocalution_hip PRIVATE SUPPORT_COMPLEX)
+  endif()
+
   rocm_set_soversion(rocalution_hip "1.0.0")
   set_target_properties(rocalution_hip PROPERTIES DEBUG_POSTFIX "-d")
 
