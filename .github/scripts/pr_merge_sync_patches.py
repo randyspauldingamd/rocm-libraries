@@ -172,36 +172,15 @@ def generate_file_level_patches(prefix: str, merge_sha: str, output_dir: Path) -
         # Note: format-patch does not have an easy single-file option, so fallback to git diff output to patch file
         patch_path = output_dir / (changed_file.replace("/", "_") + ".patch")
         diff_output = _run_git([
-            "diff", f"{merge_sha}^!", "--", changed_file
+            "diff", f"{merge_sha}^!", f"--relative={prefix}", "--", changed_file
         ])
         # Write patch to file, but rewrite paths to be relative to subtree prefix by removing prefix/
         # Since changed_file is under prefix, strip prefix + slash from paths in patch header
-        adjusted_patch = _adjust_patch_paths(diff_output, prefix)
-        patch_path.write_text(adjusted_patch, encoding="utf-8")
+        patch_path.write_text(diff_output, encoding="utf-8")
         patch_files.append(patch_path)
 
     logger.debug(f"Generated {len(patch_files)} file-level patches for prefix '{prefix}'")
     return patch_files
-
-def _adjust_patch_paths(patch_text: str, prefix: str) -> str:
-    """
-    Remove prefix/ from the paths in the patch text to make it relative for application in subrepo.
-    """
-    # Typical patch headers:
-    # --- a/prefix/filename
-    # +++ b/prefix/filename
-    # We replace 'a/prefix/' and 'b/prefix/' with 'a/' and 'b/'
-    lines = patch_text.splitlines()
-    adjusted_lines = []
-    prefix_slash = prefix.rstrip("/") + "/"
-    for line in lines:
-        if line.startswith("--- a/") and line[6:].startswith(prefix_slash):
-            adjusted_lines.append("--- a/" + line[6+len(prefix_slash):])
-        elif line.startswith("+++ b/") and line[6:].startswith(prefix_slash):
-            adjusted_lines.append("+++ b/" + line[6+len(prefix_slash):])
-        else:
-            adjusted_lines.append(line)
-    return "\n".join(adjusted_lines) + "\n"
 
 def resolve_patch_author(client: GitHubCLIClient, repo: str, pr: int) -> tuple[str, str]:
     """Determine the appropriate author for the patch
