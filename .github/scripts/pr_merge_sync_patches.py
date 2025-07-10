@@ -96,10 +96,25 @@ def _configure_git_user(repo_path: Path) -> None:
     _run_git(["config", "user.name", "assistant-librarian[bot]"], cwd=repo_path)
     _run_git(["config", "user.email", "assistant-librarian[bot]@users.noreply.github.com"], cwd=repo_path)
 
-def _apply_patch(repo_path: Path, patch_path: Path) -> None:
-    """Apply a patch file to the working tree."""
-    _run_git(["am", str(patch_path)], cwd=repo_path)
-    logger.info(f"Applied patch to working tree at {repo_path}")
+def _apply_patch(repo_path: Path, patch_path: Path, rel_file_path: Path, monorepo_path: Path, prefix: str) -> None:
+    """Try to apply a patch; if it fails, fallback to full file replacement."""
+    try:
+        _run_git(["am", str(patch_path)], cwd=repo_path)
+        logger.info(f"Applied patch {patch_path.name} successfully")
+    except RuntimeError as e:
+        logger.warning(f"Patch {patch_path.name} failed to apply; falling back to full file copy")
+
+        # Construct source and destination
+        monorepo_file = monorepo_path / prefix / rel_file_path
+        subrepo_file = repo_path / rel_file_path
+        subrepo_file.parent.mkdir(parents=True, exist_ok=True)
+
+        if not monorepo_file.exists():
+            raise RuntimeError(f"Fallback failed: {monorepo_file} does not exist")
+
+        shutil.copyfile(monorepo_file, subrepo_file)
+        _run_git(["add", str(rel_file_path)], cwd=repo_path)
+        logger.info(f"Copied {monorepo_file} -> {subrepo_file}")
 
 def _set_authenticated_remote(repo_path: Path, repo_url: str) -> None:
     """Set the push URL to use the GitHub App token from GH_TOKEN env."""
@@ -242,7 +257,9 @@ def apply_patches_and_squash(entry: RepoEntry, monorepo_url: str, monorepo_pr: i
         # Handle modified files (apply patches)
         for patch_path in modified_patch_paths:
             logger.debug(f"Applying patch {patch_path.name} to {entry.name}")
-            _apply_patch(subrepo_path, patch_path)
+            filename = patch_path.stem.replace("_", "/")
+            rel_path = Path(filename)
+            _apply_patch(subrepo_path, patch_path, rel_path, Path.cwd(), prefix)
 
         # Final squash
         commit_msg = f"[rocm-libraries] {monorepo_url}#{monorepo_pr} (commit {merge_sha[:7]})\n\n" + \
