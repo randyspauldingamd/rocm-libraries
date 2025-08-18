@@ -833,15 +833,17 @@ void RunSolver(const miopen::solver::conv::ConvSolverInterface& solver,
 
 } // namespace
 
+//#define MIOPEN_WARNING(message) GTEST_MESSAGE_(
+#define MIOPEN_SKIP(message) GTEST_SKIP_((std::string("SKIPPING TEST: ") + message).c_str())
 void UnitTestConvSolverBase::SetUpImpl(const UnitTestConvSolverParams& params)
 {
     if(!IsTestSupportedByDevice(params.supported_devs))
     {
-        GTEST_SKIP();
+        MIOPEN_SKIP("NOT_SUPPORTED_BY_DEVICE");
     }
     else if(params.check_xnack_disabled && get_handle_xnack())
     {
-        GTEST_SKIP();
+        MIOPEN_SKIP("XNACK_DISABLED");
     }
 }
 

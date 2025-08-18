@@ -325,7 +325,7 @@ MIOPEN_LIB_ENV_VAR(MIOPEN_FIND_ENFORCE)
 protected:                                                                                    \
     void SetUp() override                                                                     \
     {                                                                                         \
-        GTEST_SKIP() << "-> GTests using test_drive<> disabled until gtest-aware version of " \
+        GTEST_SKIP_("not enabled") << "-> GTests using test_drive<> disabled until gtest-aware version of " \
                         "test/driver.hpp is built ";                                          \
     }
 #endif
