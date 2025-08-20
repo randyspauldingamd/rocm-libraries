@@ -295,7 +295,7 @@ void invoke_with_params(Check&& check)
     }
 }
 
-/// repalcement of gtest's FAIL() because FAIL() returns void and messes up the
+/// replacement of gtest's FAIL() because FAIL() returns void and messes up the
 /// return type deduction
 #define MIOPEN_FRIENDLY_FAIL(MSG)   \
     do                              \
@@ -314,6 +314,10 @@ MIOPEN_LIB_ENV_VAR(MIOPEN_DEBUG_CONV_GEMM)
 MIOPEN_LIB_ENV_VAR(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM)
 MIOPEN_LIB_ENV_VAR(MIOPEN_LOG_LEVEL)
 MIOPEN_LIB_ENV_VAR(MIOPEN_FIND_ENFORCE)
+
+// aliases for gtest exits w/required descriptive message
+#define MIOPEN_GTEST_FAIL(message) GTEST_FAIL() << message
+#define MIOPEN_GTEST_SKIP(message) GTEST_SKIP() << message
 
 // TODO: GTests using test_drive<> disabled until gtest-aware version of test/driver.hpp is built
 #define MIOPEN_ENABLE_TEST_DRIVE_WITH_GTEST 0

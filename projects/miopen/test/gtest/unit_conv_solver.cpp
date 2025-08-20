@@ -481,7 +481,7 @@ void RunSolverFwd(const miopen::solver::conv::ConvSolverInterface& solv,
     {
         // Do not put GTEST_SKIP here.
         // The usage of non-applicable config should be considered as a bug in the test.
-        GTEST_FAIL();
+        MIOPEN_GTEST_FAIL("Solver is not Applicable");
     }
 
     Workspace wspace;
@@ -594,7 +594,7 @@ void RunSolverBwd(const miopen::solver::conv::ConvSolverInterface& solv,
     {
         // Do not put GTEST_SKIP here.
         // The usage of non-applicable config should be considered as a bug in the test.
-        GTEST_FAIL();
+        MIOPEN_GTEST_FAIL("Solver is not Applicable");
     }
 
     Workspace wspace;
@@ -707,7 +707,7 @@ void RunSolverWrw(const miopen::solver::conv::ConvSolverInterface& solv,
     {
         // Do not put GTEST_SKIP here.
         // The usage of non-applicable config should be considered as a bug in the test.
-        GTEST_FAIL();
+        MIOPEN_GTEST_FAIL("Solver is not applicable");
     }
 
     Workspace wspace;
@@ -837,11 +837,11 @@ void UnitTestConvSolverBase::SetUpImpl(const UnitTestConvSolverParams& params)
 {
     if(!IsTestSupportedByDevice(params.supported_devs))
     {
-        GTEST_SKIP();
+        MIOPEN_GTEST_SKIP("Test/Solver/Kernel not supported by device");
     }
     else if(params.check_xnack_disabled && get_handle_xnack())
     {
-        GTEST_SKIP();
+        MIOPEN_GTEST_SKIP("xnack mismatch");
     }
 }
 
