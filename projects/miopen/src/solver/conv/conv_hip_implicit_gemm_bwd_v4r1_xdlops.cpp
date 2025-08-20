@@ -834,7 +834,8 @@ bool ConvHipImplicitGemmBwdDataV4R1Xdlops::IsApplicable(const ExecutionContext& 
     NOT_APPLICABLE_IF(problem.GetConv().attribute.deterministic);
     IS_APPLICABLE_IFF(static_ck::IsComposableKernelSupportedHardware(ctx));
     // Missing intrinsic: llvm.amdgcn.mfma.f32.16x16x8bf16
-    NOT_APPLICABLE_IF(problem.IsBfp16() && static_ck::GfxHasMissingBf16Intrinsics(ctx.GetStream().GetDeviceName()));
+    NOT_APPLICABLE_IF(problem.IsBfp16() &&
+                      static_ck::GfxHasMissingBf16Intrinsics(ctx.GetStream().GetDeviceName()));
     IS_APPLICABLE_IFF(problem.IsDirectionBackwardData());
     IS_APPLICABLE_IFF(ctx.use_hip_kernels);
     IS_APPLICABLE_IFF(problem.Is2d());
@@ -845,12 +846,13 @@ bool ConvHipImplicitGemmBwdDataV4R1Xdlops::IsApplicable(const ExecutionContext& 
     IS_APPLICABLE_IFF(static_ck::IsApplicableXdlops(ctx, problem));
     IS_APPLICABLE_IFF(static_ck::IsIndexRangeLargeEnough(problem));
     IS_APPLICABLE_IFF(problem.IsLayoutDefault());
-    NOT_APPLICABLE_IF(ctx.GetStream().GetDeviceName() == "gfx90a" && problem.IsGfx90aFp16altRequired());
+    NOT_APPLICABLE_IF(ctx.GetStream().GetDeviceName() == "gfx90a" &&
+                      problem.IsGfx90aFp16altRequired());
 
-    int gemm_g         = 0;
-    int gemm_m         = 0;
-    int gemm_n         = 0;
-    int gemm_k_total   = 0;
+    int gemm_g       = 0;
+    int gemm_m       = 0;
+    int gemm_n       = 0;
+    int gemm_k_total = 0;
 
     for(int gemm_id = 0; gemm_id < CalculateNumberOfGemm(problem); ++gemm_id)
     {
