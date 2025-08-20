@@ -1027,7 +1027,7 @@ bool ConvHipImplicitGemmForwardV4R5Xdlops::IsApplicable(const ExecutionContext& 
     {
         // Missing intrinsic: llvm.amdgcn.mfma.f32.32x32x2bf16
         const auto dev_name = ctx.GetStream().GetDeviceName();
-        if(dev_name == "gfx942")
+        if(dev_name == "gfx942" || dev_name == "gfx950")
             return false;
     }
 
