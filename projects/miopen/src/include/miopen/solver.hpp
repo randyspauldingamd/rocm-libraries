@@ -46,8 +46,16 @@ struct AnyInvokeParams;
 namespace solver {
 
 // helpers used in IsApplicable()
-#define IS_APPLICABLE_IFF(clause) if(!(clause)) { return false; }
-#define NOT_APPLICABLE_IF(clause) if(clause) { return false; }
+#define IS_APPLICABLE_IFF(clause) \
+    if(!(clause))                 \
+    {                             \
+        return false;             \
+    }
+#define NOT_APPLICABLE_IF(clause) \
+    if(clause)                    \
+    {                             \
+        return false;             \
+    }
 
 /// Base class for problem solvers.
 ///
