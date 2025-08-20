@@ -45,6 +45,15 @@ struct AnyInvokeParams;
 
 namespace solver {
 
+// helpers used in IsApplicable()
+#ifdef PRINT_IDS
+#define IS_APPLICABLE_IFF(clause) if(!(clause)) { return false; } std::cout << "IsApplicable id=" << ++id << std::endl
+#define NOT_APPLICABLE_IF(clause) if(clause) { return false; } std::cout << "IsApplicable id=" << ++id << std::endl
+#else
+#define IS_APPLICABLE_IFF(clause) if(!(clause)) { return false; }
+#define NOT_APPLICABLE_IF(clause) if(clause) { return false; }
+#endif
+
 /// Base class for problem solvers.
 ///
 /// Solvers are to be instantiated as const objects and shall not have any variable
