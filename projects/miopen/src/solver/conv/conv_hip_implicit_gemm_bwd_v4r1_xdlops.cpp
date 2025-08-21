@@ -839,7 +839,7 @@ bool ConvHipImplicitGemmBwdDataV4R1Xdlops::IsApplicable(const ExecutionContext& 
 
     // Missing intrinsic: llvm.amdgcn.mfma.f32.16x16x8bf16
     NotApplicableIf(problem.IsBfp16() &&
-                      static_ck::GfxHasMissingBf16Intrinsics(ctx.GetStream().GetDeviceName()));
+                    static_ck::GfxHasMissingBf16Intrinsics(ctx.GetStream().GetDeviceName()));
 
     IsApplicableIff(problem.IsDirectionBackwardData());
 
@@ -862,7 +862,7 @@ bool ConvHipImplicitGemmBwdDataV4R1Xdlops::IsApplicable(const ExecutionContext& 
     IsApplicableIff(problem.IsLayoutDefault());
 
     NotApplicableIf(ctx.GetStream().GetDeviceName() == "gfx90a" &&
-                      problem.IsGfx90aFp16altRequired());
+                    problem.IsGfx90aFp16altRequired());
 
     int gemm_g       = 0;
     int gemm_m       = 0;

@@ -983,7 +983,7 @@ bool ConvAsmImplicitGemmGTCDynamicBwdXdlops::IsApplicable(const ExecutionContext
     NotApplicableIf(env::disabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_ASM_BWD_GTC_XDLOPS));
 
     const auto device_name = ctx.GetStream().GetDeviceName();
-    IsApplicableIff(device_name == "gfx908")
+    IsApplicableIff(device_name == "gfx908");
 
     IsApplicableIff(ctx.use_asm_kernels);
 

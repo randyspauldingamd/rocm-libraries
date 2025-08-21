@@ -887,8 +887,8 @@ bool ConvAsmImplicitGemmGTCDynamicFwdXdlopsNHWC::IsApplicable(
 #endif
 
     const auto device_name = ctx.GetStream().GetDeviceName();
-    IsApplicableIff((device_name == "gfx908") || (device_name == "gfx90a") || (device_name == "gfx942") ||
-       (StartsWith(device_name, "gfx95")));
+    IsApplicableIff((device_name == "gfx908") || (device_name == "gfx90a") ||
+                    (device_name == "gfx942") || (StartsWith(device_name, "gfx95")));
 
     IsApplicableIff((problem.IsLayoutDefault() || problem.IsLayoutNHWC()));
 
@@ -903,8 +903,8 @@ bool ConvAsmImplicitGemmGTCDynamicFwdXdlopsNHWC::IsApplicable(
     IsApplicableIff(problem.AllTensorsDimsFitIntoInt());
 
     IsApplicableIff(problem.IsFp32() || problem.IsFp16() ||
-       (problem.IsBfp16() &&
-         (device_name == "gfx90a" || device_name == "gfx942" || StartsWith(device_name, "gfx95"))));
+                    (problem.IsBfp16() && (device_name == "gfx90a" || device_name == "gfx942" ||
+                                           StartsWith(device_name, "gfx95"))));
 
     NotApplicableIf(problem.IsTensorsCasted());
 
@@ -914,13 +914,13 @@ bool ConvAsmImplicitGemmGTCDynamicFwdXdlopsNHWC::IsApplicable(
     NotApplicableIf(target.Xnack() && *target.Xnack());
 
     NotApplicableIf(0 == igemm_split_batch_size(problem.GetInHeight(),
-                                   problem.GetInWidth(),
-                                   problem.GetOutHeight(),
-                                   problem.GetOutWidth(),
-                                   problem.GetBatchSize(),
-                                   problem.GetOutChannels(),
-                                   problem.GetInChannels(),
-                                   miopen::GetTypeSize(problem.GetInDataType())));
+                                                problem.GetInWidth(),
+                                                problem.GetOutHeight(),
+                                                problem.GetOutWidth(),
+                                                problem.GetBatchSize(),
+                                                problem.GetOutChannels(),
+                                                problem.GetInChannels(),
+                                                miopen::GetTypeSize(problem.GetInDataType())));
 
     {
         auto largest_config = problem.IsFp32()

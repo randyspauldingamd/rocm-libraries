@@ -47,14 +47,14 @@ namespace solver {
 
 // helpers used in IsApplicable()
 #define IsApplicableIff(clause) \
-    if(!(clause))                 \
-    {                             \
-        return false;             \
+    if(!(clause))               \
+    {                           \
+        return false;           \
     }
 #define NotApplicableIf(clause) \
-    if(clause)                    \
-    {                             \
-        return false;             \
+    if(clause)                  \
+    {                           \
+        return false;           \
     }
 
 /// Base class for problem solvers.

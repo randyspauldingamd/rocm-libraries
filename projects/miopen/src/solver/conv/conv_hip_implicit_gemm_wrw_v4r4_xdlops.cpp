@@ -1056,7 +1056,8 @@ bool ConvHipImplicitGemmWrwV4R4Xdlops::IsApplicable(const ExecutionContext& ctx,
 
     IsApplicableIff(static_ck::IsComposableKernelSupportedHardware(ctx));
 
-    NotApplicableIf(problem.IsBfp16() && static_ck::GfxHasMissingBf16Intrinsics(ctx.GetStream().GetDeviceName()));
+    NotApplicableIf(problem.IsBfp16() &&
+                    static_ck::GfxHasMissingBf16Intrinsics(ctx.GetStream().GetDeviceName()));
 
     IsApplicableIff(IsXdlopsSupport(ctx));
 
@@ -1070,7 +1071,8 @@ bool ConvHipImplicitGemmWrwV4R4Xdlops::IsApplicable(const ExecutionContext& ctx,
 
     IsApplicableIff(problem.Is2d());
 
-    NotApplicableIf(ctx.GetStream().GetDeviceName() == "gfx90a" && problem.IsGfx90aFp16altRequired());
+    NotApplicableIf(ctx.GetStream().GetDeviceName() == "gfx90a" &&
+                    problem.IsGfx90aFp16altRequired());
 
     IsApplicableIff(static_ck::IsIndexRangeLargeEnough(problem));
 

@@ -827,7 +827,7 @@ bool ConvAsmImplicitGemmGTCDynamicWrwXdlops::IsApplicable(const ExecutionContext
     NotApplicableIf(problem.GetConv().attribute.deterministic);
 
     const auto device_name = ctx.GetStream().GetDeviceName();
-    IsApplicableIff(device_name == "gfx908")
+    IsApplicableIff(device_name == "gfx908");
 
     IsApplicableIff(ctx.use_asm_kernels);
 

@@ -882,16 +882,17 @@ bool ConvAsmImplicitGemmGTCDynamicWrwXdlopsNHWC::IsApplicable(
         const auto pad_w    = problem.GetPadW();
 
         NotApplicableIf((c == 1 && k == 1 && hi == 1 && wi == 1 && y == 3 && x == 3 && pad_h == 2 &&
-            pad_w == 2 && stride_h == 2 && stride_w == 2) ||
-           (c == 1 && k == 1 && hi == 1 && wi == 5 && y == 3 && x == 6 && pad_h == 2 &&
-            pad_w == 1 && stride_h == 2 && stride_w == 1) ||
-           (c == 1 && k == 1 && hi == 1 && wi == 1 && y == 2 && x == 3 && pad_h == 1 &&
-            pad_w == 2 && stride_h == 1 && stride_w == 2));
+                         pad_w == 2 && stride_h == 2 && stride_w == 2) ||
+                        (c == 1 && k == 1 && hi == 1 && wi == 5 && y == 3 && x == 6 && pad_h == 2 &&
+                         pad_w == 1 && stride_h == 2 && stride_w == 1) ||
+                        (c == 1 && k == 1 && hi == 1 && wi == 1 && y == 2 && x == 3 && pad_h == 1 &&
+                         pad_w == 2 && stride_h == 1 && stride_w == 2));
     }
 #endif
 
     const auto device_name = ctx.GetStream().GetDeviceName();
-    IsApplicableIff((device_name == "gfx908") || (device_name == "gfx90a") ||  (device_name == "gfx942") || (StartsWith(device_name, "gfx95")));
+    IsApplicableIff((device_name == "gfx908") || (device_name == "gfx90a") ||
+                    (device_name == "gfx942") || (StartsWith(device_name, "gfx95")));
 
     IsApplicableIff(ctx.use_asm_kernels);
 
@@ -904,8 +905,8 @@ bool ConvAsmImplicitGemmGTCDynamicWrwXdlopsNHWC::IsApplicable(
     IsApplicableIff(problem.AllTensorsDimsFitIntoInt());
 
     IsApplicableIff(problem.IsFp32() || problem.IsFp16() ||
-       (problem.IsBfp16() &&
-         (device_name == "gfx90a" || device_name == "gfx942" || StartsWith(device_name, "gfx95"))));
+                    (problem.IsBfp16() && (device_name == "gfx90a" || device_name == "gfx942" ||
+                                           StartsWith(device_name, "gfx95"))));
 
     NotApplicableIf(problem.IsTensorsCasted());
 
@@ -915,13 +916,13 @@ bool ConvAsmImplicitGemmGTCDynamicWrwXdlopsNHWC::IsApplicable(
     NotApplicableIf(target.Xnack() && *target.Xnack());
 
     NotApplicableIf(0 == igemm_split_batch_size(problem.GetOutHeight(),
-                                   problem.GetOutWidth(),
-                                   problem.GetInHeight(),
-                                   problem.GetInWidth(),
-                                   problem.GetBatchSize(),
-                                   problem.GetInChannels(),
-                                   problem.GetOutChannels(),
-                                   miopen::GetTypeSize(problem.GetInDataType())));
+                                                problem.GetOutWidth(),
+                                                problem.GetInHeight(),
+                                                problem.GetInWidth(),
+                                                problem.GetBatchSize(),
+                                                problem.GetInChannels(),
+                                                problem.GetOutChannels(),
+                                                miopen::GetTypeSize(problem.GetInDataType())));
 
     {
         auto largest_config = problem.IsFp32()
