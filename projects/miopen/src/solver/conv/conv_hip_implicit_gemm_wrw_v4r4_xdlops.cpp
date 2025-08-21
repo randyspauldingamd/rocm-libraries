@@ -1046,66 +1046,44 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
 bool ConvHipImplicitGemmWrwV4R4Xdlops::IsApplicable(const ExecutionContext& ctx,
                                                     const ProblemDescription& problem) const
 {
-    if(env::disabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_HIP_WRW_V4R4_XDLOPS))
-        return false;
+    NotApplicableIf(env::disabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_HIP_WRW_V4R4_XDLOPS));
 
-    if(ThisSolverIsDeprecatedStatic::IsDisabled(ctx))
-        return false;
+    NotApplicableIf(ThisSolverIsDeprecatedStatic::IsDisabled(ctx));
 
-    if(problem.GetConv().attribute.deterministic)
-        return false;
+    NotApplicableIf(problem.GetConv().attribute.deterministic);
 
-    if(!ctx.use_hip_kernels)
-        return false;
+    IsApplicableIff(ctx.use_hip_kernels);
 
-    if(!static_ck::IsComposableKernelSupportedHardware(ctx))
-        return false;
+    IsApplicableIff(!static_ck::IsComposableKernelSupportedHardware(ctx));
 
-    if(problem.IsBfp16())
-    {
-        // Missing intrinsic: llvm.amdgcn.mfma.f32.16x16x8bf16
-        const auto dev_name = ctx.GetStream().GetDeviceName();
-        if(dev_name == "gfx942" || dev_name == "gfx950")
-            return false;
-    }
+    NotApplicableIf(problem.IsBfp16() && GfxHasMissingBf16Intrinsics(ctx.GetStream().GetDeviceName()));
 
-    if(!IsXdlopsSupport(ctx))
-        return false;
+    IsApplicableIff(IsXdlopsSupport(ctx));
 
-    if(problem.HasNonPackedTensors())
-        return false;
+    NotApplicableIf(problem.HasNonPackedTensors());
 
-    if(!problem.AllTensorsDimsFitIntoInt())
-        return false;
+    IsApplicableIff(problem.AllTensorsDimsFitIntoInt());
 
-    if(!(problem.IsFp32() || problem.IsFp16() || problem.IsBfp16()))
-        return false;
+    IsApplicableIff((problem.IsFp32() || problem.IsFp16() || problem.IsBfp16()));
 
-    if(!problem.IsDirectionBackwardWrW())
-        return false;
+    IsApplicableIff(problem.IsDirectionBackwardWrW());
 
-    if(!problem.Is2d())
-        return false;
+    IsApplicableIff(problem.Is2d());
 
-    if(ctx.GetStream().GetDeviceName() == "gfx90a" && problem.IsGfx90aFp16altRequired())
-        return false;
+    NotApplicableIf(ctx.GetStream().GetDeviceName() == "gfx90a" && problem.IsGfx90aFp16altRequired());
 
-    if(!static_ck::IsIndexRangeLargeEnough(problem))
-        return false;
+    IsApplicableIff(static_ck::IsIndexRangeLargeEnough(problem));
 
-    if(problem.IsTensorsCasted())
-        return false;
+    NotApplicableIf(problem.IsTensorsCasted());
 
-    if(!problem.IsLayoutDefault())
-        return false;
+    IsApplicableIff(problem.IsLayoutDefault());
 
     // this particular HeuristicInit is so comprehensive, that if it cannot predict a valid
     // performance config, the problem is probably not applicable
     PerformanceImplicitGemmWrwV4R4Xdlops config;
     config.HeuristicInit(ctx, problem);
 
-    if(!config.IsReallyValid(ctx, problem))
-        return false;
+    IsApplicableIff(config.IsReallyValid(ctx, problem));
 
     // gemm size
     int gemm_m       = -1;

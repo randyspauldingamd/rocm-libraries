@@ -763,56 +763,39 @@ bool ConvHipImplicitGemmBwdDataV1R1Xdlops::IsApplicable(const ExecutionContext& 
                                                         const ProblemDescription& problem) const
 {
 #if WORKAROUND_SWDEV_251757
-    if(!env::enabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_HIP_BWD_V1R1_XDLOPS))
-        return false;
+    IsApplicableIff(env::enabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_HIP_BWD_V1R1_XDLOPS));
 #endif
-    if(env::disabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_HIP_BWD_V1R1_XDLOPS))
-        return false;
+    NotApplicableIf(env::disabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_HIP_BWD_V1R1_XDLOPS));
 
-    if(ThisSolverIsDeprecatedStatic::IsDisabled(ctx))
-        return false;
+    NotApplicableIf(ThisSolverIsDeprecatedStatic::IsDisabled(ctx));
 
-    if(problem.GetConv().attribute.deterministic)
-        return false;
+    NotApplicableIf(problem.GetConv().attribute.deterministic);
 
-    if(!static_ck::IsComposableKernelSupportedHardware(ctx))
-        return false;
+    IsApplicableIff(static_ck::IsComposableKernelSupportedHardware(ctx));
 
-    if(problem.IsBfp16() && static_ck::GfxHasMissingBf16Intrinsics(ctx.GetStream().GetDeviceName()))
-        return false;
+    NotApplicableIf(problem.IsBfp16() && static_ck::GfxHasMissingBf16Intrinsics(ctx.GetStream().GetDeviceName()));
 
-    if(!ctx.use_hip_kernels)
-        return false;
+    IsApplicableIff(ctx.use_hip_kernels);
 
-    if(!IsXdlopsSupport(ctx))
-        return false;
+    IsApplicableIff(IsXdlopsSupport(ctx));
 
-    if(!(problem.IsFp32() || problem.IsFp16() || problem.IsBfp16()))
-        return false;
+    IsApplicableIff(problem.IsFp32() || problem.IsFp16() || problem.IsBfp16());
 
-    if(!problem.IsDirectionBackwardData())
-        return false;
+    IsApplicableIff(problem.IsDirectionBackwardData());
 
-    if(!problem.Is2d())
-        return false;
+    IsApplicableIff(problem.Is2d());
 
-    if(problem.HasNonPackedTensors())
-        return false;
+    NotApplicableIf(problem.HasNonPackedTensors());
 
-    if(!problem.AllTensorsDimsFitIntoInt())
-        return false;
+    IsApplicableIff(problem.AllTensorsDimsFitIntoInt());
 
-    if(problem.IsTensorsCasted())
-        return false;
+    NotApplicableIf(problem.IsTensorsCasted());
 
-    if(ctx.GetStream().GetDeviceName() == "gfx90a" && problem.IsGfx90aFp16altRequired())
-        return false;
+    NotApplicableIf(ctx.GetStream().GetDeviceName() == "gfx90a" && problem.IsGfx90aFp16altRequired());
 
-    if(!static_ck::IsIndexRangeLargeEnough(problem))
-        return false;
+    IsApplicableIff(static_ck::IsIndexRangeLargeEnough(problem));
 
-    if(!problem.IsLayoutDefault())
-        return false;
+    IsApplicableIff(problem.IsLayoutDefault());
 
     // gemm size
     int gemm_g       = -1;

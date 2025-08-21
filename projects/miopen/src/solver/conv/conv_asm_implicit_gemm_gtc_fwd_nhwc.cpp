@@ -870,73 +870,57 @@ size_t ConvAsmImplicitGemmGTCDynamicFwdXdlopsNHWC::GetWorkspaceSize(
 bool ConvAsmImplicitGemmGTCDynamicFwdXdlopsNHWC::IsApplicable(
     const ExecutionContext& ctx, const ProblemDescription& problem) const
 {
-    if(env::disabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_ASM_FWD_GTC_XDLOPS_NHWC))
-        return false;
+    NotApplicableIf(env::disabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_ASM_FWD_GTC_XDLOPS_NHWC));
 
-    if(problem.GetConv().attribute.deterministic)
-        return false;
+    NotApplicableIf(problem.GetConv().attribute.deterministic);
 
 #if WORKAROUND_ISSUE_1979
-    if(problem.GetGroupCount() > 1)
-        return false;
+    NotApplicableIf(problem.GetGroupCount() > 1);
 #endif
 
 #if WORKAROUND_ISSUE_2624
     {
         const int c           = problem.GetInChannels();
         const auto dilation_h = problem.GetWeightsHeight() > 1 ? problem.GetDilationH() : 1;
-        if(c <= 4 && dilation_h > 1)
-            return false;
+        NotApplicableIf(c <= 4 && dilation_h > 1);
     }
 #endif
 
     const auto device_name = ctx.GetStream().GetDeviceName();
-    if((device_name != "gfx908") && (device_name != "gfx90a") && (device_name != "gfx942") &&
-       (!StartsWith(device_name, "gfx95")))
-        return false;
+    IsApplicableIff((device_name == "gfx908") || (device_name == "gfx90a") || (device_name == "gfx942") ||
+       (StartsWith(device_name, "gfx95")));
 
-    if(!(problem.IsLayoutDefault() || problem.IsLayoutNHWC()))
-        return false;
+    IsApplicableIff((problem.IsLayoutDefault() || problem.IsLayoutNHWC()));
 
-    if(!ctx.use_asm_kernels)
-        return false;
+    IsApplicableIff(ctx.use_asm_kernels);
 
-    if(!problem.IsDirectionForward())
-        return false;
+    IsApplicableIff(problem.IsDirectionForward());
 
-    if(!problem.Is2d())
-        return false;
+    IsApplicableIff(problem.Is2d());
 
-    if(problem.HasNonPackedTensors())
-        return false;
+    NotApplicableIf(problem.HasNonPackedTensors());
 
-    if(!problem.AllTensorsDimsFitIntoInt())
-        return false;
+    IsApplicableIff(problem.AllTensorsDimsFitIntoInt());
 
-    if(!problem.IsFp32() && !problem.IsFp16() &&
-       !(problem.IsBfp16() &&
-         (device_name == "gfx90a" || device_name == "gfx942" || StartsWith(device_name, "gfx95"))))
-        return false;
+    IsApplicableIff(problem.IsFp32() || problem.IsFp16() ||
+       (problem.IsBfp16() &&
+         (device_name == "gfx90a" || device_name == "gfx942" || StartsWith(device_name, "gfx95"))));
 
-    if(problem.IsTensorsCasted())
-        return false;
+    NotApplicableIf(problem.IsTensorsCasted());
 
-    if(!ctx.rmv.IsV3())
-        return false;
+    IsApplicableIff(ctx.rmv.IsV3());
 
     const auto& target = ctx.GetStream().GetTargetProperties();
-    if(target.Xnack() && *target.Xnack())
-        return false; // NOLINT (readability-simplify-boolean-expr)
+    NotApplicableIf(target.Xnack() && *target.Xnack());
 
-    if(0 == igemm_split_batch_size(problem.GetInHeight(),
+    NotApplicableIf(0 == igemm_split_batch_size(problem.GetInHeight(),
                                    problem.GetInWidth(),
                                    problem.GetOutHeight(),
                                    problem.GetOutWidth(),
                                    problem.GetBatchSize(),
                                    problem.GetOutChannels(),
                                    problem.GetInChannels(),
-                                   miopen::GetTypeSize(problem.GetInDataType())))
-        return false;
+                                   miopen::GetTypeSize(problem.GetInDataType())));
 
     {
         auto largest_config = problem.IsFp32()
@@ -947,8 +931,7 @@ bool ConvAsmImplicitGemmGTCDynamicFwdXdlopsNHWC::IsApplicable(
         std::tie(current_block_size, current_grid_size, current_splits_4G) =
             GetImplicitGemmGtcDynamicFwdXdlopsNHWCKernel(problem, largest_config);
 
-        if(current_block_size * current_grid_size * current_splits_4G > 0xffffffffULL)
-            return false;
+        NotApplicableIf(current_block_size * current_grid_size * current_splits_4G > 0xffffffffULL);
     }
 
     return true;

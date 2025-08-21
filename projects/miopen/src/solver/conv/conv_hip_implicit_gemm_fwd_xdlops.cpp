@@ -275,36 +275,36 @@ bool ConvHipImplicitGemmFwdXdlops::IsApplicable(
     [[maybe_unused]] const ProblemDescription& problem) const
 {
 #if MIOPEN_BACKEND_HIP && MIOPEN_USE_COMPOSABLEKERNEL
-    if(env::disabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_HIP_FWD_XDLOPS))
-        return false;
-    if(problem.GetConv().attribute.deterministic)
-        return false;
-    if(problem.HasNonPackedTensors())
-        return false;
-    if(!problem.AllTensorsDimsFitIntoInt())
-        return false;
-    if(problem.HasMixedDataTypes())
-        return false;
-    if(!problem.IsDirectionForward())
-        return false;
-    if(!problem.Is2d())
-        return false;
-    if(!IsXdlopsSupport(ctx))
-        return false;
-    if(!ck_utility::is_ck_whitelist(ctx.GetStream()))
-        return false;
+    NotApplicableIf(env::disabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_HIP_FWD_XDLOPS));
+
+    NotApplicableIf(problem.GetConv().attribute.deterministic);
+
+    NotApplicableIf(problem.HasNonPackedTensors());
+
+    IsApplicableIff(problem.AllTensorsDimsFitIntoInt());
+
+    NotApplicableIf(problem.HasMixedDataTypes());
+
+    IsApplicableIff(problem.IsDirectionForward());
+
+    IsApplicableIff(problem.Is2d());
+
+    IsApplicableIff(IsXdlopsSupport(ctx));
+
+    IsApplicableIff(ck_utility::is_ck_whitelist(ctx.GetStream()));
+
     const std::string& arch = ctx.GetStream().GetDeviceName();
-    if(arch == "gfx90a" && problem.IsGfx90aFp16altRequired())
-        return false;
-    if(!IsIndexRangeLargeEnough(problem))
-        return false;
-    if(!problem.IsLayoutNHWC())
-        return false;
-    if(problem.IsTensorsCasted())
-        return false;
-    if(problem.GetGroupCount() > 1)
-        return false;
-    switch(problem.GetInDataType())
+    NotApplicableIf(arch == "gfx90a" && problem.IsGfx90aFp16altRequired());
+
+    IsApplicableIff(IsIndexRangeLargeEnough(problem));
+
+    IsApplicableIff(problem.IsLayoutNHWC());
+
+    NotApplicableIf(problem.IsTensorsCasted());
+
+    NotApplicableIf(problem.GetGroupCount() > 1);
+
+    switch(problem.GetInDataType());
     {
     case miopenInt8: return CheckCKApplicability<int8_t>(problem);
     case miopenHalf: return CheckCKApplicability<ck::half_t>(problem);

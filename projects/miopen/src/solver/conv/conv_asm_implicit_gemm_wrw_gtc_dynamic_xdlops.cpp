@@ -822,49 +822,36 @@ ConvAsmImplicitGemmGTCDynamicWrwXdlops::GetWorkspaceSize(const ExecutionContext&
 bool ConvAsmImplicitGemmGTCDynamicWrwXdlops::IsApplicable(const ExecutionContext& ctx,
                                                           const ProblemDescription& problem) const
 {
-    if(env::disabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_ASM_WRW_GTC_XDLOPS))
-        return false;
+    NotApplicableIf(env::disabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_ASM_WRW_GTC_XDLOPS));
 
-    if(problem.GetConv().attribute.deterministic)
-        return false;
+    NotApplicableIf(problem.GetConv().attribute.deterministic);
 
     const auto device_name = ctx.GetStream().GetDeviceName();
-    if(device_name != "gfx908")
-        return false;
+    IsApplicableIff(device_name == "gfx908")
 
-    if(!ctx.use_asm_kernels)
-        return false;
+    IsApplicableIff(ctx.use_asm_kernels);
 
-    if(!problem.IsDirectionBackwardWrW())
-        return false;
+    IsApplicableIff(problem.IsDirectionBackwardWrW());
 
-    if(!problem.Is2d())
-        return false;
+    IsApplicableIff(problem.Is2d());
 
-    if(problem.HasNonPackedTensors())
-        return false;
+    NotApplicableIf(problem.HasNonPackedTensors());
 
-    if(!problem.AllTensorsDimsFitIntoInt())
-        return false;
+    IsApplicableIff(problem.AllTensorsDimsFitIntoInt());
 
-    if(!problem.IsFp32() && !problem.IsFp16())
-        return false;
+    IsApplicableIff(problem.IsFp32() && !problem.IsFp16());
 
-    if(problem.IsTensorsCasted())
-        return false;
+    NotApplicableIf(problem.IsTensorsCasted());
 
-    if(!ctx.rmv.IsV3())
-        return false;
+    IsApplicableIff(ctx.rmv.IsV3());
 
-    if(problem.GetGroupCount() != 1)
-        return false;
+    NotApplicableIf(problem.GetGroupCount() != 1);
 
-    if(!problem.IsLayoutDefault())
-        return false;
+    IsApplicableIff(problem.IsLayoutDefault());
 
     const auto& target = ctx.GetStream().GetTargetProperties();
-    if(target.Xnack() && *target.Xnack())
-        return false;
+    NotApplicableIf(target.Xnack() && *target.Xnack());
+
     bool is_valid;
     std::tie(is_valid, std::ignore, std::ignore, std::ignore, std::ignore) =
         FindImplicitGemmWrwGTCDynamicXdlopsKernel(problem);

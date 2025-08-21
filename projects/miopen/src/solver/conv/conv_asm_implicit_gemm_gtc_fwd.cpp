@@ -1505,55 +1505,40 @@ FindImplicitGemmGtcDynamicFwdKernel(const ProblemDescription& problem)
 bool ConvAsmImplicitGemmGTCDynamicFwdXdlops::IsApplicable(const ExecutionContext& ctx,
                                                           const ProblemDescription& problem) const
 {
-    if(env::disabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_ASM_FWD_GTC_XDLOPS))
-        return false;
+    NotApplicableIf(env::disabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_ASM_FWD_GTC_XDLOPS));
 
-    const auto device_name = ctx.GetStream().GetDeviceName();
-    if(device_name != "gfx908")
-        return false;
+    IsApplicableIff(ctx.GetStream().GetDeviceName() == "gfx908");
 
-    if(!ctx.use_asm_kernels)
-        return false;
+    IsApplicableIff(ctx.use_asm_kernels);
 
-    if(!problem.IsDirectionForward())
-        return false;
+    IsApplicableIff(!problem.IsDirectionForward());
 
-    if(!problem.Is2d())
-        return false;
+    IsApplicableIff(problem.Is2d());
 
-    if(problem.HasNonPackedTensors())
-        return false;
+    NotApplicableIf(problem.HasNonPackedTensors());
 
-    if(!problem.AllTensorsDimsFitIntoInt())
-        return false;
+    IsApplicableIff(problem.AllTensorsDimsFitIntoInt());
 
-    if(!problem.IsFp32() && !problem.IsFp16())
-        return false;
+    IsApplicableIff(problem.IsFp32() && !problem.IsFp16());
 
-    if(problem.IsTensorsCasted())
-        return false;
+    NotApplicableIf(problem.IsTensorsCasted());
 
-    if(!ctx.rmv.IsV3())
-        return false;
+    IsApplicableIff(ctx.rmv.IsV3());
 
-    if(problem.GetGroupCount() != 1)
-        return false;
+    NotApplicableIf(problem.GetGroupCount() != 1);
 
-    if(!problem.IsLayoutDefault())
-        return false;
+    IsApplicableIff(problem.IsLayoutDefault());
 
 #if WORKAROUND_SWDEV_306318
     if((problem.GetWeightsHeight() == 1) && (problem.GetWeightsWidth() == 1) &&
        (problem.GetInChannels() % 8 != 0))
     {
-        if(!env::enabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_ASM_FWD_GTC_XDLOPS))
-            return false;
+        IsApplicableIff(env::enabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_ASM_FWD_GTC_XDLOPS));
     }
 #endif
 
     const auto& target = ctx.GetStream().GetTargetProperties();
-    if(target.Xnack() && *target.Xnack())
-        return false;
+    NotApplicableIf(target.Xnack() && *target.Xnack());
 
     bool isValid;
     std::tie(isValid, std::ignore, std::ignore, std::ignore, std::ignore) =

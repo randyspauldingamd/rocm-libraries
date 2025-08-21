@@ -860,15 +860,12 @@ ConvAsmImplicitGemmGTCDynamicWrwXdlopsNHWC::Search(const ExecutionContext& ctx,
 bool ConvAsmImplicitGemmGTCDynamicWrwXdlopsNHWC::IsApplicable(
     const ExecutionContext& ctx, const ProblemDescription& problem) const
 {
-    if(env::disabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_ASM_WRW_GTC_XDLOPS_NHWC))
-        return false;
+    NotApplicableIf(env::disabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_ASM_WRW_GTC_XDLOPS_NHWC));
 
-    if(problem.GetConv().attribute.deterministic)
-        return false;
+    NotApplicableIf(problem.GetConv().attribute.deterministic);
 
 #if WORKAROUND_ISSUE_1979
-    if(problem.GetGroupCount() > 1)
-        return false;
+    NotApplicableIf(problem.GetGroupCount() > 1);
 #endif
 
 #if WORKAROUND_ISSUE_2867
@@ -884,60 +881,47 @@ bool ConvAsmImplicitGemmGTCDynamicWrwXdlopsNHWC::IsApplicable(
         const auto pad_h    = problem.GetPadH();
         const auto pad_w    = problem.GetPadW();
 
-        if((c == 1 && k == 1 && hi == 1 && wi == 1 && y == 3 && x == 3 && pad_h == 2 &&
+        NotApplicableIf((c == 1 && k == 1 && hi == 1 && wi == 1 && y == 3 && x == 3 && pad_h == 2 &&
             pad_w == 2 && stride_h == 2 && stride_w == 2) ||
            (c == 1 && k == 1 && hi == 1 && wi == 5 && y == 3 && x == 6 && pad_h == 2 &&
             pad_w == 1 && stride_h == 2 && stride_w == 1) ||
            (c == 1 && k == 1 && hi == 1 && wi == 1 && y == 2 && x == 3 && pad_h == 1 &&
-            pad_w == 2 && stride_h == 1 && stride_w == 2))
-            return false;
+            pad_w == 2 && stride_h == 1 && stride_w == 2));
     }
 #endif
 
     const auto device_name = ctx.GetStream().GetDeviceName();
-    if((device_name != "gfx908") && (device_name != "gfx90a") && (device_name != "gfx942") &&
-       (!StartsWith(device_name, "gfx95")))
-        return false;
+    IsApplicableIff((device_name == "gfx908") || (device_name == "gfx90a") ||  (device_name == "gfx942") || (StartsWith(device_name, "gfx95")));
 
-    if(!ctx.use_asm_kernels)
-        return false;
+    IsApplicableIff(ctx.use_asm_kernels);
 
-    if(!problem.IsDirectionBackwardWrW())
-        return false;
+    IsApplicableIff(problem.IsDirectionBackwardWrW());
 
-    if(!problem.Is2d())
-        return false;
+    IsApplicableIff(problem.Is2d());
 
-    if(problem.HasNonPackedTensors())
-        return false;
+    NotApplicableIf(problem.HasNonPackedTensors());
 
-    if(!problem.AllTensorsDimsFitIntoInt())
-        return false;
+    IsApplicableIff(problem.AllTensorsDimsFitIntoInt());
 
-    if(!problem.IsFp32() && !problem.IsFp16() &&
-       !(problem.IsBfp16() &&
-         (device_name == "gfx90a" || device_name == "gfx942" || StartsWith(device_name, "gfx95"))))
-        return false;
+    IsApplicableIff(problem.IsFp32() || problem.IsFp16() ||
+       (problem.IsBfp16() &&
+         (device_name == "gfx90a" || device_name == "gfx942" || StartsWith(device_name, "gfx95"))));
 
-    if(problem.IsTensorsCasted())
-        return false;
+    NotApplicableIf(problem.IsTensorsCasted());
 
-    if(!ctx.rmv.IsV3())
-        return false;
+    IsApplicableIff(ctx.rmv.IsV3());
 
     const auto& target = ctx.GetStream().GetTargetProperties();
-    if(target.Xnack() && *target.Xnack())
-        return false; // NOLINT (readability-simplify-boolean-expr)
+    NotApplicableIf(target.Xnack() && *target.Xnack());
 
-    if(0 == igemm_split_batch_size(problem.GetOutHeight(),
+    NotApplicableIf(0 == igemm_split_batch_size(problem.GetOutHeight(),
                                    problem.GetOutWidth(),
                                    problem.GetInHeight(),
                                    problem.GetInWidth(),
                                    problem.GetBatchSize(),
                                    problem.GetInChannels(),
                                    problem.GetOutChannels(),
-                                   miopen::GetTypeSize(problem.GetInDataType())))
-        return false;
+                                   miopen::GetTypeSize(problem.GetInDataType())));
 
     {
         auto largest_config = problem.IsFp32()
@@ -948,8 +932,7 @@ bool ConvAsmImplicitGemmGTCDynamicWrwXdlopsNHWC::IsApplicable(
         std::tie(current_block_size, current_grid_size, current_splits_4G) =
             GetImplicitGemmGtcDynamicWrwXdlopsNHWCKernel(problem, largest_config);
 
-        if(current_block_size * current_grid_size * current_splits_4G > 0xffffffffULL)
-            return false;
+        NotApplicableIf(current_block_size * current_grid_size * current_splits_4G > 0xFFFFFFFFULL);
     }
 
     return true;
