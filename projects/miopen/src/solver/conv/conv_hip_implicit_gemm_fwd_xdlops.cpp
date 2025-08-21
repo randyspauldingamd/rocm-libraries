@@ -304,7 +304,7 @@ bool ConvHipImplicitGemmFwdXdlops::IsApplicable(
 
     NotApplicableIf(problem.GetGroupCount() > 1);
 
-    switch(problem.GetInDataType());
+    switch(problem.GetInDataType())
     {
     case miopenInt8: return CheckCKApplicability<int8_t>(problem);
     case miopenHalf: return CheckCKApplicability<ck::half_t>(problem);

@@ -1511,7 +1511,7 @@ bool ConvAsmImplicitGemmGTCDynamicFwdXdlops::IsApplicable(const ExecutionContext
 
     IsApplicableIff(ctx.use_asm_kernels);
 
-    IsApplicableIff(!problem.IsDirectionForward());
+    IsApplicableIff(problem.IsDirectionForward());
 
     IsApplicableIff(problem.Is2d());
 

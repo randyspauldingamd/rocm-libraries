@@ -1014,19 +1014,19 @@ bool ConvHipImplicitGemmForwardV4R5Xdlops::IsApplicable(const ExecutionContext& 
 
     NotApplicableIf(problem.GetConv().attribute.deterministic);
 
-    IsApplicableIff(!ctx.use_hip_kernels);
+    IsApplicableIff(ctx.use_hip_kernels);
 
-    IsApplicableIff(!static_ck::IsComposableKernelSupportedHardware(ctx));
+    IsApplicableIff(static_ck::IsComposableKernelSupportedHardware(ctx));
 
-    NotApplicableIf(problem.IsBfp16() && GfxHasMissingBf16Intrinsics(ctx.GetStream().GetDeviceName()));
+    NotApplicableIf(problem.IsBfp16() && static_ck::GfxHasMissingBf16Intrinsics(ctx.GetStream().GetDeviceName()));
 
-    IsApplicableIff(!IsXdlopsSupport(ctx));
+    IsApplicableIff(IsXdlopsSupport(ctx));
 
-    IsApplicableIff(!(problem.IsFp32() || problem.IsFp16() || problem.IsBfp16()));
+    IsApplicableIff((problem.IsFp32() || problem.IsFp16() || problem.IsBfp16()));
 
     NotApplicableIf(problem.HasNonPackedTensors());
 
-    IsApplicableIff(!problem.AllTensorsDimsFitIntoInt());
+    IsApplicableIff(problem.AllTensorsDimsFitIntoInt());
 
     NotApplicableIf(problem.IsTensorsCasted());
 
@@ -1036,15 +1036,15 @@ bool ConvHipImplicitGemmForwardV4R5Xdlops::IsApplicable(const ExecutionContext& 
     // disable the solver for conv1x1 due to perf regression
     NotApplicableIf(y == 1 && x == 1);
 
-    IsApplicableIff(!problem.IsDirectionForward());
+    IsApplicableIff(problem.IsDirectionForward());
 
-    IsApplicableIff(!problem.Is2d());
+    IsApplicableIff(problem.Is2d());
 
     NotApplicableIf(ctx.GetStream().GetDeviceName() == "gfx90a" && problem.IsGfx90aFp16altRequired());
 
-    IsApplicableIff(!static_ck::IsIndexRangeLargeEnough(problem));
+    IsApplicableIff(static_ck::IsIndexRangeLargeEnough(problem));
 
-    IsApplicableIff(!problem.IsLayoutDefault());
+    IsApplicableIff(problem.IsLayoutDefault());
 
     // gemm size
     {
@@ -1055,7 +1055,7 @@ bool ConvHipImplicitGemmForwardV4R5Xdlops::IsApplicable(const ExecutionContext& 
 
         std::tie(gemm_g, gemm_m, gemm_n, gemm_k_total) = CalculateGemmSize(problem);
 
-        IsApplicableIff(!static_ck::IsValidGridGemmXdlops(gemm_m, gemm_n, gemm_k_total));
+        IsApplicableIff(static_ck::IsValidGridGemmXdlops(gemm_m, gemm_n, gemm_k_total));
     }
 
     // this particular HeuristicInit is so comprehensive, that if it cannot predict a valid

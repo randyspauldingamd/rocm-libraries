@@ -1054,9 +1054,9 @@ bool ConvHipImplicitGemmWrwV4R4Xdlops::IsApplicable(const ExecutionContext& ctx,
 
     IsApplicableIff(ctx.use_hip_kernels);
 
-    IsApplicableIff(!static_ck::IsComposableKernelSupportedHardware(ctx));
+    IsApplicableIff(static_ck::IsComposableKernelSupportedHardware(ctx));
 
-    NotApplicableIf(problem.IsBfp16() && GfxHasMissingBf16Intrinsics(ctx.GetStream().GetDeviceName()));
+    NotApplicableIf(problem.IsBfp16() && static_ck::GfxHasMissingBf16Intrinsics(ctx.GetStream().GetDeviceName()));
 
     IsApplicableIff(IsXdlopsSupport(ctx));
 
@@ -1064,7 +1064,7 @@ bool ConvHipImplicitGemmWrwV4R4Xdlops::IsApplicable(const ExecutionContext& ctx,
 
     IsApplicableIff(problem.AllTensorsDimsFitIntoInt());
 
-    IsApplicableIff((problem.IsFp32() || problem.IsFp16() || problem.IsBfp16()));
+    IsApplicableIff(problem.IsFp32() || problem.IsFp16() || problem.IsBfp16());
 
     IsApplicableIff(problem.IsDirectionBackwardWrW());
 

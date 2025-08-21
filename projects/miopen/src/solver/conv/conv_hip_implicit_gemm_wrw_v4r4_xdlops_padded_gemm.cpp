@@ -1113,40 +1113,40 @@ bool ConvHipImplicitGemmWrwV4R4Xdlops_Padded_Gemm::IsApplicable(
 
     NotApplicableIf(ThisSolverIsDeprecatedStatic::IsDisabled(ctx));
 
-    IsApplicableIff(!static_ck::IsComposableKernelSupportedHardware(ctx));
+    IsApplicableIff(static_ck::IsComposableKernelSupportedHardware(ctx));
 
-    NotApplicableIf(problem.IsBfp16() && GfxHasMissingBf16Intrinsics(ctx.GetStream().GetDeviceName()));
+    NotApplicableIf(problem.IsBfp16() && static_ck::GfxHasMissingBf16Intrinsics(ctx.GetStream().GetDeviceName()));
 
     NotApplicableIf(problem.GetConv().attribute.deterministic);
 
-    IsApplicableIff(!IsXdlopsSupport(ctx));
+    IsApplicableIff(IsXdlopsSupport(ctx));
 
-    IsApplicableIff(!ctx.use_hip_kernels);
+    IsApplicableIff(ctx.use_hip_kernels);
 
-    IsApplicableIff(!(problem.IsFp32() || problem.IsFp16() || problem.IsBfp16()));
+    IsApplicableIff((problem.IsFp32() || problem.IsFp16() || problem.IsBfp16()));
 
-    IsApplicableIff(!problem.IsDirectionBackwardWrW());
+    IsApplicableIff(problem.IsDirectionBackwardWrW());
 
-    IsApplicableIff(!problem.Is2d());
+    IsApplicableIff(problem.Is2d());
 
     NotApplicableIf(problem.HasNonPackedTensors());
 
-    IsApplicableIff(!problem.AllTensorsDimsFitIntoInt());
+    IsApplicableIff(problem.AllTensorsDimsFitIntoInt());
 
     NotApplicableIf(problem.IsTensorsCasted());
 
     NotApplicableIf(ctx.GetStream().GetDeviceName() == "gfx90a" && problem.IsGfx90aFp16altRequired());
 
-    IsApplicableIff(!static_ck::IsIndexRangeLargeEnough(problem));
+    IsApplicableIff(static_ck::IsIndexRangeLargeEnough(problem));
 
-    IsApplicableIff(!problem.IsLayoutDefault());
+    IsApplicableIff(problem.IsLayoutDefault());
 
     // this particular EuristicInit is so comprehensive, that if it cannot predict a valid
     // performance config, the problem is probably not applicable
     PerformanceImplicitGemmWrwV4R4Xdlops_Padded_Gemm config;
     config.HeuristicInit(ctx, problem);
 
-    IsApplicableIff(!config.IsReallyValid(ctx, problem));
+    IsApplicableIff(config.IsReallyValid(ctx, problem));
 
     // gemm size
     int gemm_g           = -1;

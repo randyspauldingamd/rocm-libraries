@@ -973,15 +973,15 @@ bool ConvAsmImplicitGemmGTCDynamicBwdXdlopsNHWC::IsApplicable(
     IsApplicableIff((device_name == "gfx908") || (device_name == "gfx90a") || (device_name == "gfx942") ||
        (StartsWith(device_name, "gfx95")));
 
-    IsApplicableIff(!ctx.use_asm_kernels);
+    IsApplicableIff(ctx.use_asm_kernels);
 
-    IsApplicableIff(!problem.IsDirectionBackwardData());
+    IsApplicableIff(problem.IsDirectionBackwardData());
 
-    IsApplicableIff(!problem.Is2d());
+    IsApplicableIff(problem.Is2d());
 
     NotApplicableIf(problem.HasNonPackedTensors());
 
-    IsApplicableIff(!problem.AllTensorsDimsFitIntoInt());
+    IsApplicableIff(problem.AllTensorsDimsFitIntoInt());
 
     IsApplicableIff(problem.IsFp32() || problem.IsFp16() ||
        (problem.IsBfp16() &&
@@ -989,7 +989,7 @@ bool ConvAsmImplicitGemmGTCDynamicBwdXdlopsNHWC::IsApplicable(
 
     NotApplicableIf(problem.IsTensorsCasted());
 
-    IsApplicableIff(!ctx.rmv.IsV3());
+    IsApplicableIff(ctx.rmv.IsV3());
 
     const auto& target = ctx.GetStream().GetTargetProperties();
     NotApplicableIf(target.Xnack() && *target.Xnack());
