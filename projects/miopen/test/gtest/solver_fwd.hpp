@@ -65,7 +65,7 @@ struct ConvFwdSolverTest
         {
             // Do not put GTEST_SKIP here.
             // The usage of non-applicable config should be considered as a bug in the test.
-            GTEST_FAIL();
+            MIOPEN_GTEST_FAIL("Fwd Solver is not applicable");
         }
 
         if(solv.MayNeedWorkspace())
@@ -99,7 +99,7 @@ protected:
 
         if(!IsTestSupportedByDevice(supported_devs))
         {
-            GTEST_SKIP();
+            MIOPEN_GTEST_SKIP("Test/Solver/Kernel not supported by device");
         }
 
         this->SetUpImpl(conv_config, miopenTensorNCHW);
