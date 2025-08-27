@@ -817,8 +817,6 @@ ConvHipImplicitGemmBwdDataV4R1Xdlops::CalculateGemmSize(const ProblemDescription
 bool ConvHipImplicitGemmBwdDataV4R1Xdlops::IsApplicable(const ExecutionContext& ctx,
                                                         const ProblemDescription& problem) const
 {
-    int id = 0;
-    std::cout << "id=" << ++id << std::endl;
 #if WORKAROUND_ISSUE_1206
     if(problem.IsFp32())
     {
@@ -826,7 +824,6 @@ bool ConvHipImplicitGemmBwdDataV4R1Xdlops::IsApplicable(const ExecutionContext& 
             return false;
     }
 #endif
-    std::cout << "id=" << ++id << std::endl;
 #if WORKAROUND_SWDEV_329642
     if(problem.IsBfp16() && ctx.GetStream().GetDeviceName() == "gfx90a")
     {
@@ -834,53 +831,37 @@ bool ConvHipImplicitGemmBwdDataV4R1Xdlops::IsApplicable(const ExecutionContext& 
             return false;
     }
 #endif
-    std::cout << "id=" << ++id << std::endl;
     if(env::disabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_HIP_BWD_V4R1_XDLOPS))
         return false;
-    std::cout << "id=" << ++id << std::endl;
     if(ThisSolverIsDeprecatedStatic::IsDisabled(ctx))
         return false;
-    std::cout << "id=" << ++id << std::endl;
     if(problem.GetConv().attribute.deterministic)
         return false;
-    std::cout << "id=" << ++id << std::endl;
     if(!static_ck::IsComposableKernelSupportedHardware(ctx))
         return false;
-    std::cout << "id=" << ++id << std::endl;
     // Missing intrinsic: llvm.amdgcn.mfma.f32.16x16x8bf16
     if(problem.IsBfp16() && static_ck::GfxHasMissingBf16Intrinsics(ctx.GetStream().GetDeviceName()))
         return false;
-    std::cout << "id=" << ++id << std::endl;
     if(!problem.IsDirectionBackwardData())
         return false;
-    std::cout << "id=" << ++id << std::endl;
     if(!ctx.use_hip_kernels)
         return false;
-    std::cout << "id=" << ++id << std::endl;
     if(!problem.Is2d())
         return false;
-    std::cout << "id=" << ++id << std::endl;
     if(problem.HasNonPackedTensors())
         return false;
-    std::cout << "id=" << ++id << std::endl;
     if(!problem.AllTensorsDimsFitIntoInt())
         return false;
-    std::cout << "id=" << ++id << std::endl;
     if(!(problem.IsFp32() || problem.IsFp16() || problem.IsBfp16()))
         return false;
-    std::cout << "id=" << ++id << std::endl;
     if(problem.IsTensorsCasted())
         return false;
-    std::cout << "id=" << ++id << std::endl;
     if(!static_ck::IsApplicableXdlops(ctx, problem))
         return false;
-    std::cout << "id=" << ++id << std::endl;
     if(!static_ck::IsIndexRangeLargeEnough(problem))
         return false;
-    std::cout << "id=" << ++id << std::endl;
     if(!problem.IsLayoutDefault())
         return false;
-    std::cout << "id=" << ++id << std::endl;
     if(ctx.GetStream().GetDeviceName() == "gfx90a" && problem.IsGfx90aFp16altRequired())
         return false;
 
@@ -892,7 +873,6 @@ bool ConvHipImplicitGemmBwdDataV4R1Xdlops::IsApplicable(const ExecutionContext& 
 
     for(int gemm_id = 0; gemm_id < CalculateNumberOfGemm(problem); ++gemm_id)
     {
-        std::cout << "id=" << ++id << std::endl;
         std::tie(gemm_g, gemm_m, gemm_n, gemm_k_total) = CalculateGemmSize(problem, gemm_id);
         if(!static_ck::IsValidGridGemmXdlops(gemm_m, gemm_n, gemm_k_total))
             return false;
