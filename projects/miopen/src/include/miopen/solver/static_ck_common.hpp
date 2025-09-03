@@ -66,6 +66,11 @@ static inline bool GfxHasMissingBf16Intrinsics(const std::string& device_name)
     return device_name == "gfx942" || StartsWith(device_name, "gfx95");
 }
 
+static inline bool GfxHasMissingFp32Intrinsics(const std::string& device_name)
+{
+    return device_name == "gfx942" || StartsWith(device_name, "gfx95");
+}
+
 static inline bool support_amd_buffer_atomic_fadd(const std::string& device_name)
 {
     return StartsWith(device_name, "gfx908");
