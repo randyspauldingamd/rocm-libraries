@@ -506,7 +506,8 @@ void RunSolverFwd(const miopen::solver::conv::ConvSolverInterface& solv,
     //**********************************
 
     auto ref_out = tensor<Tref>{output.desc};
-    if(params.use_cpu_ref)
+    auto gpu_out = tensor<Tref>{output.desc};
+    if(false && params.use_cpu_ref) // TRJS
     {
         std::cout << "CPU verify" << std::endl;
         cpu_convolution_forward(conv_desc.GetSpatialDimension(),
@@ -521,11 +522,13 @@ void RunSolverFwd(const miopen::solver::conv::ConvSolverInterface& solv,
     else
     {
         std::cout << "GPU verify" << std::endl;
-        ref_out = ref_conv_fwd(input, weights, ref_out, conv_desc);
+        gpu_out = ref_conv_fwd(input, weights, gpu_out, conv_desc);
     }
 
     output.data = handle.Read<Tout>(out_dev, output.data.size());
 
+    VerifyData(
+        gpu_out.data, ref_out.data, algo, miopen::conv::Direction::Forward, params.tolerances);
     VerifyData(
         output.data, ref_out.data, algo, miopen::conv::Direction::Forward, params.tolerances);
 }
