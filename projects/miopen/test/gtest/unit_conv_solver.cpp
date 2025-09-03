@@ -420,7 +420,7 @@ void VerifyData(const std::vector<T>& data,
         const auto error       = miopen::rms_range(ref_data, data);
         const double threshold = GetThreshold<T>(algo, direction, tolerances);
         ASSERT_LT(error, threshold) << "Error beyond tolerance";
-        // std::cout << "error: " << error << " threshold: " << threshold << std::endl;
+        if(error >= threshold) std::cout << "Error good: " << error << " < " << threshold << std::endl;
     }
 }
 
@@ -508,6 +508,7 @@ void RunSolverFwd(const miopen::solver::conv::ConvSolverInterface& solv,
     auto ref_out = tensor<Tref>{output.desc};
     if(params.use_cpu_ref)
     {
+        std::cout << "CPU verify" << std::endl;
         cpu_convolution_forward(conv_desc.GetSpatialDimension(),
                                 input,
                                 weights,
@@ -519,6 +520,7 @@ void RunSolverFwd(const miopen::solver::conv::ConvSolverInterface& solv,
     }
     else
     {
+        std::cout << "GPU verify" << std::endl;
         ref_out = ref_conv_fwd(input, weights, ref_out, conv_desc);
     }
 
