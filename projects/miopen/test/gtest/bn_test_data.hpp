@@ -254,12 +254,12 @@ struct BNInferTestData : public BNTestData<XDataType, YDataType, AccDataType, TC
         if(!fto::LoadTensorFromFile("bni_scale.dat", scale) ||
     !fto::LoadTensorFromFile("bni_shift.dat", shift) ||
     !fto::LoadTensorFromFile("bni_estMean.dat", estMean) ||  // TRJS
-!fto::LoadTensorFromFile("bni_estVariance.dat", estVariance)) {
+    !fto::LoadTensorFromFile("bni_estVariance.dat", estVariance)) {
         InitTensorsWithRandValue();
-//         fto::WriteTensorToFile("bni_scale.dat", scale);
-//     fto::WriteTensorToFile("bni_shift.dat", shift);
-//     fto::WriteTensorToFile("bni_estMean.dat", estMean);// TRJS
-// fto::WriteTensorToFile("bni_estVariance.dat", estVariance);
+    fto::WriteTensorToFile("bni_scale.dat", scale);
+    fto::WriteTensorToFile("bni_shift.dat", shift);
+    fto::WriteTensorToFile("bni_estMean.dat", estMean);// TRJS
+    fto::WriteTensorToFile("bni_estVariance.dat", estVariance);
 }
         coutms("InitTensorsWRV", start);    start = sc::now(); // TRJS
         WriteToGPU();
