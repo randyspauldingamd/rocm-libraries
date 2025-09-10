@@ -35,6 +35,8 @@
 #include "tensor_util.hpp"
 #include "get_handle.hpp"
 
+#include "fast_test_ops.hpp"    // TRJS
+
 struct BN2DTestCase
 {
     size_t N;
@@ -181,10 +183,17 @@ struct BNTestData
         bn_config     = config;
         tensor_layout = t_layout;
         bn_mode       = t_bnmode;
+        auto start = sc::now(); // TRJS
         CreateTensors();
+        coutms("BCreateTensors", start);    start = sc::now(); // TRJS
+        if(!fto::LoadTensorFromFile("bntd_input.dat", input)) {  // TRJS
         InitTensorsWithRandValue();
+        fto::WriteTensorToFile("bntd_input.dat", input);
+    }
+        coutms("BInitTensorsWRV", start);    start = sc::now(); // TRJS
         SetDirection();
         WriteToGPU();
+        coutms("BWriteToGPU", start);    start = sc::now(); // TRJS
     }
     const miopen::TensorDescriptor& GetInputDesc() const { return input.desc; }
 
@@ -239,9 +248,22 @@ struct BNInferTestData : public BNTestData<XDataType, YDataType, AccDataType, TC
     {
         BNTestData<XDataType, YDataType, AccDataType, TConfig>::SetUpImpl(
             config, t_bnmode, t_layout);
+        auto start = sc::now(); // TRJS
         CreateTensors();
+        coutms("CreateTensors", start);    start = sc::now(); // TRJS
+        if(!fto::LoadTensorFromFile("bni_scale.dat", scale) ||
+    !fto::LoadTensorFromFile("bni_shift.dat", shift) ||
+    !fto::LoadTensorFromFile("bni_estMean.dat", estMean) ||  // TRJS
+!fto::LoadTensorFromFile("bni_estVariance.dat", estVariance)) {
         InitTensorsWithRandValue();
+//         fto::WriteTensorToFile("bni_scale.dat", scale);
+//     fto::WriteTensorToFile("bni_shift.dat", shift);
+//     fto::WriteTensorToFile("bni_estMean.dat", estMean);// TRJS
+// fto::WriteTensorToFile("bni_estVariance.dat", estVariance);
+}
+        coutms("InitTensorsWRV", start);    start = sc::now(); // TRJS
         WriteToGPU();
+        coutms("WriteToGPU", start);    start = sc::now(); // TRJS
     }
 
     tensor<ScaleDataType> scale;
@@ -318,9 +340,13 @@ struct BNBwdTestData : public BNTestData<XDataType, DyDataType, AccDataType, TCo
     {
         BNTestData<XDataType, DxDataType, AccDataType, TConfig>::SetUpImpl(
             config, t_bnmode, t_layout);
+        auto start = sc::now(); // TRJS
         CreateTensors();
+        coutms("CreateTensors", start);    start = sc::now(); // TRJS
         InitTensorsWithRandValue();
+        coutms("InitTensorsWRV", start);    start = sc::now(); // TRJS
         WriteToGPU();
+        coutms("WriteToGPU", start);    start = sc::now(); // TRJS
     }
 
     tensor<ScaleDataType> bnScale;

@@ -297,6 +297,7 @@ protected:
         // Workaround to let BN Infer tests pass on Navi4x,SWDEV-547301
         tolerance = miopen::StartsWith(handle.GetDeviceName(), "gfx120") ? 8e-3 : 4e-3;
 #endif
+        std::cout << "output  : ";  // TRJS
         test::CompareTensor<YDataType>(
             bn_infer_test_data.output, bn_infer_test_data.out_ref, tolerance);
     }
@@ -457,11 +458,13 @@ protected:
             bn_bwd_test_data.dBias_dev, bn_bwd_test_data.dBias.data.size());
 
         test::ComputeCPUBNBwd(bn_bwd_test_data);
-
+        std::cout << "output  : ";    // TRJS
         test::CompareTensor<DxDataType, AccDataType>(
             bn_bwd_test_data.output, bn_bwd_test_data.out_ref, bwd_tol);
+        std::cout << "dScale  : ";    // TRJS
         test::CompareTensor<DscaleDbiasDataType, AccDataType>(
             bn_bwd_test_data.dScale, bn_bwd_test_data.dScale_ref, bwd_tol);
+        std::cout << "dBias   : ";    // TRJS
         test::CompareTensor<DscaleDbiasDataType, AccDataType>(
             bn_bwd_test_data.dBias, bn_bwd_test_data.dBias_ref, bwd_tol);
     }
@@ -637,14 +640,19 @@ protected:
                             bn_fwd_train_test_data.out_ref.data);
 
         // 4e-3 is tolerance used by CK kernel.
+        std::cout << "output  : ";  // TRJS
         test::CompareTensor<YDataType>(
             bn_fwd_train_test_data.output, bn_fwd_train_test_data.out_ref, 4e-3);
+        std::cout << "saveMean: ";  // TRJS
         test::CompareTensor<RunSaveDataType>(
             bn_fwd_train_test_data.saveMean, bn_fwd_train_test_data.saveMean_ref, 4e-3);
+        std::cout << "saveVar : ";  // TRJS
         test::CompareTensor<RunSaveDataType>(
             bn_fwd_train_test_data.saveVariance, bn_fwd_train_test_data.saveVariance_ref, 4e-3);
+        std::cout << "runMean : ";  // TRJS
         test::CompareTensor<RunSaveDataType>(
             bn_fwd_train_test_data.runMean, bn_fwd_train_test_data.runMean_ref, 4e-3);
+        std::cout << "runVar  : ";  // TRJS
         test::CompareTensor<RunSaveDataType>(
             bn_fwd_train_test_data.runVariance, bn_fwd_train_test_data.runVariance_ref, 4e-3);
     }

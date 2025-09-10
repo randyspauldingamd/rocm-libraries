@@ -25,6 +25,8 @@
  *******************************************************************************/
 #pragma once
 
+#include "fast_test_ops.hpp"  // TRJS
+
 namespace test {
 template <typename DLModule>
 void ComputeCPUBNInference(DLModule& dl_module)
@@ -45,6 +47,14 @@ void ComputeCPUBNInference(DLModule& dl_module)
     ReshapeIfNeeded(dl_module.estMean.desc);
     ReshapeIfNeeded(dl_module.estVariance.desc);
 
+    if (fto::LoadCPUBNInferenceTensorsFromFiles(dl_module.input,
+                                      dl_module.out_ref,
+                                      dl_module.scale,
+                                      dl_module.shift,
+                                      dl_module.epsilon,
+                                      dl_module.estMean,
+                                      dl_module.estVariance))   return; // TRJS
+    auto start = sc::now(); // TRJS
     if(dl_module.bn_mode == miopenBNSpatial)
     {
         batchNormSpatialHostInference(dl_module.input,
@@ -70,6 +80,14 @@ void ComputeCPUBNInference(DLModule& dl_module)
         std::cout << "\nUnknown inference batch miopenBatchNormMode_t\n";
         exit(EXIT_FAILURE);
     }
+    coutms("CPUInfer", start);  // TRJS
+    (void)fto::WriteCPUBNInferenceTensorsToFiles(dl_module.input,
+                                      dl_module.out_ref,
+                                      dl_module.scale,
+                                      dl_module.shift,
+                                      dl_module.epsilon,
+                                      dl_module.estMean,
+                                      dl_module.estVariance); // TRJS
 }
 
 template <typename DLModule>
@@ -193,6 +211,7 @@ void CompareTensor(const tensor<T>& output,
     auto error = miopen::rms_range(out_ref, output);
     EXPECT_FALSE(miopen::find_idx(out_ref, miopen::not_finite) >= 0)
         << "Non finite number found in the CPU data";
+    std::cout << error << std::endl;    // TRJS
     EXPECT_TRUE(error < threshold)
         << "Error beyond tolerance Error:" << error << ",  Threshold: " << threshold;
 }
