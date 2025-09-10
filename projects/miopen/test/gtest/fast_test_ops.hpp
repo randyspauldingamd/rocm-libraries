@@ -8,6 +8,8 @@
 #include <iomanip>
 
 #define FTO_TIMING 0
+#define FTO_USE_DRIVE_CACHE 0
+
 namespace { using sc = std::chrono::steady_clock; }
 #undef tomillis
 #define tomillis(__DUR) (0.001 * std::chrono::duration_cast<std::chrono::microseconds>(__DUR).count())
@@ -31,6 +33,7 @@ namespace fto {
 template <class T>
 bool LoadTensorFromFile(std::string path, tensor<T>& tensor, bool verbose = FTO_VERBOSE)
 {
+    if (!FTO_USE_DRIVE_CACHE) { std::cout << "skip: FTO_USE_DRIVE_CACHE is 0" << std::endl; return false; }
     std::filesystem::path filePath{TMP_ROOT + path};
     if (!std::filesystem::exists(filePath))  { std::cout << "Read failure, '" << path.c_str() << "' does not exist." << std::endl; return false; }
     std::ifstream file(filePath);
@@ -42,6 +45,7 @@ bool LoadTensorFromFile(std::string path, tensor<T>& tensor, bool verbose = FTO_
 template <class T>
 bool WriteTensorToFile(std::string path, tensor<T>& tensor, bool verbose = FTO_VERBOSE)
 {
+    if (!FTO_USE_DRIVE_CACHE) { std::cout << "skip: FTO_USE_DRIVE_CACHE is 0" << std::endl; return false; }
     std::filesystem::path filePath{TMP_ROOT + path};
     if (std::filesystem::exists(filePath)) { std::cout << "Write failure, '" << path.c_str() << "' exists." << std::endl; return false; }
     std::ofstream file(filePath);
