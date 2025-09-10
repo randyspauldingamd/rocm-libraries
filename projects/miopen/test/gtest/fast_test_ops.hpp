@@ -33,7 +33,7 @@ namespace fto {
 template <class T>
 bool LoadTensorFromFile(std::string path, tensor<T>& tensor, bool verbose = FTO_VERBOSE)
 {
-    if (!FTO_USE_DRIVE_CACHE) { std::cout << "skip: FTO_USE_DRIVE_CACHE is 0" << std::endl; return false; }
+    if (!FTO_USE_DRIVE_CACHE) { if (FTO_VERBOSE) { std::cout << "skip: FTO_USE_DRIVE_CACHE is 0" << std::endl; } return false; }
     std::filesystem::path filePath{TMP_ROOT + path};
     if (!std::filesystem::exists(filePath))  { std::cout << "Read failure, '" << path.c_str() << "' does not exist." << std::endl; return false; }
     std::ifstream file(filePath);
@@ -45,7 +45,7 @@ bool LoadTensorFromFile(std::string path, tensor<T>& tensor, bool verbose = FTO_
 template <class T>
 bool WriteTensorToFile(std::string path, tensor<T>& tensor, bool verbose = FTO_VERBOSE)
 {
-    if (!FTO_USE_DRIVE_CACHE) { std::cout << "skip: FTO_USE_DRIVE_CACHE is 0" << std::endl; return false; }
+    if (!FTO_USE_DRIVE_CACHE) { if (FTO_VERBOSE) { std::cout << "skip: FTO_USE_DRIVE_CACHE is 0" << std::endl; } return false; }
     std::filesystem::path filePath{TMP_ROOT + path};
     if (std::filesystem::exists(filePath)) { std::cout << "Write failure, '" << path.c_str() << "' exists." << std::endl; return false; }
     std::ofstream file(filePath);
