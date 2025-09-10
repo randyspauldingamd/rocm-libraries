@@ -39,6 +39,8 @@ using hip_bfloat16 = bfloat16;
 #include <hip_float8.hpp>
 #include "tensor_holder.hpp"
 
+#include "gtest/fast_test_ops.hpp"  // TRJS
+
 namespace miopen {
 
 // Compute the value of a range
@@ -219,9 +221,13 @@ double rms_range(R1&& r1, R2&& r2)
     {
         if(n == 0)
             return 0;
+        auto timer = sc::now(); // TRJS
         double square_difference = range_product(r1, r2, 0.0, sum_fn{}, square_diff);
+        coutmsreset("sq_diff", timer);
         double mag1 = static_cast<double>(*std::max_element(r1.begin(), r1.end(), compare_mag));
+        coutmsreset("mag1", timer);
         double mag2 = static_cast<double>(*std::max_element(r2.begin(), r2.end(), compare_mag));
+        coutmsreset("mag2", timer);
         double mag =
             std::max({std::fabs(mag1), std::fabs(mag2), std::numeric_limits<double>::min()});
         return std::sqrt(square_difference) / (std::sqrt(n) * mag);
