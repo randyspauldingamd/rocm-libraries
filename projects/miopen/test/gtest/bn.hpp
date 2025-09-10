@@ -31,6 +31,7 @@
 
 #include "bn_test_data.hpp"
 #include "test_operations.hpp"
+#include "fast_test_ops.hpp"    // TRJS
 
 MIOPEN_DECLARE_ENV_VAR_STR(MIOPEN_FIND_ENFORCE)
 #define WORKAROUND_SWDEV_547301 1
@@ -285,6 +286,7 @@ protected:
         auto&& handle                  = get_handle();
         bn_infer_test_data.output.data = handle.Read<YDataType>(
             bn_infer_test_data.out_dev, bn_infer_test_data.output.data.size());
+        fto::WriteTensorToFile("bntd_output.dat", bn_infer_test_data.output);
         test::ComputeCPUBNInference(bn_infer_test_data);
         activationHostInfer(bn_infer_test_data.activ_mode,
                             static_cast<double>(0.0),
