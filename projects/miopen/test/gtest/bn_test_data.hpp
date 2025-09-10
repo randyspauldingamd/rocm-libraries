@@ -147,6 +147,24 @@ inline std::vector<BN3DTestCase> Network3DSerialCase()
     return {{2, 2048, 16, 128, 128, miopen::batchnorm::Direction::Backward, 0, 1}};
 }
 
+// Extra problem sizes to investigate Navi48 issues
+// 
+template <typename T>
+std::vector<T> ExtraNetwork3DSerialCase();
+
+template <>
+inline std::vector<BN3DTestCase> ExtraNetwork3DSerialCase()
+{
+    return {{2, 1536, 16, 128, 128, miopen::batchnorm::Direction::Backward, 0, 1},
+            {2, 1024, 16, 128, 128, miopen::batchnorm::Direction::Backward, 0, 1},
+            {2, 512, 16, 128, 128, miopen::batchnorm::Direction::Backward, 0, 1},
+            {2, 2048, 16, 96, 96, miopen::batchnorm::Direction::Backward, 0, 1},
+            {2, 2048, 16, 64, 64, miopen::batchnorm::Direction::Backward, 0, 1},
+            {2, 1024, 16, 96, 96, miopen::batchnorm::Direction::Backward, 0, 1},
+            {2, 1024, 16, 64, 64, miopen::batchnorm::Direction::Backward, 0, 1},
+    };
+}
+
 template <>
 inline std::vector<BN2DTestCase> Network2DSmall()
 {
