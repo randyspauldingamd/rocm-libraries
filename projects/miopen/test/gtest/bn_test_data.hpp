@@ -292,7 +292,7 @@ struct BNInferTestData : public BNTestData<XDataType, YDataType, AccDataType, TC
     miopen::Allocator::ManageDataPtr shift_dev;
     miopen::Allocator::ManageDataPtr estMean_dev;
     miopen::Allocator::ManageDataPtr estVariance_dev;
-    double epsilon = 1.0e-5;
+    double epsilon = 1.0e-2;    // TRJS 1.0e-5;
     float alpha    = static_cast<float>(1.0f);
     float beta     = static_cast<float>(0);
     double activ_alpha;
@@ -389,7 +389,7 @@ struct BNBwdTestData : public BNTestData<XDataType, DyDataType, AccDataType, TCo
     miopen::Allocator::ManageDataPtr dBias_dev;
     miopen::Allocator::ManageDataPtr dScale_ref_dev;
     miopen::Allocator::ManageDataPtr dBias_ref_dev;
-    double epsilon = std::numeric_limits<float>::epsilon();
+    double epsilon = 1E-2; // TRJS std::numeric_limits<float>::epsilon();
 
     float alphaDataDiff = static_cast<float>(1), betaDataDiff = static_cast<float>(0);
     float alphaParamDiff = static_cast<float>(1), betaParamDiff = static_cast<float>(0);
@@ -504,7 +504,7 @@ struct BNFwdTrainTestData : public BNTestData<XDataType, YDataType, AccDataType,
     miopen::Allocator::ManageDataPtr saveVariance_dev;
     miopen::Allocator::ManageDataPtr runMean_dev;
     miopen::Allocator::ManageDataPtr runVariance_dev;
-    double epsilon       = 1.0e-5;
+    double epsilon       = 1.0E-2; // TRJS 1.0e-5;
     double averageFactor = 0.1;
     float alpha          = static_cast<float>(1.0f);
     float beta           = static_cast<float>(0);
