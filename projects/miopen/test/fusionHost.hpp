@@ -303,7 +303,7 @@ void batchNormSpatialHostBwdTrain(const tensor<XDataType>& x_input,
                                   double activ_beta,
                                   double activ_alpha)
 {
-    MIOPEN_LOG_T("batchNormSpatialHostBwdTrain epsilon = " << epsilon);
+    MIOPEN_LOG_T("batchNormSpatialHostBwdTrain");
     double activ_gamma = 0.;
     int height, width, n_batch, channels;
     std::tie(n_batch, channels, height, width) = miopen::tien<4>(x_input.desc.GetLengths());
@@ -475,7 +475,7 @@ void batchNormActivSpatialHostBwdTrain(miopenActivationMode_t activMode,
                                        const tensor<AccDataType>& savedMean,
                                        const tensor<AccDataType>& savedInvVar)
 {
-    MIOPEN_LOG_T("batchNormActivSpatialHostBwdTrain epsilon = " << epsilon);
+    MIOPEN_LOG_T("batchNormActivSpatialHostBwdTrain ");
     int height, width, n_batch, channels;
     std::tie(n_batch, channels, height, width) = miopen::tien<4>(x_input.desc.GetLengths());
     auto nhw                                   = double(height * width * n_batch);
@@ -646,7 +646,7 @@ void batchNormPerActHostBwdTrain(const tensor<XDataType>& x_input,
                                  const tensor<AccDataType>& savedMean,
                                  const tensor<AccDataType>& savedInvVar)
 {
-    MIOPEN_LOG_T("batchNormPerActHostBwdTrain epsilon = " << epsilon);
+    MIOPEN_LOG_T("batchNormPerActHostBwdTrain");
     int height, width, n_batch, channels;
     std::tie(n_batch, channels, height, width) = miopen::tien<4>(x_input.desc.GetLengths());
     int in_cstride                             = height * width;
@@ -721,7 +721,7 @@ void batchNormActivPerActHostBwdTrain(miopenActivationMode_t activMode,
                                       const tensor<U>& savedMean,
                                       const tensor<U>& savedInvVar)
 {
-    MIOPEN_LOG_T("batchNormActivPerActHostBwdTrain epsilon = " << epsilon);
+    MIOPEN_LOG_T("batchNormActivPerActHostBwdTrain");
     int height, width, n_batch, channels;
     std::tie(n_batch, channels, height, width) = miopen::tien<4>(x_input.desc.GetLengths());
     int in_cstride                             = height * width;
