@@ -143,7 +143,7 @@ void batchNormSpatialHostInference(const tensor<T>& input,
                                    const tensor<V>& estimatedMean,
                                    const tensor<V>& estimatedVariance)
 {
-
+    MIOPEN_LOG_T("batchNormSpatialHostInference epsilon = " << epsilon);
     int n_batches, channels, height, width;
     std::tie(n_batches, channels, height, width) = miopen::tien<4>(input.desc.GetLengths());
     par_for(channels, 1, [&](int cidx) { // via channel
@@ -177,6 +177,7 @@ void batchNormPerActivHostInference(const tensor<T>& input,
                                     const tensor<V>& estimatedMean,
                                     const tensor<V>& estimatedVariance)
 {
+    MIOPEN_LOG_T("batchNormPerActivHostInference epsilon = " << epsilon);
     int n_batches, channels, height, width;
     std::tie(n_batches, channels, height, width) = miopen::tien<4>(input.desc.GetLengths());
     par_for(channels, 1, [&](int cidx) { // via channel
@@ -214,7 +215,7 @@ void batchNormSpatialHostFwdTrain(const tensor<T>& input,
                                   tensor<Tref>& runMean,
                                   tensor<Tref>& runVar)
 {
-
+    MIOPEN_LOG_T("batchNormSpatialHostFwdTrain epsilon = " << epsilon);
     int height, width, n_batch, channels;
     std::tie(n_batch, channels, height, width) = miopen::tien<4>(input.desc.GetLengths());
     const auto nhw                             = double(height * width * n_batch);
@@ -302,6 +303,7 @@ void batchNormSpatialHostBwdTrain(const tensor<XDataType>& x_input,
                                   double activ_beta,
                                   double activ_alpha)
 {
+    MIOPEN_LOG_T("batchNormSpatialHostBwdTrain epsilon = " << epsilon);
     double activ_gamma = 0.;
     int height, width, n_batch, channels;
     std::tie(n_batch, channels, height, width) = miopen::tien<4>(x_input.desc.GetLengths());
@@ -473,7 +475,7 @@ void batchNormActivSpatialHostBwdTrain(miopenActivationMode_t activMode,
                                        const tensor<AccDataType>& savedMean,
                                        const tensor<AccDataType>& savedInvVar)
 {
-
+    MIOPEN_LOG_T("batchNormActivSpatialHostBwdTrain epsilon = " << epsilon);
     int height, width, n_batch, channels;
     std::tie(n_batch, channels, height, width) = miopen::tien<4>(x_input.desc.GetLengths());
     auto nhw                                   = double(height * width * n_batch);
@@ -559,7 +561,7 @@ void batchNormPerActHostFwdTrain(const tensor<T>& input,
                                  tensor<Tref>& runMean,
                                  tensor<Tref>& runVar)
 {
-
+    MIOPEN_LOG_T("batchNormPerActHostFwdTrain epsilon = " << epsilon);
     int height, width, n_batch, channels;
     std::tie(n_batch, channels, height, width) = miopen::tien<4>(input.desc.GetLengths());
     const auto n                               = double(n_batch);
@@ -644,7 +646,7 @@ void batchNormPerActHostBwdTrain(const tensor<XDataType>& x_input,
                                  const tensor<AccDataType>& savedMean,
                                  const tensor<AccDataType>& savedInvVar)
 {
-
+    MIOPEN_LOG_T("batchNormPerActHostBwdTrain epsilon = " << epsilon);
     int height, width, n_batch, channels;
     std::tie(n_batch, channels, height, width) = miopen::tien<4>(x_input.desc.GetLengths());
     int in_cstride                             = height * width;
@@ -719,7 +721,7 @@ void batchNormActivPerActHostBwdTrain(miopenActivationMode_t activMode,
                                       const tensor<U>& savedMean,
                                       const tensor<U>& savedInvVar)
 {
-
+    MIOPEN_LOG_T("batchNormActivPerActHostBwdTrain epsilon = " << epsilon);
     int height, width, n_batch, channels;
     std::tie(n_batch, channels, height, width) = miopen::tien<4>(x_input.desc.GetLengths());
     int in_cstride                             = height * width;
