@@ -94,3 +94,35 @@ INSTANTIATE_TEST_SUITE_P(Full,
                                           testing::ValuesIn({testBNAPIV2}),
                                           testing::ValuesIn({miopenActivationPASTHRU})),
                          TestNameGenerator<BN3DTestCase>());
+
+// fp16
+INSTANTIATE_TEST_SUITE_P(Full16,
+                         GPU_ppBNOCLInferSerialRun3D_FP16,
+                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCase16<BN3DTestCase>()),
+                                          testing::ValuesIn({miopenTensorNCDHW, miopenTensorNDHWC}),
+                                          testing::ValuesIn({miopenBNSpatial,
+                                                             miopenBNPerActivation}),
+                                          testing::ValuesIn({testBNAPIV1, testBNAPIV2}),
+                                          testing::ValuesIn({miopenActivationPASTHRU})),
+                         TestNameGenerator<BN3DTestCase>());
+// bfp16
+INSTANTIATE_TEST_SUITE_P(Full16,
+                         GPU_ppBNOCLInferSerialRun3D_BFP16,
+                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCase16<BN3DTestCase>()),
+                                          testing::ValuesIn({/*miopenTensorNCDHW, */miopenTensorNDHWC}),
+                                          testing::ValuesIn({/*miopenBNSpatial,*/
+                                                             miopenBNPerActivation}),
+                                          testing::ValuesIn({testBNAPIV1, testBNAPIV2}),
+                                          testing::ValuesIn({miopenActivationPASTHRU})),
+                         TestNameGenerator<BN3DTestCase>());
+
+// fp32
+INSTANTIATE_TEST_SUITE_P(Full16,
+                         GPU_ppBNInferSerialRun3D_FP32,
+                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCase16<BN3DTestCase>()),
+                                          testing::ValuesIn({miopenTensorNCDHW, miopenTensorNDHWC}),
+                                          testing::ValuesIn({miopenBNSpatial,
+                                                             miopenBNPerActivation}),
+                                          testing::ValuesIn({testBNAPIV2}),
+                                          testing::ValuesIn({miopenActivationPASTHRU})),
+                         TestNameGenerator<BN3DTestCase>());

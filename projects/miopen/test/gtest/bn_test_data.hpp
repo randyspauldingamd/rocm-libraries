@@ -147,7 +147,7 @@ inline std::vector<BN3DTestCase> Network3DSerialCase()
     return {{2, 2048, 16, 128, 128, miopen::batchnorm::Direction::Backward, 0, 1}};
 }
 
-// Extra problem sizes to investigate Navi48 issues
+// Extra problem sizes to investigate Navi48 issues, N=2
 // 
 template <typename T>
 std::vector<T> ExtraNetwork3DSerialCase();
@@ -155,13 +155,33 @@ std::vector<T> ExtraNetwork3DSerialCase();
 template <>
 inline std::vector<BN3DTestCase> ExtraNetwork3DSerialCase()
 {
-    return {{2, 1536, 16, 128, 128, miopen::batchnorm::Direction::Backward, 0, 1},
-            {2, 1024, 16, 128, 128, miopen::batchnorm::Direction::Backward, 0, 1},
-            {2, 512, 16, 128, 128, miopen::batchnorm::Direction::Backward, 0, 1},
-            {2, 2048, 16, 96, 96, miopen::batchnorm::Direction::Backward, 0, 1},
-            {2, 2048, 16, 64, 64, miopen::batchnorm::Direction::Backward, 0, 1},
-            {2, 1024, 16, 96, 96, miopen::batchnorm::Direction::Backward, 0, 1},
-            {2, 1024, 16, 64, 64, miopen::batchnorm::Direction::Backward, 0, 1},
+    return {
+        {2, 1536, 16, 128, 128, miopen::batchnorm::Direction::Backward, 0, 1},
+        {2, 1024, 16, 128, 128, miopen::batchnorm::Direction::Backward, 0, 1},
+        {2, 512, 16, 128, 128, miopen::batchnorm::Direction::Backward, 0, 1},
+        {2, 2048, 16, 96, 96, miopen::batchnorm::Direction::Backward, 0, 1},
+        {2, 2048, 16, 64, 64, miopen::batchnorm::Direction::Backward, 0, 1},
+        {2, 1024, 16, 96, 96, miopen::batchnorm::Direction::Backward, 0, 1},
+        {2, 1024, 16, 64, 64, miopen::batchnorm::Direction::Backward, 0, 1},
+    };
+}
+
+// Extra problem sizes to investigate Navi48 issues, N=16
+//
+template <typename T>
+std::vector<T> ExtraNetwork3DSerialCase16();
+
+template <>
+inline std::vector<BN3DTestCase> ExtraNetwork3DSerialCase16()
+{
+    return {
+        {16, 192, 16, 128, 128, miopen::batchnorm::Direction::Backward, 0, 1},
+        {16, 128, 16, 128, 128, miopen::batchnorm::Direction::Backward, 0, 1},
+        {16, 64, 16, 128, 128, miopen::batchnorm::Direction::Backward, 0, 1},
+        {16, 256, 16, 96, 96, miopen::batchnorm::Direction::Backward, 0, 1},
+        {16, 256, 16, 64, 64, miopen::batchnorm::Direction::Backward, 0, 1},
+        {16, 128, 16, 96, 96, miopen::batchnorm::Direction::Backward, 0, 1},
+        {16, 128, 16, 64, 64, miopen::batchnorm::Direction::Backward, 0, 1},
     };
 }
 
