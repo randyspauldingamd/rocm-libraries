@@ -63,10 +63,186 @@ TEST_P(GPU_ppBNOCLInferSerialRun3D_BFP16, BnV2SerialRunInferOCLbfp16_3D) {}
 // fp32 (float)
 TEST_P(GPU_ppBNInferSerialRun3D_FP32, DISABLED_BnV2SerialRunInferfp32_3D) {}
 
-// fp16
-INSTANTIATE_TEST_SUITE_P(Full,
+// fp16 NCDHW Spatial V1
+INSTANTIATE_TEST_SUITE_P(RampFpNCSpA1,
                          GPU_ppBNOCLInferSerialRun3D_FP16,
-                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCase<BN3DTestCase>()),
+                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCaseRamp<BN3DTestCase>()),
+                                          testing::ValuesIn({miopenTensorNCDHW}),
+                                          testing::ValuesIn({miopenBNSpatial}),
+                                          testing::ValuesIn({testBNAPIV1}),
+                                          testing::ValuesIn({miopenActivationPASTHRU})),
+                         TestNameGenerator<BN3DTestCase>());
+
+// fp16 NCDHW Spatial V2
+INSTANTIATE_TEST_SUITE_P(RampFpNCSpA2,
+                         GPU_ppBNOCLInferSerialRun3D_FP16,
+                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCaseRamp<BN3DTestCase>()),
+                                          testing::ValuesIn({miopenTensorNCDHW}),
+                                          testing::ValuesIn({miopenBNSpatial}),
+                                          testing::ValuesIn({testBNAPIV2}),
+                                          testing::ValuesIn({miopenActivationPASTHRU})),
+                         TestNameGenerator<BN3DTestCase>());
+
+// fp16 NCDHW PerAct V1
+INSTANTIATE_TEST_SUITE_P(RampFpNCPaA1,
+                         GPU_ppBNOCLInferSerialRun3D_FP16,
+                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCaseRamp<BN3DTestCase>()),
+                                          testing::ValuesIn({miopenTensorNCDHW}),
+                                          testing::ValuesIn({miopenBNPerActivation}),
+                                          testing::ValuesIn({testBNAPIV1}),
+                                          testing::ValuesIn({miopenActivationPASTHRU})),
+                         TestNameGenerator<BN3DTestCase>());
+
+// fp16 NCDHW PerAct V2
+INSTANTIATE_TEST_SUITE_P(RampFpNCPaA2,
+                         GPU_ppBNOCLInferSerialRun3D_FP16,
+                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCaseRamp<BN3DTestCase>()),
+                                          testing::ValuesIn({miopenTensorNCDHW}),
+                                          testing::ValuesIn({miopenBNPerActivation}),
+                                          testing::ValuesIn({testBNAPIV2}),
+                                          testing::ValuesIn({miopenActivationPASTHRU})),
+                         TestNameGenerator<BN3DTestCase>());
+//---------------------------------------------------------------------------------------------------------------------
+// fp16 NDHWC Spatial V1
+INSTANTIATE_TEST_SUITE_P(RampFpNDSpA1,
+                         GPU_ppBNOCLInferSerialRun3D_FP16,
+                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCaseRamp<BN3DTestCase>()),
+                                          testing::ValuesIn({miopenTensorNDHWC}),
+                                          testing::ValuesIn({miopenBNSpatial}),
+                                          testing::ValuesIn({testBNAPIV1}),
+                                          testing::ValuesIn({miopenActivationPASTHRU})),
+                         TestNameGenerator<BN3DTestCase>());
+
+// fp16 NDHWC Spatial V2
+INSTANTIATE_TEST_SUITE_P(RampFpNDSpA2,
+                         GPU_ppBNOCLInferSerialRun3D_FP16,
+                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCaseRamp<BN3DTestCase>()),
+                                          testing::ValuesIn({miopenTensorNDHWC}),
+                                          testing::ValuesIn({miopenBNSpatial}),
+                                          testing::ValuesIn({testBNAPIV2}),
+                                          testing::ValuesIn({miopenActivationPASTHRU})),
+                         TestNameGenerator<BN3DTestCase>());
+
+// fp16 NDHWC PerAct V1
+INSTANTIATE_TEST_SUITE_P(RampFpNDPaA1,
+                         GPU_ppBNOCLInferSerialRun3D_FP16,
+                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCaseRamp<BN3DTestCase>()),
+                                          testing::ValuesIn({miopenTensorNDHWC}),
+                                          testing::ValuesIn({miopenBNPerActivation}),
+                                          testing::ValuesIn({testBNAPIV1}),
+                                          testing::ValuesIn({miopenActivationPASTHRU})),
+                         TestNameGenerator<BN3DTestCase>());
+
+// fp16 NDHWC PerAct V2
+INSTANTIATE_TEST_SUITE_P(RampFpNDPaA2,
+                         GPU_ppBNOCLInferSerialRun3D_FP16,
+                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCaseRamp<BN3DTestCase>()),
+                                          testing::ValuesIn({miopenTensorNDHWC}),
+                                          testing::ValuesIn({miopenBNPerActivation}),
+                                          testing::ValuesIn({testBNAPIV2}),
+                                          testing::ValuesIn({miopenActivationPASTHRU})),
+                         TestNameGenerator<BN3DTestCase>());
+//---------------------------------------------------------------------------------------------------------------------
+// bfp16 NCDHW Spatial V1
+INSTANTIATE_TEST_SUITE_P(RampBfNCSpA1,
+                         GPU_ppBNOCLInferSerialRun3D_BFP16,
+                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCaseRamp<BN3DTestCase>()),
+                                          testing::ValuesIn({miopenTensorNCDHW}),
+                                          testing::ValuesIn({miopenBNSpatial}),
+                                          testing::ValuesIn({testBNAPIV1}),
+                                          testing::ValuesIn({miopenActivationPASTHRU})),
+                         TestNameGenerator<BN3DTestCase>());
+
+// bfp16 NCDHW Spatial V2
+INSTANTIATE_TEST_SUITE_P(RampBfNCSpA2,
+                         GPU_ppBNOCLInferSerialRun3D_BFP16,
+                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCaseRamp<BN3DTestCase>()),
+                                          testing::ValuesIn({miopenTensorNCDHW}),
+                                          testing::ValuesIn({miopenBNSpatial}),
+                                          testing::ValuesIn({testBNAPIV2}),
+                                          testing::ValuesIn({miopenActivationPASTHRU})),
+                         TestNameGenerator<BN3DTestCase>());
+
+// bfp16 NCDHW PerAct V1
+INSTANTIATE_TEST_SUITE_P(RampBfNCPaA1,
+                         GPU_ppBNOCLInferSerialRun3D_BFP16,
+                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCaseRamp<BN3DTestCase>()),
+                                          testing::ValuesIn({miopenTensorNCDHW}),
+                                          testing::ValuesIn({miopenBNPerActivation}),
+                                          testing::ValuesIn({testBNAPIV1}),
+                                          testing::ValuesIn({miopenActivationPASTHRU})),
+                         TestNameGenerator<BN3DTestCase>());
+
+// bfp16 NCDHW PerAct V2
+INSTANTIATE_TEST_SUITE_P(RampBfNCPaA2,
+                         GPU_ppBNOCLInferSerialRun3D_BFP16,
+                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCaseRamp<BN3DTestCase>()),
+                                          testing::ValuesIn({miopenTensorNCDHW}),
+                                          testing::ValuesIn({miopenBNPerActivation}),
+                                          testing::ValuesIn({testBNAPIV2}),
+                                          testing::ValuesIn({miopenActivationPASTHRU})),
+                         TestNameGenerator<BN3DTestCase>());
+//---------------------------------------------------------------------------------------------------------------------
+// bfp16 NDHWC Spatial V1
+INSTANTIATE_TEST_SUITE_P(RampBfNDSpA1,
+                         GPU_ppBNOCLInferSerialRun3D_BFP16,
+                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCaseRamp<BN3DTestCase>()),
+                                          testing::ValuesIn({miopenTensorNDHWC}),
+                                          testing::ValuesIn({miopenBNSpatial}),
+                                          testing::ValuesIn({testBNAPIV1}),
+                                          testing::ValuesIn({miopenActivationPASTHRU})),
+                         TestNameGenerator<BN3DTestCase>());
+
+// bfp16 NDHWC Spatial V2
+INSTANTIATE_TEST_SUITE_P(RampBfNDSpA2,
+                         GPU_ppBNOCLInferSerialRun3D_BFP16,
+                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCaseRamp<BN3DTestCase>()),
+                                          testing::ValuesIn({miopenTensorNDHWC}),
+                                          testing::ValuesIn({miopenBNSpatial}),
+                                          testing::ValuesIn({testBNAPIV2}),
+                                          testing::ValuesIn({miopenActivationPASTHRU})),
+                         TestNameGenerator<BN3DTestCase>());
+
+// bfp16 NDHWC PerAct V1
+INSTANTIATE_TEST_SUITE_P(RampBfNDPaA1,
+                         GPU_ppBNOCLInferSerialRun3D_BFP16,
+                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCaseRamp<BN3DTestCase>()),
+                                          testing::ValuesIn({miopenTensorNDHWC}),
+                                          testing::ValuesIn({miopenBNPerActivation}),
+                                          testing::ValuesIn({testBNAPIV1}),
+                                          testing::ValuesIn({miopenActivationPASTHRU})),
+                         TestNameGenerator<BN3DTestCase>());
+
+// bfp16 NDHWC PerAct V2
+INSTANTIATE_TEST_SUITE_P(RampBfNDPaA2,
+                         GPU_ppBNOCLInferSerialRun3D_BFP16,
+                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCaseRamp<BN3DTestCase>()),
+                                          testing::ValuesIn({miopenTensorNDHWC}),
+                                          testing::ValuesIn({miopenBNPerActivation}),
+                                          testing::ValuesIn({testBNAPIV2}),
+                                          testing::ValuesIn({miopenActivationPASTHRU})),
+                         TestNameGenerator<BN3DTestCase>());
+//---------------------------------------------------------------------------------------------------------------------
+// fp32
+INSTANTIATE_TEST_SUITE_P(Ramp32,
+                         GPU_ppBNInferSerialRun3D_FP32,
+                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCaseRamp<BN3DTestCase>()),
+                                          testing::ValuesIn({miopenTensorNCDHW, miopenTensorNDHWC}),
+                                          testing::ValuesIn({miopenBNSpatial,
+                                                             miopenBNPerActivation}),
+                                          testing::ValuesIn({testBNAPIV2}),
+                                          testing::ValuesIn({miopenActivationPASTHRU})),
+                         TestNameGenerator<BN3DTestCase>());
+
+
+
+
+
+
+// fp16
+INSTANTIATE_TEST_SUITE_P(Full2,
+                         GPU_ppBNOCLInferSerialRun3D_FP16,
+                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCase2<BN3DTestCase>()),
                                           testing::ValuesIn({miopenTensorNCDHW, miopenTensorNDHWC}),
                                           testing::ValuesIn({miopenBNSpatial,
                                                              miopenBNPerActivation}),
@@ -74,9 +250,9 @@ INSTANTIATE_TEST_SUITE_P(Full,
                                           testing::ValuesIn({miopenActivationPASTHRU})),
                          TestNameGenerator<BN3DTestCase>());
 // bfp16
-INSTANTIATE_TEST_SUITE_P(Full,
+INSTANTIATE_TEST_SUITE_P(Full2,
                          GPU_ppBNOCLInferSerialRun3D_BFP16,
-                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCase<BN3DTestCase>()),
+                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCase2<BN3DTestCase>()),
                                           testing::ValuesIn({/*miopenTensorNCDHW, */miopenTensorNDHWC}),
                                           testing::ValuesIn({/*miopenBNSpatial,*/
                                                              miopenBNPerActivation}),
@@ -85,9 +261,9 @@ INSTANTIATE_TEST_SUITE_P(Full,
                          TestNameGenerator<BN3DTestCase>());
 
 // fp32
-INSTANTIATE_TEST_SUITE_P(Full,
+INSTANTIATE_TEST_SUITE_P(Full2,
                          GPU_ppBNInferSerialRun3D_FP32,
-                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCase<BN3DTestCase>()),
+                         testing::Combine(testing::ValuesIn(ExtraNetwork3DSerialCase2<BN3DTestCase>()),
                                           testing::ValuesIn({miopenTensorNCDHW, miopenTensorNDHWC}),
                                           testing::ValuesIn({miopenBNSpatial,
                                                              miopenBNPerActivation}),
