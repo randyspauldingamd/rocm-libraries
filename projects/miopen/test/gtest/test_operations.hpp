@@ -226,7 +226,7 @@ void CompareTensorGPU(const tensor<T>& output,
         << "Non finite number found in the CPU data";
     coutmsreset("notfin_ref", timer);
     std::cout << error << std::endl;    // TRJS
-    EXPECT_TRUE(error < 0.0*threshold) // TRJS
+    EXPECT_TRUE(error < 0.0*threshold) // TRJS break it zero tolerance
         << "Error beyond tolerance Error:" << error << ",  Threshold: " << threshold;
 }
 
