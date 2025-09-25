@@ -7,7 +7,7 @@
 #include <fstream>
 #include <iomanip>
 
-#define FTO_TIMING 0
+#define FTO_TIMING 1
 #define FTO_USE_DRIVE_CACHE 0
 
 namespace { using sc = std::chrono::steady_clock; }
@@ -16,7 +16,7 @@ namespace { using sc = std::chrono::steady_clock; }
 #undef coutms
 #undef coutmsreset
 #if FTO_TIMING
-#define coutms(__TOK, __TP) (std::cout << "ms[" << std::setw(16) << __TOK << "]: " << std::setw(12) << tomillis(sc::now() - __TP) << std::endl)
+#define coutms(__TOK, __TP) (std::cout << "ms[" << std::setw(20) << __TOK << "]: " << std::setw(12) << tomillis(sc::now() - __TP) << std::endl)
 #else
 #define coutms(__TOK, __TP) (__TP = __TP)
 #endif
