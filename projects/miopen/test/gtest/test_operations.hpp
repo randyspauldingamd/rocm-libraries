@@ -212,7 +212,7 @@ void CompareTensorGPU(const tensor<T>& output,
     coutmsreset("rzout", timer);
     EXPECT_FALSE(miopen::find_idx(output, miopen::not_finite) >= 0)
         << "Non finite number found in the GPU data";
-    coutmsreset("notfin_out", timer);
+    coutmsreset("nonfinite_out", timer);
     EXPECT_TRUE(miopen::range_distance(out_ref) == miopen::range_distance(output));
     coutmsreset("lenequal", timer);
     double gpu_error = 0.0;
@@ -224,7 +224,7 @@ void CompareTensorGPU(const tensor<T>& output,
     coutmsreset("rms_range", timer);
     EXPECT_FALSE(miopen::find_idx(out_ref, miopen::not_finite) >= 0)
         << "Non finite number found in the CPU data";
-    coutmsreset("notfin_ref", timer);
+    coutmsreset("nonfinite_ref", timer);
     std::cout << error << std::endl;    // TRJS
     EXPECT_TRUE(error < 0.0*threshold) // TRJS break it zero tolerance
         << "Error beyond tolerance Error:" << error << ",  Threshold: " << threshold;

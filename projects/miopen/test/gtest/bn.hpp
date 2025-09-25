@@ -166,6 +166,9 @@ protected:
         auto&& handle                      = get_handle();
         miopenStatus_t res                 = miopenStatusUnknownError;
         miopenTuningPolicy_t tuning_policy = GetTuningPolicy();
+
+        auto start = sc::now(); // TRJS
+
         if(bn_infer_test_data.activ_mode > 0)
         {
             miopenCreateActivationDescriptor(&activ_desc);
@@ -270,10 +273,12 @@ protected:
         {
             GTEST_FAIL() << "miopenBatchNormalizationForwardInference failed";
         }
+        coutmsreset("bnit_RunGPU", start); // TRJS
 
         std::fill(bn_infer_test_data.output.begin(),
                   bn_infer_test_data.output.end(),
                   std::numeric_limits<YDataType>::quiet_NaN());
+        coutmsreset("bnit_FillNaN", start); // TRJS
     }
 
     void TearDown() override
@@ -283,17 +288,22 @@ protected:
             return;
         }
 
+        auto start = sc::now(); // TRJS
+
         auto&& handle                  = get_handle();
         bn_infer_test_data.output.data = handle.Read<YDataType>(
             bn_infer_test_data.out_dev, bn_infer_test_data.output.data.size());
+        coutmsreset("bnit_ReadGPU", start); // TRJS
         fto::WriteTensorToFile("bntd_output.dat", bn_infer_test_data.output);
         test::ComputeCPUBNInference(bn_infer_test_data);
+        coutmsreset("bnit_RunCPU", start); // TRJS
         activationHostInfer(bn_infer_test_data.activ_mode,
                             static_cast<double>(0.0),
                             bn_infer_test_data.activ_beta,
                             bn_infer_test_data.activ_alpha,
                             bn_infer_test_data.out_ref.data,
                             bn_infer_test_data.out_ref.data);
+        coutmsreset("bnit_ActivCPU", start); // TRJS
         auto tolerance = 4e-3;
 #if WORKAROUND_SWDEV_547301
         // Workaround to let BN Infer tests pass on Navi4x,SWDEV-547301
