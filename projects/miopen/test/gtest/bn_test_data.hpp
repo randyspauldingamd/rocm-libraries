@@ -223,15 +223,15 @@ struct BNTestData
         bn_mode       = t_bnmode;
         auto start = sc::now(); // TRJS
         CreateTensors();
-        coutms("BCreateTensors", start);    start = sc::now(); // TRJS
+        coutms("bntd_CreateTensors", start);    start = sc::now(); // TRJS
         if(!fto::LoadTensorFromFile("bntd_input.dat", input)) {  // TRJS
         InitTensorsWithRandValue();
         fto::WriteTensorToFile("bntd_input.dat", input);
     }
-        coutms("BInitTensorsWRV", start);    start = sc::now(); // TRJS
+        coutms("bntd_InitTensorsWRV", start);    start = sc::now(); // TRJS
         SetDirection();
         WriteToGPU();
-        coutms("BWriteToGPU", start);    start = sc::now(); // TRJS
+        coutms("bntd_WriteToGPU", start);    start = sc::now(); // TRJS
     }
     const miopen::TensorDescriptor& GetInputDesc() const { return input.desc; }
 
@@ -288,7 +288,7 @@ struct BNInferTestData : public BNTestData<XDataType, YDataType, AccDataType, TC
             config, t_bnmode, t_layout);
         auto start = sc::now(); // TRJS
         CreateTensors();
-        coutms("CreateTensors", start);    start = sc::now(); // TRJS
+        coutmsreset("bnitd_CreateTensors", start); // TRJS
         if(!fto::LoadTensorFromFile("bni_scale.dat", scale) ||
     !fto::LoadTensorFromFile("bni_shift.dat", shift) ||
     !fto::LoadTensorFromFile("bni_estMean.dat", estMean) ||  // TRJS
@@ -299,9 +299,9 @@ struct BNInferTestData : public BNTestData<XDataType, YDataType, AccDataType, TC
     fto::WriteTensorToFile("bni_estMean.dat", estMean);// TRJS
     fto::WriteTensorToFile("bni_estVariance.dat", estVariance);
 }
-        coutms("InitTensorsWRV", start);    start = sc::now(); // TRJS
+        coutmsreset("bnitd_InitTensorsWRV", start); // TRJS
         WriteToGPU();
-        coutms("WriteToGPU", start);    start = sc::now(); // TRJS
+        coutmsreset("bnitd_WriteToGPU", start); // TRJS
     }
 
     tensor<ScaleDataType> scale;
@@ -380,11 +380,11 @@ struct BNBwdTestData : public BNTestData<XDataType, DyDataType, AccDataType, TCo
             config, t_bnmode, t_layout);
         auto start = sc::now(); // TRJS
         CreateTensors();
-        coutms("CreateTensors", start);    start = sc::now(); // TRJS
+        coutmsreset("bnbtd_CreateTensors", start); // TRJS
         InitTensorsWithRandValue();
-        coutms("InitTensorsWRV", start);    start = sc::now(); // TRJS
+        coutmsreset("bnbtd_InitTensorsWRV", start); // TRJS
         WriteToGPU();
-        coutms("WriteToGPU", start);    start = sc::now(); // TRJS
+        coutmsreset("bnbtd_WriteToGPU", start); // TRJS
     }
 
     tensor<ScaleDataType> bnScale;
@@ -501,9 +501,13 @@ struct BNFwdTrainTestData : public BNTestData<XDataType, YDataType, AccDataType,
     {
         BNTestData<XDataType, YDataType, AccDataType, TConfig>::SetUpImpl(
             config, t_bnmode, t_layout);
+        auto start = sc::now(); // TRJS
         CreateTensors();
+        coutmsreset("bnftd_InitTensorsWRV", start); // TRJS
         InitTensorsWithRandValue();
+        coutmsreset("bnbtd_InitTensorsWRV", start); // TRJS
         WriteToGPU();
+        coutmsreset("bnftd_WriteToGPU", start); // TRJS
     }
 
     tensor<ScaleDataType> scale;
