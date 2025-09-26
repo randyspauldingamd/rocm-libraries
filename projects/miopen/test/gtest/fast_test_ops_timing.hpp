@@ -22,7 +22,7 @@ namespace { using sc = std::chrono::steady_clock; }
 #if FTO_TIMING
 #define coutmsstart(__TP) auto __TP = sc::now()
 #define FTO_MS_START() coutmsstart(FTO_MS_TOKEN)
-#define coutmsbase(__TOK, __TP, __PRE) std::cout << __PRE << "ms[" << std::setw(20) << __TOK << "]: " << std::setw(12) << tomillis(sc::now() - __TP) << std::endl
+#define coutmsbase(__TOK, __TP, __PRE) std::cout << __PRE << "ms[ " << std::setw(19) << __TOK << "]: " << std::setw(12) << tomillis(sc::now() - __TP) << std::endl
 #define coutmsnow(__TP) __TP = sc::now()
 #else
 #define coutmsstart(__TP) ((void)0)
