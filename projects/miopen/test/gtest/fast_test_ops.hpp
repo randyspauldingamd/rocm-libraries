@@ -19,7 +19,7 @@ using range_value = typename std::decay<decltype(*std::declval<R>().begin())>::t
 #if (FTO_USE_DRIVE_CACHE == 0)
 namespace fto {
 
-    template <class T>
+template <class T>
 bool LoadTensorFromFile(std::string path, tensor<T>& tensor, bool verbose = FTO_VERBOSE)
 {
     return false;
@@ -36,9 +36,9 @@ bool WriteTensorToFile(std::string path, tensor<T>& tensor, bool verbose = FTO_V
 #else
 
 #if (FTO_USE_DRIVE_CACHE == 1)
-#define FTO_TMP_ROOT "/tmp/"
+#define FTO_TMP_ROOT "/tmp/bnorm/"
 #elif (FTO_USE_DRIVE_CACHE == 2)
-#define FTO_TMP_ROOT "/ramdisk/"
+#define FTO_TMP_ROOT "/ramdisk/bnorm/"
 #endif
 #define FTO_VERBOSE false
 
@@ -48,6 +48,7 @@ template <class T>
 bool LoadTensorFromFile(std::string path, tensor<T>& tensor, bool verbose = FTO_VERBOSE)
 {
     if (!FTO_USE_DRIVE_CACHE) { if (FTO_VERBOSE) { std::cout << "skip: FTO_USE_DRIVE_CACHE is 0" << std::endl; } return false; }
+    std::filesystem::create_directories(FTO_TMP_ROOT);
     std::filesystem::path filePath{FTO_TMP_ROOT + path};
     if (!std::filesystem::exists(filePath))  { std::cout << "Read failure, '" << path.c_str() << "' does not exist." << std::endl; return false; }
     std::ifstream file(filePath);
@@ -61,6 +62,7 @@ template <class T>
 bool WriteTensorToFile(std::string path, tensor<T>& tensor, bool verbose = FTO_VERBOSE)
 {
     if (!FTO_USE_DRIVE_CACHE) { if (FTO_VERBOSE) { std::cout << "skip: FTO_USE_DRIVE_CACHE is 0" << std::endl; } return false; }
+    std::filesystem::create_directories(FTO_TMP_ROOT);
     std::filesystem::path filePath{FTO_TMP_ROOT + path};
     if (std::filesystem::exists(filePath)) { std::cout << "Write failure, '" << path.c_str() << "' exists." << std::endl; return false; }
     std::ofstream file(filePath);
