@@ -8,11 +8,39 @@
 #include <fstream>
 #include <iomanip>
 
-#define TMP_ROOT "/ramdisk/"
 #define FTO_VERBOSE false
+
 // from test/verify.hpp
 template <class R>
 using range_value = typename std::decay<decltype(*std::declval<R>().begin())>::type;
+
+// FTO_USE_DRIVE_CACHE=0 (off), 1 (/tmp), 2 (ram disk)
+#define FTO_USE_DRIVE_CACHE 0
+#if (FTO_USE_DRIVE_CACHE == 0)
+namespace fto {
+
+    template <class T>
+bool LoadTensorFromFile(std::string path, tensor<T>& tensor, bool verbose = FTO_VERBOSE)
+{
+    return false;
+}
+
+template <class T>
+bool WriteTensorToFile(std::string path, tensor<T>& tensor, bool verbose = FTO_VERBOSE)
+{
+    return false;
+}
+
+} // namespace fto
+
+#else
+
+#if (FTO_USE_DRIVE_CACHE == 1)
+#define FTO_TMP_ROOT "/tmp/"
+#elif (FTO_USE_DRIVE_CACHE == 2)
+#define FTO_TMP_ROOT "/ramdisk/"
+#endif
+#define FTO_VERBOSE false
 
 namespace fto {
 
@@ -20,7 +48,7 @@ template <class T>
 bool LoadTensorFromFile(std::string path, tensor<T>& tensor, bool verbose = FTO_VERBOSE)
 {
     if (!FTO_USE_DRIVE_CACHE) { if (FTO_VERBOSE) { std::cout << "skip: FTO_USE_DRIVE_CACHE is 0" << std::endl; } return false; }
-    std::filesystem::path filePath{TMP_ROOT + path};
+    std::filesystem::path filePath{FTO_TMP_ROOT + path};
     if (!std::filesystem::exists(filePath))  { std::cout << "Read failure, '" << path.c_str() << "' does not exist." << std::endl; return false; }
     std::ifstream file(filePath);
     if (!file.is_open()) return false;
@@ -28,11 +56,12 @@ bool LoadTensorFromFile(std::string path, tensor<T>& tensor, bool verbose = FTO_
     serialize(file, tensor);
     return true;
 }
+
 template <class T>
 bool WriteTensorToFile(std::string path, tensor<T>& tensor, bool verbose = FTO_VERBOSE)
 {
     if (!FTO_USE_DRIVE_CACHE) { if (FTO_VERBOSE) { std::cout << "skip: FTO_USE_DRIVE_CACHE is 0" << std::endl; } return false; }
-    std::filesystem::path filePath{TMP_ROOT + path};
+    std::filesystem::path filePath{FTO_TMP_ROOT + path};
     if (std::filesystem::exists(filePath)) { std::cout << "Write failure, '" << path.c_str() << "' exists." << std::endl; return false; }
     std::ofstream file(filePath);
     if (!file.is_open()) return false;
@@ -40,6 +69,11 @@ bool WriteTensorToFile(std::string path, tensor<T>& tensor, bool verbose = FTO_V
     serialize(file, tensor);
     return true;
 }
+
+}
+#endif
+
+namespace fto {
 
 template <class T, class Tref, class U, class V = U>
 bool LoadCPUBNInferenceTensorsFromFiles(
@@ -76,6 +110,7 @@ bool WriteCPUBNInferenceTensorsToFiles(
     return true;
 }
 
+// TODO: implement
 template <class R1, class R2>
 double gpu_rms_range(R1&& r1, R2&& r2)
 {
