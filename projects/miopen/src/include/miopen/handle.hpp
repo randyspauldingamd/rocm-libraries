@@ -210,9 +210,10 @@ struct MIOPEN_EXPORT Handle : miopenHandle
         FTO_MS_START(); // TRJS
         auto buf   = this->Create<type>(c.size());
         FTO_MS_RESTART2("Create"); // TRJS
-        return std::move(
-            this->WriteTo(reinterpret_cast<const void*>(c.data()), buf, c.size() * sizeof(type)));
+        auto data_ptr = std::move(this->WriteTo(reinterpret_cast<const void*>(c.data()), buf, c.size() * sizeof(type)));
         FTO_MS_RESTART2("WriteTo"); // TRJS
+
+        return data_ptr;
     }
 
     template <class T>
