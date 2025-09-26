@@ -167,7 +167,7 @@ protected:
         miopenStatus_t res                 = miopenStatusUnknownError;
         miopenTuningPolicy_t tuning_policy = GetTuningPolicy();
 
-        auto start = sc::now(); // TRJS
+        FTO_MS_START(); // TRJS
 
         if(bn_infer_test_data.activ_mode > 0)
         {
@@ -273,12 +273,12 @@ protected:
         {
             GTEST_FAIL() << "miopenBatchNormalizationForwardInference failed";
         }
-        coutmsreset("bnit_RunGPU", start); // TRJS
+        FTO_MS_RESTART("bnit_RunGPU"); // TRJS
 
         std::fill(bn_infer_test_data.output.begin(),
                   bn_infer_test_data.output.end(),
                   std::numeric_limits<YDataType>::quiet_NaN());
-        coutmsreset("bnit_FillNaN", start); // TRJS
+        FTO_MS_RESTART("bnit_FillNaN"); // TRJS
     }
 
     void TearDown() override
@@ -288,22 +288,22 @@ protected:
             return;
         }
 
-        auto start = sc::now(); // TRJS
+        FTO_MS_START(); // TRJS
 
         auto&& handle                  = get_handle();
         bn_infer_test_data.output.data = handle.Read<YDataType>(
             bn_infer_test_data.out_dev, bn_infer_test_data.output.data.size());
-        coutmsreset("bnit_ReadGPU", start); // TRJS
+        FTO_MS_RESTART("bnit_ReadGPU"); // TRJS
         fto::WriteTensorToFile("bntd_output.dat", bn_infer_test_data.output);
         test::ComputeCPUBNInference(bn_infer_test_data);
-        coutmsreset("bnit_RunCPU", start); // TRJS
+        FTO_MS_RESTART("bnit_RunCPU"); // TRJS
         activationHostInfer(bn_infer_test_data.activ_mode,
                             static_cast<double>(0.0),
                             bn_infer_test_data.activ_beta,
                             bn_infer_test_data.activ_alpha,
                             bn_infer_test_data.out_ref.data,
                             bn_infer_test_data.out_ref.data);
-        coutmsreset("bnit_ActivCPU", start); // TRJS
+        FTO_MS_RESTART("bnit_ActivCPU"); // TRJS
         auto tolerance = 4e-3;
 #if WORKAROUND_SWDEV_547301
         // Workaround to let BN Infer tests pass on Navi4x,SWDEV-547301

@@ -54,7 +54,7 @@ void ComputeCPUBNInference(DLModule& dl_module)
                                       dl_module.epsilon,
                                       dl_module.estMean,
                                       dl_module.estVariance))   return; // TRJS
-    auto start = sc::now(); // TRJS
+    FTO_MS_START(); // TRJS
     if(dl_module.bn_mode == miopenBNSpatial)
     {
         batchNormSpatialHostInference(dl_module.input,
@@ -80,7 +80,7 @@ void ComputeCPUBNInference(DLModule& dl_module)
         std::cout << "\nUnknown inference batch miopenBatchNormMode_t\n";
         exit(EXIT_FAILURE);
     }
-    coutms("CPUInfer", start);  // TRJS
+    FTO_MS_RESTART2("CPUInfer");  // TRJS
     (void)fto::WriteCPUBNInferenceTensorsToFiles(dl_module.input,
                                       dl_module.out_ref,
                                       dl_module.scale,
@@ -205,26 +205,26 @@ void CompareTensorGPU(const tensor<T>& output,
                    std::optional<std::reference_wrapper<const tensor<U>>> out_gpu = std::nullopt,
                    std::optional<std::reference_wrapper<const tensor<U>>> ref_gpu = std::nullopt)
 {
-    auto timer = sc::now(); // TRJS
+    FTO_MS_START(); // TRJS
     EXPECT_FALSE(miopen::range_zero(out_ref)) << "CPU data is all zeros";
-    coutmsreset("rzref", timer);
+    FTO_MS_RESTART("rzref");
     EXPECT_FALSE(miopen::range_zero(output)) << "GPU data is all zeros";
-    coutmsreset("rzout", timer);
+    FTO_MS_RESTART("rzout");
     EXPECT_FALSE(miopen::find_idx(output, miopen::not_finite) >= 0)
         << "Non finite number found in the GPU data";
-    coutmsreset("nonfinite_out", timer);
+    FTO_MS_RESTART("nonfinite_out");
     EXPECT_TRUE(miopen::range_distance(out_ref) == miopen::range_distance(output));
-    coutmsreset("lenequal", timer);
+    FTO_MS_RESTART("lenequal");
     double gpu_error = 0.0;
     if (out_gpu.has_value() && ref_gpu.has_value()){
         gpu_error = fto::gpu_rms_range(ref_gpu->get(), out_gpu->get());
         std::cout << "(gpu) " << gpu_error << " ";    // TRJS
     }
     auto error = miopen::rms_range(out_ref, output);
-    coutmsreset("rms_range", timer);
+    FTO_MS_RESTART("rms_range");
     EXPECT_FALSE(miopen::find_idx(out_ref, miopen::not_finite) >= 0)
         << "Non finite number found in the CPU data";
-    coutmsreset("nonfinite_ref", timer);
+    FTO_MS_RESTART("nonfinite_ref");
     std::cout << error << std::endl;    // TRJS
     EXPECT_TRUE(error < 0.0*threshold) // TRJS break it zero tolerance
         << "Error beyond tolerance Error:" << error << ",  Threshold: " << threshold;
@@ -238,19 +238,19 @@ void CompareTensor(const tensor<T>& output,
     CompareTensorGPU(output, out_ref, threshold);
     // auto timer = sc::now(); // TRJS
     // EXPECT_FALSE(miopen::range_zero(out_ref)) << "CPU data is all zeros";
-    // coutmsreset("rzref", timer);
+    // FTO_MS_RESTART("rzref", timer);
     // EXPECT_FALSE(miopen::range_zero(output)) << "GPU data is all zeros";
-    // coutmsreset("rzout", timer);
+    // FTO_MS_RESTART("rzout", timer);
     // EXPECT_FALSE(miopen::find_idx(output, miopen::not_finite) >= 0)
     //     << "Non finite number found in the GPU data";
-    // coutmsreset("notfin_out", timer);
+    // FTO_MS_RESTART("notfin_out", timer);
     // EXPECT_TRUE(miopen::range_distance(out_ref) == miopen::range_distance(output));
-    // coutmsreset("lenequal", timer);
+    // FTO_MS_RESTART("lenequal", timer);
     // auto error = miopen::rms_range(out_ref, output);
-    // coutmsreset("rms_range", timer);
+    // FTO_MS_RESTART("rms_range", timer);
     // EXPECT_FALSE(miopen::find_idx(out_ref, miopen::not_finite) >= 0)
     //     << "Non finite number found in the CPU data";
-    // coutmsreset("notfin_ref", timer);
+    // FTO_MS_RESTART("notfin_ref", timer);
     // std::cout << error << std::endl;    // TRJS
     // EXPECT_TRUE(error < threshold)
     //     << "Error beyond tolerance Error:" << error << ",  Threshold: " << threshold;

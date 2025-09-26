@@ -50,6 +50,8 @@
 #include <vector>
 #include <unordered_map>
 
+#include "../../test/gtest/fast_test_ops_timing.hpp"    // TRJS
+
 #if MIOPEN_USE_ROCBLAS
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-macros"
@@ -205,9 +207,12 @@ struct MIOPEN_EXPORT Handle : miopenHandle
     {
         assert(!c.empty());
         using type = typename Container::value_type;
+        FTO_MS_START(); // TRJS
         auto buf   = this->Create<type>(c.size());
+        FTO_MS_RESTART2("Create"); // TRJS
         return std::move(
             this->WriteTo(reinterpret_cast<const void*>(c.data()), buf, c.size() * sizeof(type)));
+        FTO_MS_RESTART2("WriteTo"); // TRJS
     }
 
     template <class T>

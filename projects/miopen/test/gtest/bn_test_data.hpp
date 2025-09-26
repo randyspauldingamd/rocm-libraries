@@ -221,17 +221,17 @@ struct BNTestData
         bn_config     = config;
         tensor_layout = t_layout;
         bn_mode       = t_bnmode;
-        auto start = sc::now(); // TRJS
+        FTO_MS_START(); // TRJS
         CreateTensors();
-        coutms("bntd_CreateTensors", start);    start = sc::now(); // TRJS
+        FTO_MS_RESTART("bntd_CreateTensors"); // TRJS
         if(!fto::LoadTensorFromFile("bntd_input.dat", input)) {  // TRJS
         InitTensorsWithRandValue();
         fto::WriteTensorToFile("bntd_input.dat", input);
     }
-        coutms("bntd_InitTensorsWRV", start);    start = sc::now(); // TRJS
+        FTO_MS_RESTART("bntd_InitTensorsWRV"); // TRJS
         SetDirection();
         WriteToGPU();
-        coutms("bntd_WriteToGPU", start);    start = sc::now(); // TRJS
+        FTO_MS_RESTART("bntd_WriteToGPU"); // TRJS
     }
     const miopen::TensorDescriptor& GetInputDesc() const { return input.desc; }
 
@@ -266,9 +266,13 @@ private:
     void SetDirection() { direction = bn_config.Direction; }
     void WriteToGPU()
     {
+        FTO_MS_START(); // TRJS
         auto&& handle = get_handle();
+        FTO_MS_RESTART2("wtg_spinup"); // TRJS
         in_dev        = handle.Write(input.data);
+        FTO_MS_RESTART2("wtg_in"); // TRJS
         out_dev       = handle.Write(output.data);
+        FTO_MS_RESTART2("wtg_out"); // TRJS
     }
 };
 
@@ -286,9 +290,9 @@ struct BNInferTestData : public BNTestData<XDataType, YDataType, AccDataType, TC
     {
         BNTestData<XDataType, YDataType, AccDataType, TConfig>::SetUpImpl(
             config, t_bnmode, t_layout);
-        auto start = sc::now(); // TRJS
+        FTO_MS_START(); // TRJS
         CreateTensors();
-        coutmsreset("bnitd_CreateTensors", start); // TRJS
+        FTO_MS_RESTART("bnitd_CreateTensors"); // TRJS
         if(!fto::LoadTensorFromFile("bni_scale.dat", scale) ||
     !fto::LoadTensorFromFile("bni_shift.dat", shift) ||
     !fto::LoadTensorFromFile("bni_estMean.dat", estMean) ||  // TRJS
@@ -299,9 +303,9 @@ struct BNInferTestData : public BNTestData<XDataType, YDataType, AccDataType, TC
     fto::WriteTensorToFile("bni_estMean.dat", estMean);// TRJS
     fto::WriteTensorToFile("bni_estVariance.dat", estVariance);
 }
-        coutmsreset("bnitd_InitTensorsWRV", start); // TRJS
+        FTO_MS_RESTART("bnitd_InitTensorsWRV"); // TRJS
         WriteToGPU();
-        coutmsreset("bnitd_WriteToGPU", start); // TRJS
+        FTO_MS_RESTART("bnitd_WriteToGPU"); // TRJS
     }
 
     tensor<ScaleDataType> scale;
@@ -378,13 +382,13 @@ struct BNBwdTestData : public BNTestData<XDataType, DyDataType, AccDataType, TCo
     {
         BNTestData<XDataType, DxDataType, AccDataType, TConfig>::SetUpImpl(
             config, t_bnmode, t_layout);
-        auto start = sc::now(); // TRJS
+        FTO_MS_START(); // TRJS
         CreateTensors();
-        coutmsreset("bnbtd_CreateTensors", start); // TRJS
+        FTO_MS_RESTART("bnbtd_CreateTensors"); // TRJS
         InitTensorsWithRandValue();
-        coutmsreset("bnbtd_InitTensorsWRV", start); // TRJS
+        FTO_MS_RESTART("bnbtd_InitTensorsWRV"); // TRJS
         WriteToGPU();
-        coutmsreset("bnbtd_WriteToGPU", start); // TRJS
+        FTO_MS_RESTART("bnbtd_WriteToGPU"); // TRJS
     }
 
     tensor<ScaleDataType> bnScale;
@@ -501,13 +505,13 @@ struct BNFwdTrainTestData : public BNTestData<XDataType, YDataType, AccDataType,
     {
         BNTestData<XDataType, YDataType, AccDataType, TConfig>::SetUpImpl(
             config, t_bnmode, t_layout);
-        auto start = sc::now(); // TRJS
+        FTO_MS_START(); // TRJS
         CreateTensors();
-        coutmsreset("bnftd_InitTensorsWRV", start); // TRJS
+        FTO_MS_RESTART("bnftd_InitTensorsWRV"); // TRJS
         InitTensorsWithRandValue();
-        coutmsreset("bnbtd_InitTensorsWRV", start); // TRJS
+        FTO_MS_RESTART("bnbtd_InitTensorsWRV"); // TRJS
         WriteToGPU();
-        coutmsreset("bnftd_WriteToGPU", start); // TRJS
+        FTO_MS_RESTART("bnftd_WriteToGPU"); // TRJS
     }
 
     tensor<ScaleDataType> scale;
