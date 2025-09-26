@@ -64,6 +64,27 @@ TEST_P(GPU_ppBNOCLInferSerialRun3D_BFP16, BnV2SerialRunInferOCLbfp16_3D) {}
 TEST_P(GPU_ppBNInferSerialRun3D_FP32, DISABLED_BnV2SerialRunInferfp32_3D) {}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// fp16 analyze
+INSTANTIATE_TEST_SUITE_P(Analyze,
+                         GPU_ppBNOCLInferSerialRun3D_FP16,
+                         testing::Combine(testing::ValuesIn(AnalyzeNetwork3DCase<BN3DTestCase>()),
+                                          testing::ValuesIn({miopenTensorNCDHW, miopenTensorNDHWC}),
+                                          testing::ValuesIn({miopenBNSpatial, miopenBNPerActivation}),
+                                          testing::ValuesIn({testBNAPIV1, testBNAPIV2}),
+                                          testing::ValuesIn({miopenActivationPASTHRU})),
+                         TestNameGenerator<BN3DTestCase>());
+
+// bfp16 analyze
+INSTANTIATE_TEST_SUITE_P(Analyze,
+                         GPU_ppBNOCLInferSerialRun3D_BFP16,
+                         testing::Combine(testing::ValuesIn(AnalyzeNetwork3DCase<BN3DTestCase>()),
+                                          testing::ValuesIn({miopenTensorNCDHW, miopenTensorNDHWC}),
+                                          testing::ValuesIn({miopenBNSpatial, miopenBNPerActivation}),
+                                          testing::ValuesIn({testBNAPIV1, testBNAPIV2}),
+                                          testing::ValuesIn({miopenActivationPASTHRU})),
+                         TestNameGenerator<BN3DTestCase>());
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // NOTE: I lost my ramp data! Changing back to ExtraNetwork3DSerialCase.
 
 // fp16 NCDHW Spatial V1

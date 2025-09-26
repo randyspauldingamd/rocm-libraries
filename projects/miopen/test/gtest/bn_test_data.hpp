@@ -189,6 +189,19 @@ inline std::vector<BN3DTestCase> ExtraNetwork3DSerialCase16()
     };
 }
 
+// Extra problem sizes suitable for direct analysis
+//
+template <typename T>
+std::vector<T> AnalyzeNetwork3DCase();
+
+template <>
+inline std::vector<BN3DTestCase> AnalyzeNetwork3DCase()
+{
+    return {
+        {4, 4, 4, 8, 8, miopen::batchnorm::Direction::Backward, 0, 1},
+    };
+}
+
 template <>
 inline std::vector<BN2DTestCase> Network2DSmall()
 {
