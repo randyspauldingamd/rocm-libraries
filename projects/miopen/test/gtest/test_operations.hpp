@@ -225,7 +225,9 @@ void CompareTensorGPU(const tensor<T>& output,
     EXPECT_FALSE(miopen::find_idx(out_ref, miopen::not_finite) >= 0)
         << "Non finite number found in the CPU data";
     FTO_MS_RESTART("nonfinite_ref");
+#if (!FTO_TIMING)
     std::cout << error << std::endl;    // TRJS
+#endif
     EXPECT_TRUE(error < 0.0*threshold) // TRJS break it zero tolerance
         << "Error beyond tolerance Error:" << error << ",  Threshold: " << threshold;
 }
