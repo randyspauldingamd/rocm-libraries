@@ -163,6 +163,10 @@ inline std::vector<BN3DTestCase> ExtraNetwork3DSerialCase()
         {2, 2048, 16, 64, 64, miopen::batchnorm::Direction::Backward, 0, 1},
         {2, 1024, 16, 96, 96, miopen::batchnorm::Direction::Backward, 0, 1},
         {2, 1024, 16, 64, 64, miopen::batchnorm::Direction::Backward, 0, 1},
+        {4, 1024, 16, 128, 128, miopen::batchnorm::Direction::Backward, 0, 1},
+        {8, 1024, 16, 128, 128, miopen::batchnorm::Direction::Backward, 0, 1},
+        {16, 512, 16, 128, 128, miopen::batchnorm::Direction::Backward, 0, 1},
+        {32, 256, 16, 128, 128, miopen::batchnorm::Direction::Backward, 0, 1},
     };
 }
 
@@ -303,7 +307,7 @@ struct BNInferTestData : public BNTestData<XDataType, YDataType, AccDataType, TC
     fto::WriteTensorToFile("bni_estMean.dat", estMean);// TRJS
     fto::WriteTensorToFile("bni_estVariance.dat", estVariance);
 }
-        FTO_MS_RESTART("bnitd_InitTensorsWRV"); // TRJS
+        FTO_MS_RESTART("bnitd_InitTnsrsWRV"); // TRJS
         WriteToGPU();
         FTO_MS_RESTART("bnitd_WriteToGPU"); // TRJS
     }
