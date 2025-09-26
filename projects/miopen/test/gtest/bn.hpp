@@ -309,7 +309,9 @@ protected:
         // Workaround to let BN Infer tests pass on Navi4x,SWDEV-547301
         tolerance = miopen::StartsWith(handle.GetDeviceName(), "gfx120") ? 8e-3 : 4e-3;
 #endif
+#if (!FTO_TIMING)
         std::cout << "output  : ";  // TRJS
+#endif
         test::CompareTensor<YDataType>(
             bn_infer_test_data.output, bn_infer_test_data.out_ref, tolerance);
     }
@@ -470,13 +472,20 @@ protected:
             bn_bwd_test_data.dBias_dev, bn_bwd_test_data.dBias.data.size());
 
         test::ComputeCPUBNBwd(bn_bwd_test_data);
+#if (!FTO_TIMING)
         std::cout << "output  : ";    // TRJS
+
+#endif
         test::CompareTensor<DxDataType, AccDataType>(
             bn_bwd_test_data.output, bn_bwd_test_data.out_ref, bwd_tol);
+#if (!FTO_TIMING)
         std::cout << "dScale  : ";    // TRJS
-        test::CompareTensor<DscaleDbiasDataType, AccDataType>(
+#endif
+       test::CompareTensor<DscaleDbiasDataType, AccDataType>(
             bn_bwd_test_data.dScale, bn_bwd_test_data.dScale_ref, bwd_tol);
+#if (!FTO_TIMING)
         std::cout << "dBias   : ";    // TRJS
+#endif
         test::CompareTensor<DscaleDbiasDataType, AccDataType>(
             bn_bwd_test_data.dBias, bn_bwd_test_data.dBias_ref, bwd_tol);
     }
@@ -652,19 +661,29 @@ protected:
                             bn_fwd_train_test_data.out_ref.data);
 
         // 4e-3 is tolerance used by CK kernel.
+#if (!FTO_TIMING)
         std::cout << "output  : ";  // TRJS
+#endif
         test::CompareTensor<YDataType>(
             bn_fwd_train_test_data.output, bn_fwd_train_test_data.out_ref, 4e-3);
+#if (!FTO_TIMING)
         std::cout << "saveMean: ";  // TRJS
+#endif
         test::CompareTensor<RunSaveDataType>(
             bn_fwd_train_test_data.saveMean, bn_fwd_train_test_data.saveMean_ref, 4e-3);
+#if (!FTO_TIMING)
         std::cout << "saveVar : ";  // TRJS
+#endif
         test::CompareTensor<RunSaveDataType>(
             bn_fwd_train_test_data.saveVariance, bn_fwd_train_test_data.saveVariance_ref, 4e-3);
+#if (!FTO_TIMING)
         std::cout << "runMean : ";  // TRJS
+#endif
         test::CompareTensor<RunSaveDataType>(
             bn_fwd_train_test_data.runMean, bn_fwd_train_test_data.runMean_ref, 4e-3);
+#if (!FTO_TIMING)
         std::cout << "runVar  : ";  // TRJS
+#endif
         test::CompareTensor<RunSaveDataType>(
             bn_fwd_train_test_data.runVariance, bn_fwd_train_test_data.runVariance_ref, 4e-3);
     }
