@@ -213,6 +213,73 @@ std::size_t mismatch_diff(R1&& r1, R2&& r2, T diff)
             float_equal, diff, std::bind(abs_diff, std::placeholders::_1, std::placeholders::_2)));
 }
 
+#include <iomanip> //TRJS
+template <class R1, class R2>
+double sqd(R1&& r1, R2&& r2)
+{
+    constexpr size_t reduce = 128;   // reduce the size of the intermediate buffer
+    auto len = r1.desc.GetElementSpace();
+    auto diffs_len = (len + reduce - 1) / reduce;
+    std::cout << "len = " << len << "  diffs_len = " << diffs_len << std::endl;
+    auto sq_diffs = tensor<double>{diffs_len};
+
+    for(size_t bucket = 0; bucket < len; bucket += reduce)
+    {
+        auto diffs_idx = bucket / reduce;
+        sq_diffs[diffs_idx] = 0.0;
+        size_t end = std::min(len, bucket + reduce);
+        std::cout << std::setw(10) << i << ":";
+
+        for(size_t i = bucket; i < end; ++i)
+        {
+            double diff = static_cast<double>(r1.data.at(i)) - static_cast<double>(r2.data.at(i));
+            sq_diffs[diffs_idx] += (diff * diff);
+            std::cout << ".";
+        }
+        std::cout << std::endl;
+    }
+
+    double Sum = 0.0;
+    for(size_t i = 0; i < diffs_len; ++i)
+        Sum += sq_diffs[i];
+
+    // // binary increasing reduction
+    // size_t stride = 1;
+    // for(; stride < diffs_len; stride *= 2)
+    // {
+    //     auto stroll = stride * 2;
+    //     size_t end = diffs_len - stride;
+    //     int count = 0;
+
+    //     std::cout << std::setw(7) << stride << ":";
+    //     for(size_t i = 0; i < end ; i += stroll)
+    //     {
+    //         sq_diffs[i] += sq_diffs[i + stride];
+    //         std::cout << ".";
+    //         ++count;
+    //     }
+    //     std::cout << " (" << count << ")" << std::endl;
+    // }
+
+    return Sum;
+    // return sq_diffs[0];
+}
+
+template <class R1, class R2>
+double sqd_naive(R1&& r1, R2&& r2)
+{
+    double sqd = 0.0;
+    auto len = r1.desc.GetElementSpace();
+
+    for(size_t i = 0; i < len; ++i)
+    {
+        double diff = static_cast<double>(r1.data.at(i)) - static_cast<double>(r2.data.at(i));
+        sqd += diff * diff;
+    }
+
+    return sqd;
+}
+
 template <class R1, class R2>
 double rms_range(R1&& r1, R2&& r2)
 {
@@ -223,7 +290,7 @@ double rms_range(R1&& r1, R2&& r2)
             return 0;
         FTO_MS_START(); // TRJS
         double square_difference = range_product(r1, r2, 0.0, sum_fn{}, square_diff);
-        FTO_MS_RESTART2("sq_diff");
+        FTO_MS_RESTART2("sq_diff_rp");
         double mag1 = static_cast<double>(*std::max_element(r1.begin(), r1.end(), compare_mag));
         FTO_MS_RESTART2("mag1");
         double mag2 = static_cast<double>(*std::max_element(r2.begin(), r2.end(), compare_mag));
@@ -234,6 +301,33 @@ double rms_range(R1&& r1, R2&& r2)
     }
     else
         return double(std::numeric_limits<range_value<R1>>::max());
+}
+
+template <typename T, typename U>
+double rms_range2(const tensor<T>& r1, const tensor<U>& r2)
+{
+    std::size_t n = range_distance(r1);
+    if(n == range_distance(r2))
+    {
+        if(n == 0)
+            return 0;
+        FTO_MS_START(); // TRJS
+        double sq_diff = sqd(r1, r2);
+        FTO_MS_RESTART2("sq_diff");
+        double square_difference = range_product(r1, r2, 0.0, sum_fn{}, square_diff);
+        FTO_MS_RESTART2("sq_diff_rp");
+        std::cout << "square_difference = " << sq_diff << "  range_product = " << square_difference << "  %err = " << (1 - sq_diff/square_difference) << std::endl;
+
+        double mag1 = static_cast<double>(*std::max_element(r1.begin(), r1.end(), compare_mag));
+        FTO_MS_RESTART2("mag1");
+        double mag2 = static_cast<double>(*std::max_element(r2.begin(), r2.end(), compare_mag));
+        FTO_MS_RESTART2("mag2");
+        double mag =
+            std::max({std::fabs(mag1), std::fabs(mag2), std::numeric_limits<double>::min()});
+        return std::sqrt(square_difference) / (std::sqrt(n) * mag);
+    }
+    else
+        return double(std::numeric_limits<T>::max());
 }
 } // namespace miopen
 #endif

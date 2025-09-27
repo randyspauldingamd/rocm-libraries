@@ -220,7 +220,7 @@ void CompareTensorGPU(const tensor<T>& output,
         gpu_error = fto::gpu_rms_range(ref_gpu->get(), out_gpu->get());
         std::cout << "(gpu) " << gpu_error << " ";    // TRJS
     }
-    auto error = miopen::rms_range(out_ref, output);
+    auto error = miopen::rms_range2(out_ref, output);
     FTO_MS_RESTART("rms_range");
     EXPECT_FALSE(miopen::find_idx(out_ref, miopen::not_finite) >= 0)
         << "Non finite number found in the CPU data";
