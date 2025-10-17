@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights Reserved.
+ * Copyright (C) 2018-2025 Advanced Micro Devices, Inc. All rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -279,7 +279,7 @@ int gen_random(int m, int n, int max_nnz_per_row, int** rowptr, int** col, T** v
 
 /* ============================================================================================ */
 /*! \brief  Check for environment variable to be set */
-static bool is_env_var_set(const char* var, const std::string& value = "1")
+inline bool is_env_var_set(const char* var, const std::string& value = "1")
 {
     const char* env_var = std::getenv(var);
 
@@ -293,7 +293,7 @@ static bool is_env_var_set(const char* var, const std::string& value = "1")
 
 /* ============================================================================================ */
 /*! \brief  Check for environment variables to be set */
-static bool is_any_env_var_set(const std::initializer_list<const char*>& vars,
+inline bool is_any_env_var_set(const std::initializer_list<const char*>& vars,
                                const std::string&                        value = "1")
 {
     for(const char* var : vars)
@@ -309,7 +309,7 @@ static bool is_any_env_var_set(const std::initializer_list<const char*>& vars,
 
 /* ============================================================================================ */
 /*! \brief  Get temporary directory */
-static std::string get_temp_dir()
+inline std::string get_temp_dir()
 {
 #ifdef _WIN32
     const char* temp = std::getenv("TEMP");
