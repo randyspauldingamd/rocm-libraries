@@ -1,6 +1,6 @@
 /*! \file */
 /* ************************************************************************
- * Copyright (C) 2018-2025 Advanced Micro Devices, Inc. All rights Reserved.
+ * Copyright (C) 2025 Advanced Micro Devices, Inc. All rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,34 +24,32 @@
 
 #pragma once
 
-#include <hip/hip_runtime.h>
+#include "rocsparse-types.h"
+#include "rocsparse_control.hpp"
+#include "rocsparse_indextype_utils.hpp"
 
 namespace rocsparse
 {
-    template <uint32_t BLOCKSIZE, typename I, typename T>
-    ROCSPARSE_DEVICE_ILF void
-        gthr_device(I nnz, const T* y, T* x_val, const I* x_ind, rocsparse_index_base idx_base)
-    {
-        I idx = hipBlockIdx_x * BLOCKSIZE + hipThreadIdx_x;
+    rocsparse_status valset(rocsparse_handle    handle,
+                            int64_t             length,
+                            int64_t             value,
+                            rocsparse_indextype array_indextype,
+                            void*               array);
 
-        if(idx < nnz)
-        {
-            x_val[idx] = y[x_ind[idx] - idx_base];
-        }
+    template <typename T>
+    inline rocsparse_status valset(rocsparse_handle handle, int64_t length, T value, T* array)
+    {
+        RETURN_IF_ROCSPARSE_ERROR(
+            rocsparse::valset(handle, length, value, rocsparse::get_indextype<T>(), array));
+        return rocsparse_status_success;
     }
 
-    template <uint32_t BLOCKSIZE, typename I, typename T>
-    ROCSPARSE_KERNEL(BLOCKSIZE)
-    void gthr_kernel(I                    nnz,
-                     const T*             y,
-                     int64_t              y_stride,
-                     T*                   x_val,
-                     int64_t              x_val_stride,
-                     const I*             x_ind,
-                     rocsparse_index_base idx_base)
+    template <typename T>
+    inline rocsparse_status valset(rocsparse_handle handle, int32_t length, T value, T* array)
     {
-        uint32_t batch_index = hipBlockIdx_y;
-        gthr_device<BLOCKSIZE, I, T>(
-            nnz, y + batch_index * y_stride, x_val + batch_index * x_val_stride, x_ind, idx_base);
+        RETURN_IF_ROCSPARSE_ERROR(
+            rocsparse::valset(handle, length, value, rocsparse::get_indextype<T>(), array));
+        return rocsparse_status_success;
     }
+
 }
