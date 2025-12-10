@@ -40,7 +40,6 @@ void SampleRunner::operator()(const TensorLayout& layout)
     auto scale = createTensor({1, c, 1, 1}, intermediateType);
     auto savedMean = createTensor({1, c, 1, 1}, intermediateType);
     auto savedInvVariance = createTensor({1, c, 1, 1}, intermediateType);
-
     auto bnBwdAttributes = graph::BatchnormBackwardAttributes();
     bnBwdAttributes.set_name("bn_backward_node");
     bnBwdAttributes.set_saved_mean_and_inv_variance(savedMean, savedInvVariance);
