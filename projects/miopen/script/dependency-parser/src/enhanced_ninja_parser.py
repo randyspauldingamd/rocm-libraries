@@ -164,8 +164,9 @@ class EnhancedNinjaDependencyParser:
         print("Building file-to-executable mapping...")
 
         # For monorepo, truncate the path before and including projects/<project_name>
+        # This regex matches both absolute and relative monorepo paths
         self.project = None
-        rl_regex = rf"rocm-libraries[\\/]+projects[\\/]+([^\\/]+)[\\/]+(.*)"
+        rl_regex = rf"(?:^|.*[\\/])projects[\\/]+([^\\/]+)[\\/]+(.*)"
         for exe, object_files in self.executable_to_objects.items():
             for obj_file in object_files:
                 # Add all dependencies of this object file
@@ -196,24 +197,6 @@ class EnhancedNinjaDependencyParser:
 
     def _is_project_file(self, file_path):
         """Determine if a file is part of the project (not system files)."""
-        # Include files that are clearly part of the project
-        if any(
-            file_path.startswith(prefix)
-            for prefix in [
-                "projects/composablekernel/include/",
-                "projects/composablekernel/library/",
-                "projects/composablekernel/test/",
-                "projects/composablekernel/example/",
-                "projects/composablekernel/src/",
-                "projects/composablekernel/profiler/",
-                "projects/composablekernel/build/include/",
-                "projects/composablekernel/build/_deps/gtest",
-                "projects/composablekernel/client_example",
-                "projects/composablekernel/codegen",
-                "projects/composablekernel/tile_engine",
-            ]
-        ):
-            return True
 
         # Exclude system files
         if any(
