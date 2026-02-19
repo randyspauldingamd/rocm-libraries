@@ -18,7 +18,6 @@ set(SOURCES
     unit_conv_solver.cpp
     )
 
-
 # We use a special entry point for HIP backend testing so we can detect and flag any HIP errors that tests don't
 # clean up themselves
 if(MIOPEN_BACKEND_HIP)
@@ -49,7 +48,8 @@ function(add_gtest_negative_filter NEGATIVE_FILTER_TO_ADD)
 endfunction()
 
 function(add_gtest TEST_NAME TEST_CPP)
-  message("Adding Test: " ${TEST_NAME} " : " ${TEST_CPP})
+  list(JOIN TEST_CPP "  " TESTS_LIST)
+  message("Adding Test: " ${TEST_NAME} " : " ${TESTS_LIST})
   add_executable(${TEST_NAME} ${TEST_CPP})
   if(WIN32)
     target_compile_definitions(${TEST_NAME} PRIVATE NOMINMAX)
@@ -87,7 +87,8 @@ function(add_gtest TEST_NAME TEST_CPP)
     target_link_libraries(${TEST_NAME} ck_builder composable_kernel::device_conv_operations)
   endif()
 
-  if(MIOPEN_TEST_DISCRETE)
+# Individual test binaries are only added if single gtest is not being created.
+  if(NOT MIOPEN_TEST_SINGLE_GTEST)
     string(CONCAT TEST_ENVIRONMENT_VARIABLES
     "ENVIRONMENT;MIOPEN_USER_DB_PATH=${CMAKE_CURRENT_BINARY_DIR};"
     "ENVIRONMENT;MIOPEN_INVOKED_FROM_CTEST=1;")
@@ -142,7 +143,9 @@ function(add_gtest TEST_NAME TEST_CPP)
     else()
       gtest_discover_tests(${TEST_NAME} DISCOVERY_TIMEOUT 300 DISCOVERY_MODE PRE_TEST WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/${DATABASE_INSTALL_DIR} PROPERTIES ${TEST_ENVIRONMENT_VARIABLES} TEST_FILTER "${MIOPEN_GTEST_FILTER}")
     endif()
-  else()
+  endif()
+
+  if(MIOPEN_TEST_SINGLE_GTEST AND TEST_NAME STREQUAL "miopen_gtest")
     set(MIOPEN_GTEST_PREFIX)
     set(MIOPEN_GTEST_FILTER_NEGATIVE)
 
@@ -178,11 +181,15 @@ function(add_gtest TEST_NAME TEST_CPP)
         add_gtest_negative_filter("*SerialRun3D*") # These FP32 SerialRun3D tests use so much memory that they have a risk of timing out the machine during tests
     endif()
 
-    # when building the single gtest, add them in a sharded manner
-    # loop over GTEST_PARALLEL_LEVEL
     set(MIOPEN_GTEST_FILTER "${MIOPEN_GTEST_PREFIX}*${MIOPEN_GTEST_SUFFIX}*:${MIOPEN_GTEST_PREFIX}*NONE*${MIOPEN_GTEST_FILTER_NEGATIVE}")
 
     message(STATUS "MIOPEN_GTEST_FILTER ${MIOPEN_GTEST_FILTER}")
+
+    # when building the single gtest, add them in a sharded manner
+    # loop over GTEST_PARALLEL_LEVEL
+    if(NOT DEFINED GTEST_PARALLEL_LEVEL)
+        set(GTEST_PARALLEL_LEVEL 4)
+    endif()
 
     foreach(i RANGE 1 ${GTEST_PARALLEL_LEVEL})
       add_test(NAME ${TEST_NAME}_shard${i}
@@ -226,13 +233,13 @@ if(WIN32)
   target_compile_options(miopen_gtest_common PRIVATE $<BUILD_INTERFACE:$<$<CXX_COMPILER_ID:Clang>:-U__LP64__>>)
 endif()
 
-if( MIOPEN_TEST_DISCRETE )
+if(MIOPEN_TEST_DISCRETE)
   foreach(TEST ${TESTS})
     get_filename_component(BASE_NAME ${TEST} NAME_WE)
     add_gtest(test_${BASE_NAME} ${BASE_NAME}.cpp)
   endforeach()
-
-else()
+endif()
+if(MIOPEN_TEST_SINGLE_GTEST)
   foreach(TEST ${TESTS})
     get_filename_component(BASE_NAME ${TEST} NAME)
     list(APPEND TESTS_CPP ${BASE_NAME})
@@ -268,6 +275,60 @@ else()
   add_custom_target(
     miopen_gtest_check
     DEPENDS test_list
+  )
+
+set(DEPENDENCY_PARSER_DIR "${USER_BUILD_DIR}/../../composablekernel/script/dependency-parser")
+set(TESTS_TO_RUN_JSON "${USER_BUILD_DIR}/tests_to_run.json")
+set(BUILD_NINJA "${USER_BUILD_DIR}/build.ninja")
+set(MAPPING_JSON "${USER_BUILD_DIR}/enhanced_dependency_mapping.json")
+set(FIXTURES_JSON "${USER_BUILD_DIR}/fixtures.json")
+set(PY_MAIN "${DEPENDENCY_PARSER_DIR}/main")
+set(PY_FIXTURES "${DEPENDENCY_PARSER_DIR}/src/all_gtest_fixtures")
+set(PY_RUN_GTEST "${DEPENDENCY_PARSER_DIR}/src/run_gtest")
+set(BN_BASE_SHA c5946cf2382a46b280c402f4ff397e382df1516e)
+set(BN_TEST_SHA 21db4f318f39999b618b3f163941ea4ae378afe6)
+set(GLU_BASE_SHA b567476bbd4946c66d6d48d5910899d820796ec4)
+set(GLU_TEST_SHA 59d8b9dbd727a8030f1038b14f89e3baabf152ca)
+
+# Generate fixtures
+  add_custom_command(
+      OUTPUT ${FIXTURES_JSON}
+      COMMENT "Generating ${FIXTURES_JSON}"
+      COMMAND cp "${PY_FIXTURES}.py" "${PY_FIXTURES}" &&
+              python3 ${PY_FIXTURES} ${USER_BUILD_DIR}/bin
+      WORKING_DIRECTORY ${USER_BUILD_DIR}
+      VERBATIM
+  )
+
+# Generate mapping
+  add_custom_command(
+      OUTPUT ${MAPPING_JSON}
+      COMMENT "Generating ${MAPPING_JSON}"
+      COMMAND cp "${PY_MAIN}.py" "${PY_MAIN}" &&
+              python3 ${PY_MAIN} parse ${BUILD_NINJA}
+      WORKING_DIRECTORY ${USER_BUILD_DIR}
+      VERBATIM
+  )
+
+# Generate TESTS_TO_RUN_JSON file
+  add_custom_command(
+      OUTPUT "${TESTS_TO_RUN_JSON}"
+      COMMENT "Generating ${TESTS_TO_RUN_JSON}"
+      COMMAND cp "${PY_MAIN}.py" "${PY_MAIN}" &&
+              python3 "${PY_MAIN}" select ${MAPPING_JSON} ${GLU_BASE_SHA} ${GLU_TEST_SHA}  --fixturemap=${FIXTURES_JSON}
+      WORKING_DIRECTORY ${USER_BUILD_DIR}
+      DEPENDS ${MAPPING_JSON} ${FIXTURES_JSON}
+      VERBATIM
+  )
+
+  add_custom_target(
+      diff_check
+      COMMENT "Running filtered gtests..."
+      COMMAND cp "${PY_RUN_GTEST}.py" "${PY_RUN_GTEST}" &&
+      python3 "${PY_RUN_GTEST}" "${USER_BUILD_DIR}/bin/miopen_gtest" "${TESTS_TO_RUN_JSON}"
+      WORKING_DIRECTORY ${USER_BUILD_DIR}
+      DEPENDS miopen_gtest tests "${TESTS_TO_RUN_JSON}"
+      VERBATIM
   )
 
   if( NOT ENABLE_ASAN_PACKAGING )

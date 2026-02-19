@@ -67,6 +67,7 @@ RUN mkdir -p /etc/apt/keyrings && \
     lbzip2 \
     lcov \
     libncurses5-dev \
+    ninja-build \
     stunnel \
     pkg-config \
     python3-dev \
