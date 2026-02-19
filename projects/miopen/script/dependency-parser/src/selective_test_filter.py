@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Copyright (c) Advanced Micro Devices, Inc., or its affiliates.
+# SPDX-License-Identifier: MIT
+
 """
 Selective Test Filter Tool
 
@@ -6,7 +9,7 @@ Given two git refs (branches or commit IDs), this tool:
 - Identifies changed files between the refs
 - Loads the enhanced dependency mapping JSON (from enhanced_ninja_parser.py)
 - Maps changed files to affected test executables (optionally filtering for "test_" prefix)
-- Exports the list of tests to run to tests-to-run.json
+- Exports the list of tests to run to tests_to_run.json
 
 Usage:
   python selective_test_filter.py <depmap_json> <ref1> <ref2> [--all | --test-prefix] [--output <output_json>]
@@ -19,8 +22,7 @@ Arguments:
 Options:
   --all           Include all executables (default)
   --test-prefix   Only include executables starting with "test_"
-  --output        Output JSON file (default: tests-to-run.json)
-  --folder        Relative path to comparing folder
+  --output        Output JSON file (default: tests_to_run.json)
 """
 
 import sys
@@ -28,27 +30,65 @@ import subprocess
 import json
 import os
 
-def get_changed_files(ref1, ref2, path_to_folder):
+
+def get_changed_files(ref1, ref2, project: str = None):
     """Return a set of files changed between two git refs."""
-    args = ["git", "diff", "--name-only", ref1, ref2]
-    if path_to_folder:
-        args += ["--", path_to_folder]
     try:
-        result = subprocess.run(args, capture_output=True, text=True, check=True)
-        files = set(line.strip() for line in result.stdout.splitlines() if line.strip())
+        result = subprocess.run(
+            ["pwd"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        print("cwd:", result.stdout)
+        result = subprocess.run(
+            ["git", "diff", "--name-only", ref1, ref2],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
+        raw_files = set(line.strip() for line in result.stdout.splitlines() if line.strip())
+
+        if project is None:
+            files = raw_files
+            print(f"Identified {len(files)} modified files")
+        else:
+            root = f"projects/{project}/"
+            root_len = len(root)
+            files = set()
+            for f in raw_files:
+                if f.startswith(root):
+                    files.add(f[root_len:])
+            print(f"Identified {len(files)} files modified in project '{project}'")
+
         return files
     except subprocess.CalledProcessError as e:
-        print(f"Error running git diff: {e}")
+        print(f"Command '{e.cmd}' returned non-zero exit status {e.returncode}.")
+        print(f"Error output: {e.stderr}")
+        print(f"Standard output: {e.stdout}")
         sys.exit(1)
+
 
 def load_depmap(depmap_json):
     """Load the dependency mapping JSON."""
     with open(depmap_json, "r") as f:
         data = json.load(f)
     # Support both old and new formats
+    json_project = None
+    if "repo" in data and data["repo"]["type"] == "monorepo":
+        json_project = data["repo"]["project"]
     if "file_to_executables" in data:
-        return data["file_to_executables"]
+        return data["file_to_executables"], json_project
+    return data, json_project
+
+
+def load_fixturemap(fixture_file):
+    """Load the dependency mapping JSON."""
+    with open(fixture_file, "r") as f:
+        data = json.load(f)
     return data
+
 
 def select_tests(file_to_executables, changed_files, filter_mode):
     """Return a set of test executables affected by changed files."""
@@ -61,6 +101,24 @@ def select_tests(file_to_executables, changed_files, filter_mode):
                 elif filter_mode == "test_prefix" and exe.startswith("test_"):
                     affected.add(exe)
     return sorted(affected)
+
+
+def get_gtest_filter(tests, fixturemap):
+    """Maps the set of tests to be executed to a gtest_filter"""
+    gtest_filter = ""
+    fixture_count = 0
+    for t in tests:
+        if t in fixturemap:
+            for f in fixturemap[t]:
+                gtest_filter += f + "*:"
+                fixture_count += 1
+        elif not "miopen_gtest" in t:
+            print(f"Warning: Diff references test {t}. However, it is not in the fixturemap.")
+    if gtest_filter:
+        gtest_filter = gtest_filter[:-1]
+        print(f"Added {fixture_count} fixtures to gtest_filter")
+    return gtest_filter
+
 
 def main():
     if "--audit" in sys.argv:
@@ -79,7 +137,9 @@ def main():
 
     if "--optimize-build" in sys.argv:
         if len(sys.argv) < 3:
-            print("Usage: python selective_test_filter.py <depmap_json> --optimize-build <changed_file1> [<changed_file2> ...]")
+            print(
+                "Usage: python selective_test_filter.py <depmap_json> --optimize-build <changed_file1> [<changed_file2> ...]"
+            )
             sys.exit(1)
         depmap_json = sys.argv[1]
         changed_files = set(sys.argv[sys.argv.index("--optimize-build") + 1 :])
@@ -98,15 +158,17 @@ def main():
         sys.exit(0)
 
     if len(sys.argv) < 4:
-        print("Usage: python selective_test_filter.py <depmap_json> <ref1> <ref2> [--all | --test-prefix] [--output <output_json>] [--folder <path_to_folder>]")
+        print(
+            "Usage: python selective_test_filter.py <depmap_json> <ref1> <ref2> [--all | --test-prefix] [--output <output_json>]"
+        )
         sys.exit(1)
 
     depmap_json = sys.argv[1]
     ref1 = sys.argv[2]
     ref2 = sys.argv[3]
     filter_mode = "all"
-    output_json = "tests-to-run.json"
-    path_to_folder = ""
+    output_json = "tests_to_run.json"
+    fixture_file = ""
 
     if "--test-prefix" in sys.argv:
         filter_mode = "test_prefix"
@@ -116,27 +178,45 @@ def main():
         idx = sys.argv.index("--output")
         if idx + 1 < len(sys.argv):
             output_json = sys.argv[idx + 1]
-    if "--folder" in sys.argv:
-        idx = sys.argv.index("--folder")
+    if "--fixturemap" in sys.argv:
+        idx = sys.argv.index("--fixturemap")
         if idx + 1 < len(sys.argv):
-            path_to_folder = sys.argv[idx + 1]
-
+            fixture_file = sys.argv[idx + 1]
+            if not os.path.exists(fixture_file):
+                print(f"Error: Fixture map file '{fixture_file}'not found. Please check the path or run 'all_gtest_fixtures.py' to generate it. Exiting.", file=sys.stderr)
+                sys.exit(1)
     if not os.path.exists(depmap_json):
         print(f"Dependency map JSON not found: {depmap_json}")
         sys.exit(1)
 
-    changed_files = get_changed_files(ref1, ref2, path_to_folder)
+    file_to_executables, json_project = load_depmap(depmap_json)
+    changed_files = get_changed_files(ref1, ref2, json_project)
     if not changed_files:
         print("No changed files detected.")
         tests = []
     else:
-        file_to_executables = load_depmap(depmap_json)
         tests = select_tests(file_to_executables, changed_files, filter_mode)
+        gtest_filter = ""
+        if tests and fixture_file:
+            if os.path.exists(fixture_file):
+                tests_to_fixtures = load_fixturemap(fixture_file)
+                gtest_filter = get_gtest_filter(tests, tests_to_fixtures)
+            else:
+                print(f"Warning: Fixture map file not found: {fixture_file}. Skipping gtest_filter.", file=sys.stderr)
+                gtest_filter = ""
 
     with open(output_json, "w") as f:
-        json.dump({"tests_to_run": tests, "changed_files": sorted(changed_files)}, f, indent=2)
+        if gtest_filter:
+            json.dump(
+                {"tests_to_run": tests, "gtest_filter": gtest_filter, "changed_files": sorted(changed_files)}, f, indent=2
+            )
+        else:
+            json.dump(
+                {"tests_to_run": tests, "changed_files": sorted(changed_files)}, f, indent=2
+            )
 
     print(f"Exported {len(tests)} tests to run to {output_json}")
+
 
 if __name__ == "__main__":
     main()
