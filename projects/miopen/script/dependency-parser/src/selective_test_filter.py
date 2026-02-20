@@ -35,9 +35,9 @@ def get_changed_files(ref1, ref2, project: str = None):
     """Return a set of files changed between two git refs."""
     try:
         cmd = ["git", "diff", "--name-only", ref1, ref2]
-        if project:
+#        if project:
             # Scope git diff to only this project's subtree for efficiency
-            cmd += ["--", f"projects/{project}/"]
+#            cmd += ["--", f"projects/{project}/"]
         result = subprocess.run(
             cmd,
             capture_output=True,
@@ -188,12 +188,12 @@ def main():
 
     file_to_executables, json_project = load_depmap(depmap_json)
     changed_files = get_changed_files(ref1, ref2, json_project)
+    gtest_filter = ""
     if not changed_files:
         print("No changed files detected.")
         tests = []
     else:
         tests = select_tests(file_to_executables, changed_files, filter_mode)
-        gtest_filter = ""
         if tests and fixture_file:
             if os.path.exists(fixture_file):
                 tests_to_fixtures = load_fixturemap(fixture_file)

@@ -65,7 +65,7 @@ def main():
         help="Only include executables starting with 'test_'",
     )
     parser_test.add_argument(
-        "--output", help="Output JSON file", default="tests_to_run.json"
+        "--output", help="Output JSON file", default="bin/miopen_gtest_tests_to_run.json"
     )
     parser_test.add_argument(
         "--fixturemap", help="Optional path to file containing the test <-> gtest fixture mapping", default=""

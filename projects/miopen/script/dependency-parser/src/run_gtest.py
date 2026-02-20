@@ -1,12 +1,15 @@
-import sys
 import json
+import os
 import subprocess
+import sys
 
 def run_gtest(gtest_executable: str, gtest_filter_json: str):
-    with open(gtest_filter_json, 'r') as f:
-        json_data = json.load(f)
-    gtest_filter = json_data['gtest_filter']
-    print(f"Running {gtest_executable} with filter: {gtest_filter}", flush=True)
+    gtest_filter="" # TODO: perhaps determine a reasonable default?
+    if os.path.exists(gtest_filter_json):
+        with open(gtest_filter_json, 'r') as f:
+            json_data = json.load(f)
+            if 'gtest_filter' in json_data: gtest_filter = json_data['gtest_filter']
+    print(f"Running {gtest_executable} with filter: '{gtest_filter}'", flush=True)
     subprocess.run([gtest_executable, f"--gtest_filter={gtest_filter}"], check=True)
 
 def main():
