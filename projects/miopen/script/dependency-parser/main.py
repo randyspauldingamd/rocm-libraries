@@ -93,9 +93,9 @@ def main():
         run_dependency_parser(parse_args)
     elif args.command == "select":
         if args.ref1 == "0":
-            ref1 = subprocess.run(['git', 'rev-parse', 'HEAD'], capture_output=True, text=True).stdout
+            ref1 = subprocess.run(['git', 'rev-parse', 'HEAD'], capture_output=True, text=True).stdout.strip()
         if args.ref2 == "0":
-            ref2 = subprocess.run(['git', 'merge-base', 'origin/develop', ref1], capture_output=True, text=True).stdout
+            ref2 = subprocess.run(['git', 'merge-base', 'origin/develop', ref1], capture_output=True, text=True).stdout.strip()
         filter_args = [args.depmap_json, ref1, ref2]
         if args.test_prefix:
             filter_args.append("--test-prefix")

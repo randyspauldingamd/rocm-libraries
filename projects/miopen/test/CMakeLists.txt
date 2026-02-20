@@ -879,8 +879,8 @@ add_custom_test(conv_transposed_wrw_find_2
 #When the tests are built as a single unit, then we want to be
 #able to package them
 set(INSTALL_GTEST OFF)
-if(MIOPEN_TEST_DISCRETE)
+if(NOT MIOPEN_TEST_SINGLE_GTEST)
     add_subdirectory(gtest EXCLUDE_FROM_ALL)
-elseif(MIOPEN_TEST_SINGLE_GTEST)
+else()
     add_subdirectory(gtest)
 endif()
