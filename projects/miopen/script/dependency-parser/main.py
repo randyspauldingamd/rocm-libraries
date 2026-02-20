@@ -13,6 +13,7 @@ Features:
 """
 
 import argparse
+import subprocess
 import sys
 
 
@@ -91,7 +92,11 @@ def main():
             parse_args.append(args.workspace_root)
         run_dependency_parser(parse_args)
     elif args.command == "select":
-        filter_args = [args.depmap_json, args.ref1, args.ref2]
+        if args.ref1 == "0":
+            ref1 = subprocess.run(['git', 'rev-parse', 'HEAD'], capture_output=True, text=True).stdout
+        if args.ref2 == "0":
+            ref2 = subprocess.run(['git', 'merge-base', 'origin/develop', ref1], capture_output=True, text=True).stdout
+        filter_args = [args.depmap_json, ref1, ref2]
         if args.test_prefix:
             filter_args.append("--test-prefix")
         if args.all:
