@@ -277,7 +277,7 @@ if(MIOPEN_TEST_SINGLE_GTEST)
     DEPENDS test_list
   )
 
-set(DEPENDENCY_PARSER_DIR "${USER_BUILD_DIR}/../../composablekernel/script/dependency-parser")
+set(DEPENDENCY_PARSER_DIR "${USER_BUILD_DIR}/../script/dependency-parser")
 set(TESTS_TO_RUN_JSON "${USER_BUILD_DIR}/bin/miopen_gtest_tests_to_run.json")
 set(BUILD_NINJA "${USER_BUILD_DIR}/build.ninja")
 set(MAPPING_JSON "${USER_BUILD_DIR}/enhanced_dependency_mapping.json")
