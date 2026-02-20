@@ -140,7 +140,7 @@ def main():
     ref1 = sys.argv[2]
     ref2 = sys.argv[3]
     filter_mode = "all"
-    output_json = "tests_to_run.json"
+    output_json = "bin/miopen_gtest_tests_to_run.json"
 
     if "--test-prefix" in sys.argv:
         filter_mode = "test_prefix"

@@ -278,7 +278,7 @@ if(MIOPEN_TEST_SINGLE_GTEST)
   )
 
 set(DEPENDENCY_PARSER_DIR "${USER_BUILD_DIR}/../../composablekernel/script/dependency-parser")
-set(TESTS_TO_RUN_JSON "${USER_BUILD_DIR}/tests_to_run.json")
+set(TESTS_TO_RUN_JSON "${USER_BUILD_DIR}/bin/miopen_gtest_tests_to_run.json")
 set(BUILD_NINJA "${USER_BUILD_DIR}/build.ninja")
 set(MAPPING_JSON "${USER_BUILD_DIR}/enhanced_dependency_mapping.json")
 set(FIXTURES_JSON "${USER_BUILD_DIR}/fixtures.json")
@@ -322,7 +322,7 @@ set(GLU_TEST_SHA 59d8b9dbd727a8030f1038b14f89e3baabf152ca)
   )
 
   add_custom_target(
-      diff_check
+      diff_check ALL
       COMMENT "Running filtered gtests..."
       COMMAND cp "${PY_RUN_GTEST}.py" "${PY_RUN_GTEST}" &&
       python3 "${PY_RUN_GTEST}" "${USER_BUILD_DIR}/bin/miopen_gtest" "${TESTS_TO_RUN_JSON}"
