@@ -47,44 +47,57 @@ function(add_gtest_negative_filter NEGATIVE_FILTER_TO_ADD)
     set (MIOPEN_GTEST_FILTER_NEGATIVE ${TMP_FILTER} PARENT_SCOPE)
 endfunction()
 
+if(DEFINED THEROCK_STAGE_INSTALL_ROOT)
+  set (THEROCK_GTEST_TAG "miopen_gtest_")
+else()
+  set (THEROCK_GTEST_TAG "")
+endif()
+
 function(add_gtest TEST_NAME TEST_CPP)
   list(JOIN TEST_CPP "  " TESTS_LIST)
-  message("Adding Test: " ${TEST_NAME} " : " ${TESTS_LIST})
-  add_executable(${TEST_NAME} ${TEST_CPP})
-  if(WIN32)
-    target_compile_definitions(${TEST_NAME} PRIVATE NOMINMAX)
+
+  if(TEST_NAME STREQUAL "miopen_gtest")
+    set (GTEST_NAME "${TEST_NAME}")
+  else()
+    set (GTEST_NAME "${THEROCK_GTEST_TAG}${TEST_NAME}")
   endif()
 
-  add_dependencies(tests ${TEST_NAME})
-  add_dependencies(check ${TEST_NAME})
+  message("Adding gtest: " ${GTEST_NAME} " : " ${TESTS_LIST})
+  add_executable(${GTEST_NAME} ${TEST_CPP})
+  if(WIN32)
+    target_compile_definitions(${GTEST_NAME} PRIVATE NOMINMAX)
+  endif()
 
-  target_compile_options(${TEST_NAME} PRIVATE -Wno-global-constructors -Wno-undef)
-  target_include_directories(${TEST_NAME} PRIVATE ../ ../../src/kernels)
+  add_dependencies(tests ${GTEST_NAME})
+  add_dependencies(check ${GTEST_NAME})
 
-  target_link_libraries(${TEST_NAME} miopen_gtest_common)
+  target_compile_options(${GTEST_NAME} PRIVATE -Wno-global-constructors -Wno-undef)
+  target_include_directories(${GTEST_NAME} PRIVATE ../ ../../src/kernels)
+
+  target_link_libraries(${GTEST_NAME} miopen_gtest_common)
   if(MIOPEN_ENABLE_AI_KERNEL_TUNING)
-    target_link_libraries(${TEST_NAME} frugally-deep::fdeep Eigen3::Eigen)
+    target_link_libraries(${GTEST_NAME} frugally-deep::fdeep Eigen3::Eigen)
   endif()
 
   # Need to add hipblaslt since tests directly use gemm_v2.cpp
   if(hipblaslt_FOUND)
-    target_link_libraries( ${TEST_NAME} roc::hipblaslt )
+    target_link_libraries( ${GTEST_NAME} roc::hipblaslt )
   endif()
   # Need to add rocBLAS since static builds of MIOpen require rocBLAS linkage
   if(rocblas_FOUND)
-    target_link_libraries( ${TEST_NAME} $<BUILD_INTERFACE:roc::rocblas> )
+    target_link_libraries( ${GTEST_NAME} $<BUILD_INTERFACE:roc::rocblas> )
   endif()
 
   # Workaround : change in rocm-cmake was causing linking error so had to add ${CMAKE_DL_LIBS}
   #               We can remove ${CMAKE_DL_LIBS} once root cause is identified.
-  target_link_libraries(${TEST_NAME} ${CMAKE_DL_LIBS} GTest::gtest GTest::gtest_main GTest::gmock MIOpen ${Boost_LIBRARIES} hip::host )
+  target_link_libraries(${GTEST_NAME} ${CMAKE_DL_LIBS} GTest::gtest GTest::gtest_main GTest::gmock MIOpen ${Boost_LIBRARIES} hip::host )
   if(NOT MIOPEN_EMBED_DB STREQUAL "")
-      target_link_libraries(${TEST_NAME} $<BUILD_INTERFACE:miopen_data>)
+      target_link_libraries(${GTEST_NAME} $<BUILD_INTERFACE:miopen_data>)
   endif()
 
   if(MIOPEN_CK_BUILDER_EXPERIMENTAL)
     find_package(composable_kernel 1.0.0 COMPONENTS device_conv_operations)
-    target_link_libraries(${TEST_NAME} ck_builder composable_kernel::device_conv_operations)
+    target_link_libraries(${GTEST_NAME} ck_builder composable_kernel::device_conv_operations)
   endif()
 
 # Individual test binaries are only added if single gtest is not being created.
@@ -139,9 +152,9 @@ function(add_gtest TEST_NAME TEST_CPP)
     #       To work around this limitation, we are passing the environment variables in the format ENVIRONMENT;value1=${value1};ENVIRONMENT;value2=${value2}.
     # bn tests are run sequentially since running tests in parallel was causing large tensor case fail with insufficient memory error.
     if("${TEST_NAME}" STREQUAL "test_bn_bwd_serial_run" OR "${TEST_NAME}" STREQUAL "test_bn_fwd_train_serial_run" OR "${TEST_NAME}" STREQUAL "test_bn_infer_serial_run")
-      gtest_discover_tests(${TEST_NAME} DISCOVERY_TIMEOUT 300 DISCOVERY_MODE PRE_TEST WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/${DATABASE_INSTALL_DIR} PROPERTIES RUN_SERIAL TRUE ${TEST_ENVIRONMENT_VARIABLES} TEST_FILTER "${MIOPEN_GTEST_FILTER}")
+      gtest_discover_tests(${GTEST_NAME} DISCOVERY_TIMEOUT 300 DISCOVERY_MODE PRE_TEST WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/${DATABASE_INSTALL_DIR} PROPERTIES RUN_SERIAL TRUE ${TEST_ENVIRONMENT_VARIABLES} TEST_FILTER "${MIOPEN_GTEST_FILTER}")
     else()
-      gtest_discover_tests(${TEST_NAME} DISCOVERY_TIMEOUT 300 DISCOVERY_MODE PRE_TEST WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/${DATABASE_INSTALL_DIR} PROPERTIES ${TEST_ENVIRONMENT_VARIABLES} TEST_FILTER "${MIOPEN_GTEST_FILTER}")
+      gtest_discover_tests(${GTEST_NAME} DISCOVERY_TIMEOUT 300 DISCOVERY_MODE PRE_TEST WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/${DATABASE_INSTALL_DIR} PROPERTIES ${TEST_ENVIRONMENT_VARIABLES} TEST_FILTER "${MIOPEN_GTEST_FILTER}")
     endif()
   endif()
 
@@ -193,24 +206,25 @@ function(add_gtest TEST_NAME TEST_CPP)
 
 #        COMMAND ${TEST_NAME} --gtest_filter=${MIOPEN_GTEST_FILTER}
     foreach(i RANGE 1 ${GTEST_PARALLEL_LEVEL})
-      add_test(NAME ${TEST_NAME}_shard${i}
-        COMMAND ${TEST_NAME} --gtest_filter="Full/GPU_GLU_fwd_FP32.*:Full/GPU_GLU_fwd_FP16.*:Full/GPU_GLU_fwd_BFP16.*:Full/GPU_GLU_bwd_FP32.*:Full/GPU_GLU_bwd_FP16.*:Full/GPU_GLU_bwd_BFP16.*"
+      add_test(NAME ${GTEST_NAME}_shard${i}
+        COMMAND ${GTEST_NAME} --gtest_filter="Full/GPU_GLU_fwd_FP32.*:Full/GPU_GLU_fwd_FP16.*:Full/GPU_GLU_fwd_BFP16.*:Full/GPU_GLU_bwd_FP32.*:Full/GPU_GLU_bwd_FP16.*:Full/GPU_GLU_bwd_BFP16.*"
         WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/${DATABASE_INSTALL_DIR}"
       )
       math(EXPR SHARD_INDEX "${i} - 1")
-      set_tests_properties(${TEST_NAME}_shard${i} PROPERTIES
+      set_tests_properties(${GTEST_NAME}_shard${i} PROPERTIES
         ENVIRONMENT "MIOPEN_USER_DB_PATH=${CMAKE_CURRENT_BINARY_DIR};MIOPEN_INVOKED_FROM_CTEST=1;GTEST_TOTAL_SHARDS=${GTEST_PARALLEL_LEVEL};GTEST_SHARD_INDEX=${SHARD_INDEX}"
       )
     endforeach()
 
   endif()
-  target_link_libraries(${TEST_NAME} BZip2::BZip2)
+
+  target_link_libraries(${GTEST_NAME} BZip2::BZip2)
   if(WIN32)
     # Refer to https://en.cppreference.com/w/cpp/language/types for details.
-    target_compile_options(${TEST_NAME} PRIVATE $<BUILD_INTERFACE:$<$<CXX_COMPILER_ID:Clang>:-U__LP64__>>)
+    target_compile_options(${GTEST_NAME} PRIVATE $<BUILD_INTERFACE:$<$<CXX_COMPILER_ID:Clang>:-U__LP64__>>)
   endif()
   if(HAS_LIB_STD_FILESYSTEM)
-    target_link_libraries(${TEST_NAME} stdc++fs)
+    target_link_libraries(${GTEST_NAME} stdc++fs)
   endif()
 endfunction()
 
@@ -305,63 +319,62 @@ set(PY_RUN_GTEST "${DEPENDENCY_PARSER_DIR}/src/run_gtest")
 
 # Generate fixtures
   add_custom_command(
-      OUTPUT ${FIXTURES_JSON}
-      COMMENT "Generating ${FIXTURES_JSON}"
-#      COMMAND cp "${PY_FIXTURES}.py" "${PY_FIXTURES}" &&
-      COMMAND        ${Python3_EXECUTABLE} ${PY_FIXTURES} ${DAPPER_OUTPUT_DIR}
-      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-      VERBATIM
+    OUTPUT ${FIXTURES_JSON}
+    COMMENT "Generating ${FIXTURES_JSON}"
+#    COMMAND cp "${PY_FIXTURES}.py" "${PY_FIXTURES}" &&
+    COMMAND        ${Python3_EXECUTABLE} ${PY_FIXTURES} ${DAPPER_OUTPUT_DIR}
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+    VERBATIM
   )
 
 # Generate mapping
   add_custom_command(
-      OUTPUT ${MAPPING_JSON}
-      COMMENT "Generating ${MAPPING_JSON}"
-#      COMMAND cp "${DEPENDENCY_PARSER_ROOT_DIR}/${PY_MAIN}.py" "PROJECT_BINARY_DIR" &&
-      COMMAND        ${Python3_EXECUTABLE} ${PY_MAIN} parse ${BUILD_NINJA}
-      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-      VERBATIM
+    OUTPUT ${MAPPING_JSON}
+    COMMENT "Generating ${MAPPING_JSON}"
+#    COMMAND cp "${DEPENDENCY_PARSER_ROOT_DIR}/${PY_MAIN}.py" "PROJECT_BINARY_DIR" &&
+    COMMAND        ${Python3_EXECUTABLE} ${PY_MAIN} parse ${BUILD_NINJA}
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+    VERBATIM
   )
 
 # Generate TESTS_TO_RUN_JSON file
   add_custom_command(
-      OUTPUT "${TESTS_TO_RUN_JSON}"
-      COMMENT "Generating ${TESTS_TO_RUN_JSON}"
-#      COMMAND cp "${DEPENDENCY_PARSER_ROOT_DIR}/${PY_MAIN}.py" "${PROJECT_BINARY_DIR}/main" &&
-      COMMAND        ${Python3_EXECUTABLE} "${PY_MAIN}" select ${MAPPING_JSON} 0 0  --fixturemap=${FIXTURES_JSON}
-      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-      DEPENDS ${MAPPING_JSON} ${FIXTURES_JSON}
-      VERBATIM
+    OUTPUT "${TESTS_TO_RUN_JSON}"
+    COMMENT "Generating ${TESTS_TO_RUN_JSON}"
+#    COMMAND cp "${DEPENDENCY_PARSER_ROOT_DIR}/${PY_MAIN}.py" "${PROJECT_BINARY_DIR}/main" &&
+    COMMAND        ${Python3_EXECUTABLE} "${PY_MAIN}" select ${MAPPING_JSON} 0 0  --fixturemap=${FIXTURES_JSON}
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+    DEPENDS ${MAPPING_JSON} ${FIXTURES_JSON}
+    VERBATIM
   )
 
-  # leverage the fact that theROCK copies miopen_gtest* to the test machines
   add_custom_target(
+    generate_gtest_filter
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+    DEPENDS miopen_gtest tests "${TESTS_TO_RUN_JSON}"
+  )
+
+  add_custom_target(
+    diff_check
+    COMMENT "Running filtered gtests..."
+    COMMAND cp "${PY_RUN_GTEST}.py" "${PY_RUN_GTEST}" &&
+    python3 "${PY_RUN_GTEST}" "${USER_BUILD_DIR}/bin/miopen_gtest" "${TESTS_TO_RUN_JSON}"
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+    DEPENDS generate_gtest_filter
+    VERBATIM
+  )
+  # TODO: add miopen_gtest tag to bin's
+
+  if(DEFINED THEROCK_STAGE_INSTALL_ROOT)
+  # leverage the fact that theROCK copies miopen_gtest* to the test machines
+    add_custom_target(
       copy_dapper
       COMMENT "Copying dependency parser scripts to ${PROJECT_BINARY_DIR}"
       COMMAND cp "${DEPENDENCY_PARSER_ROOT_DIR}/${PY_MAIN}.py" ${DEPENDENCY_PARSER_DIR}/miopen_gtest_${PY_MAIN} &&
               cp "${DEPENDENCY_PARSER_ROOT_DIR}/src/${PY_PARSER}.py" ${DEPENDENCY_PARSER_DIR}/miopen_gtest_ninja_parser &&
               cp "${DEPENDENCY_PARSER_ROOT_DIR}/src/${PY_TEST_FILTER}.py" ${DEPENDENCY_PARSER_DIR}/miopen_gtest_test_filter &&
               cp "${DEPENDENCY_PARSER_ROOT_DIR}/src/${PY_FIXTURES}.py" ${DEPENDENCY_PARSER_DIR}/miopen_gtest_all_gtest_fixtures
-  )
-
-  add_custom_target(
-      generate_gtest_filter
-      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-      DEPENDS miopen_gtest tests "${TESTS_TO_RUN_JSON}"
-  )
-
-  add_custom_target(
-      diff_check
-      COMMENT "Running filtered gtests..."
-      COMMAND cp "${PY_RUN_GTEST}.py" "${PY_RUN_GTEST}" &&
-      python3 "${PY_RUN_GTEST}" "${USER_BUILD_DIR}/bin/miopen_gtest" "${TESTS_TO_RUN_JSON}"
-      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-      DEPENDS generate_gtest_filter
-      VERBATIM
-  )
-  
-  if(DEFINED THEROCK_STAGE_INSTALL_ROOT)
-    add_dependencies(tests copy_dapper)
+    )
     add_dependencies(check generate_gtest_filter)
   endif()
 
