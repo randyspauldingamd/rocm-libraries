@@ -394,6 +394,12 @@ def getDockerImageWithStatus(Map conf=[:]) {
     }
 }
 
+def runShell(String command){
+    def responseCode = sh returnStatus: true, script: "${command} > tmp.txt"
+    def output = readFile(file: "tmp.txt")
+    return (output != "")
+}
+
 def buildHipClangJob(Map conf=[:]){
         show_node_info()
         /*
@@ -428,9 +434,14 @@ def buildHipClangJob(Map conf=[:]){
                 (retimage, image) = getDockerImage(conf)
                 if (needs_gpu) {
                     withDockerContainer(image: image, args: dockerOpts) {
-                        timeout(time: 5, unit: 'MINUTES')
-                        {
-                            sh 'PATH="/opt/rocm/opencl/bin:/opt/rocm/opencl/bin/x86_64:$PATH" clinfo'
+                        timeout(time: 2, unit: 'MINUTES'){
+                            sh 'rocminfo | tee rocminfo.log'
+                            if ( !runShell('grep -n "gfx" rocminfo.log') ){
+                                throw new Exception ("GPU not found")
+                            }
+                            else{
+                                echo "GPU is OK"
+                            }
                         }
                     }
                 }
@@ -443,9 +454,14 @@ def buildHipClangJob(Map conf=[:]){
                 (retimage, image) = getDockerImage(conf)
                 if (needs_gpu) {
                     withDockerContainer(image: image, args: dockerOpts) {
-                        timeout(time: 5, unit: 'MINUTES')
-                        {
-                            sh 'PATH="/opt/rocm/opencl/bin:/opt/rocm/opencl/bin/x86_64:$PATH" clinfo'
+                        timeout(time: 2, unit: 'MINUTES'){
+                            sh 'rocminfo | tee rocminfo.log'
+                            if ( !runShell('grep -n "gfx" rocminfo.log') ){
+                                throw new Exception ("GPU not found")
+                            }
+                            else{
+                                echo "GPU is OK"
+                            }
                         }
                     }
                 }
