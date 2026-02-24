@@ -27,7 +27,7 @@ cmake_minimum_required( VERSION 3.15 )
 
 set(MIOPEN_TEST_DIFF_ONLY 1)
 
-# set(USER_BUILD_DIR ${CMAKE_BINARY_DIR})
+set(ROCM_LIBRARIES_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../")
 
 if (POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
