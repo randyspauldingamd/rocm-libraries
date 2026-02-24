@@ -13,25 +13,36 @@ Features:
 """
 
 import argparse
+import importlib
+import os
 import subprocess
 import sys
 
 
 def run_dependency_parser(args):
-    from src.enhanced_ninja_parser import main as ninja_main
+#    from miopen_gtest_dapper_enhanced_ninja_parser import main as ninja_main
+    from enhanced_ninja_parser import main as ninja_main
 
     sys.argv = ["enhanced_ninja_parser.py"] + args
     ninja_main()
 
 
 def run_selective_test_filter(args):
-    from src.selective_test_filter import main as filter_main
+    from miopen_gtest_dapper_selective_test_filter import main as filter_main
 
     sys.argv = ["selective_test_filter.py"] + args
     filter_main()
 
 
+#def justify_dapper_names():
+#    dapper_modules = [f.split("dapper_",1)[-1] for f in os.listdir('.') if f.lower().endswith('.py') and 'dapper' in f.lower()]
+#    for module in dapper_modules:
+#        base_module = module.split("dapper_",1)[-1]
+#        os.rename(module, base_module)
+
+
 def main():
+#    justify_dapper_names()
     parser = argparse.ArgumentParser(
         description="Unified Ninja Dependency & Selective Testing Tool"
     )

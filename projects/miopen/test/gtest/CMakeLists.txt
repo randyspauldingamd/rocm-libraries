@@ -204,7 +204,6 @@ function(add_gtest TEST_NAME TEST_CPP)
         set(GTEST_PARALLEL_LEVEL 4)
     endif()
 
-#        COMMAND ${TEST_NAME} --gtest_filter=${MIOPEN_GTEST_FILTER}
     foreach(i RANGE 1 ${GTEST_PARALLEL_LEVEL})
       add_test(NAME ${GTEST_NAME}_shard${i}
         COMMAND ${GTEST_NAME} --gtest_filter="Full/GPU_GLU_fwd_FP32.*:Full/GPU_GLU_fwd_FP16.*:Full/GPU_GLU_fwd_BFP16.*:Full/GPU_GLU_bwd_FP32.*:Full/GPU_GLU_bwd_FP16.*:Full/GPU_GLU_bwd_BFP16.*"
@@ -218,6 +217,7 @@ function(add_gtest TEST_NAME TEST_CPP)
 
   endif()
 
+  # COMMAND ${TEST_NAME} --gtest_filter=${MIOPEN_GTEST_FILTER}
   target_link_libraries(${GTEST_NAME} BZip2::BZip2)
   if(WIN32)
     # Refer to https://en.cppreference.com/w/cpp/language/types for details.
@@ -293,24 +293,30 @@ if(MIOPEN_TEST_SINGLE_GTEST)
   )
 
 set(DAPPER_ROOT_DIR "${PROJECT_SOURCE_DIR}/script/dependency-parser")
-set(DAPPER_WORK_DIR "${PROJECT_BINARY_DIR}")
-set(DAPPER_OUTPUT_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+set(DAPPER_SRC_DIR "${DAPPER_ROOT_DIR}")
+set(DAPPER_WORK_DIR "${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}")
+set(DAPPER_TAG "miopen_gtest_dapper_")
 
-#if(DEFINED THEROCK_STAGE_INSTALL_ROOT)
-#else()
-#  set(DEPENDENCY_PARSER_DIR "${DEPENDENCY_PARSER_ROOT_DIR}")
-#endif()
-
-set(TESTS_TO_RUN_JSON "${DAPPER_OUTPUT_DIR}/miopen_gtest_tests_to_run.json")
+set(TESTS_TO_RUN_JSON "${DAPPER_WORK_DIR}/${DAPPER_TAG}tests_to_run.json")
 set(BUILD_NINJA "${PROJECT_BINARY_DIR}/build.ninja")
-set(MAPPING_JSON "${DAPPER_WORK_DIR}/enhanced_dependency_mapping.json")
+set(MAPPING_JSON "enhanced_dependency_mapping.json")
+set(DAPPER_MAPPING_JSON "${DAPPER_WORK_DIR}/${DAPPER_TAG}${MAPPING_JSON}")
 set(FIXTURES_JSON "${DAPPER_WORK_DIR}/fixtures.json")
 
-set(PY_MAIN "main")
 set(PY_FIXTURES "all_gtest_fixtures")
 set(PY_PARSER "enhanced_ninja_parser")
-set(PY_TEST_FILTER "selective_test_filter")
+set(PY_SELECT "selective_test_filter")
 set(PY_RUN_GTEST "${DEPENDENCY_PARSER_DIR}/src/run_gtest")
+
+set(DAPPER_BUILD_NINJA "${DAPPER_WORK_DIR}/${DAPPER_TAG}build.ninja")
+set(DAPPER_PARSER "${DAPPER_WORK_DIR}/${DAPPER_TAG}${PY_PARSER}.py")
+set(DAPPER_SELECT "${DAPPER_WORK_DIR}/${DAPPER_TAG}${PY_SELECT}.py")
+set(DAPPER_FIXTURES "${DAPPER_WORK_DIR}/${DAPPER_TAG}${PY_FIXTURES}.py")
+
+set(DAPPER_FILES_TO_INSTALL
+  "${DAPPER_ROOT_DIR}/${PY_SELECT}.py"
+  "${DAPPER_ROOT_DIR}/${PY_FIXTURES}.py"
+)
 
 #set(BN_BASE_SHA c5946cf2382a46b280c402f4ff397e382df1516e)
 #set(BN_TEST_SHA 21db4f318f39999b618b3f163941ea4ae378afe6)
@@ -321,30 +327,40 @@ set(PY_RUN_GTEST "${DEPENDENCY_PARSER_DIR}/src/run_gtest")
   add_custom_command(
     OUTPUT ${FIXTURES_JSON}
     COMMENT "Generating ${FIXTURES_JSON}"
-#    COMMAND cp "${PY_FIXTURES}.py" "${PY_FIXTURES}" &&
-    COMMAND        ${Python3_EXECUTABLE} ${PY_FIXTURES} ${DAPPER_OUTPUT_DIR}
-    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+    COMMAND ${Python3_EXECUTABLE} ${DAPPER_FIXTURES} ${DAPPER_WORK_DIR}
+    WORKING_DIRECTORY ${DAPPER_WORK_DIR}
     VERBATIM
   )
 
 # Generate mapping
-  add_custom_command(
-    OUTPUT ${MAPPING_JSON}
-    COMMENT "Generating ${MAPPING_JSON}"
-#    COMMAND cp "${DEPENDENCY_PARSER_ROOT_DIR}/${PY_MAIN}.py" "PROJECT_BINARY_DIR" &&
-    COMMAND        ${Python3_EXECUTABLE} ${PY_MAIN} parse ${BUILD_NINJA}
-    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-    VERBATIM
-  )
+# On theROCK, the filter must run on the build machine since the runners don't have the object files
+  if(DEFINED THEROCK_STAGE_INSTALL_ROOT)
+    add_custom_command(
+      OUTPUT ${DAPPER_MAPPING_JSON}
+      COMMENT "Generating '${MAPPING_JSON}'..."
+      COMMAND ${Python3_EXECUTABLE} "${DAPPER_ROOT_DIR}/${PY_PARSER}.py" ./build.ninja
+      COMMENT "Copying to '${DAPPER_MAPPING_JSON}'..."
+      COMMAND ${CMAKE_COMMAND} -E copy ${MAPPING_JSON} ${DAPPER_MAPPING_JSON}
+      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+      VERBATIM
+    )
+  else()
+    add_custom_command(
+      OUTPUT ${MAPPING_JSON}
+      COMMENT "Generating '${MAPPING_JSON}'..."
+      COMMAND ${Python3_EXECUTABLE} "${DAPPER_PARSER}" parse ${DAPPER_BUILD_NINJA}
+      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+      VERBATIM
+    )
+  endif()
 
 # Generate TESTS_TO_RUN_JSON file
   add_custom_command(
     OUTPUT "${TESTS_TO_RUN_JSON}"
-    COMMENT "Generating ${TESTS_TO_RUN_JSON}"
-#    COMMAND cp "${DEPENDENCY_PARSER_ROOT_DIR}/${PY_MAIN}.py" "${PROJECT_BINARY_DIR}/main" &&
-    COMMAND        ${Python3_EXECUTABLE} "${PY_MAIN}" select ${MAPPING_JSON} 0 0  --fixturemap=${FIXTURES_JSON}
+    COMMENT "Generating '${TESTS_TO_RUN_JSON}'..."
+    COMMAND ${Python3_EXECUTABLE} "${DAPPER_SELECT}" ${DAPPER_MAPPING_JSON} 0 0  --fixturemap=${FIXTURES_JSON}
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-    DEPENDS ${MAPPING_JSON} ${FIXTURES_JSON}
+    DEPENDS ${DAPPER_MAPPING_JSON} ${FIXTURES_JSON}
     VERBATIM
   )
 
@@ -357,23 +373,23 @@ set(PY_RUN_GTEST "${DEPENDENCY_PARSER_DIR}/src/run_gtest")
   add_custom_target(
     diff_check
     COMMENT "Running filtered gtests..."
-    COMMAND cp "${PY_RUN_GTEST}.py" "${PY_RUN_GTEST}" &&
-    python3 "${PY_RUN_GTEST}" "${USER_BUILD_DIR}/bin/miopen_gtest" "${TESTS_TO_RUN_JSON}"
+    ${Python3_EXECUTABLE} "${PY_RUN_GTEST}.py" "${DAPPER_WORK_DIR}/miopen_gtest" "${TESTS_TO_RUN_JSON}"
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
     DEPENDS generate_gtest_filter
     VERBATIM
   )
-  # TODO: add miopen_gtest tag to bin's
 
-  if(DEFINED THEROCK_STAGE_INSTALL_ROOT)
+  message(STATUS "{DAPPER_ROOT_DIR} : '${DAPPER_ROOT_DIR}'") # TRJS
+  message(STATUS "{DAPPER_SRC_DIR} : '${DAPPER_SRC_DIR}'") # TRJS
+  message(STATUS "{DAPPER_WORK_DIR} : '${DAPPER_WORK_DIR}'") # TRJS
+  message(STATUS "{CMAKE_INSTALL_BINDIR}" : '${CMAKE_INSTALL_BINDIR}'") # TRJS
+
   # leverage the fact that theROCK copies miopen_gtest* to the test machines
+  if(DEFINED THEROCK_STAGE_INSTALL_ROOT)
     add_custom_target(
-      copy_dapper
-      COMMENT "Copying dependency parser scripts to ${PROJECT_BINARY_DIR}"
-      COMMAND cp "${DEPENDENCY_PARSER_ROOT_DIR}/${PY_MAIN}.py" ${DEPENDENCY_PARSER_DIR}/miopen_gtest_${PY_MAIN} &&
-              cp "${DEPENDENCY_PARSER_ROOT_DIR}/src/${PY_PARSER}.py" ${DEPENDENCY_PARSER_DIR}/miopen_gtest_ninja_parser &&
-              cp "${DEPENDENCY_PARSER_ROOT_DIR}/src/${PY_TEST_FILTER}.py" ${DEPENDENCY_PARSER_DIR}/miopen_gtest_test_filter &&
-              cp "${DEPENDENCY_PARSER_ROOT_DIR}/src/${PY_FIXTURES}.py" ${DEPENDENCY_PARSER_DIR}/miopen_gtest_all_gtest_fixtures
+      generate_mapping ALL
+      COMMENT "Generating mapping of source files -> test executables..."
+      DEPENDS miopen_gtest ${DAPPER_MAPPING_JSON}
     )
     add_dependencies(check generate_gtest_filter)
   endif()
@@ -383,6 +399,15 @@ set(PY_RUN_GTEST "${DEPENDENCY_PARSER_DIR}/src/run_gtest")
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
         DESTINATION ${CMAKE_INSTALL_BINDIR}
         COMPONENT clients)
+    foreach(file IN LISTS DAPPER_FILES_TO_INSTALL)
+      CMAKE_PATH(GET file FILENAME file_name)
+      install(
+        FILES ${file}
+        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+        DESTINATION ${DAPPER_WORK_DIR}
+        RENAME "${DAPPER_TAG}${file_name}"
+      )
+    endforeach()
   endif()
 endif()
 

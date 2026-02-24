@@ -21,7 +21,7 @@ def disable_core_dump():
 
 def list_gtest_fixtures(executable: Path):
     """Run the executable with --gtest_list_tests and return fixture names."""
-    if "miopen_gtest" in str(executable):
+    if executable.name == "miopen_gtest":
         print(f"Info: Skipping single-binary {executable}.", file=sys.stderr)
         return []
 

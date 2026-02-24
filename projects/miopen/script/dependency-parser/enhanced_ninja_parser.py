@@ -327,6 +327,7 @@ def main():
         sys.exit(1)
 
     parser = EnhancedNinjaDependencyParser(build_file, ninja_path)
+    print(f"Parser's workspace_root={workspace_root}")
     parser.workspace_root = workspace_root  # Attach for use in _get_object_dependencies
     parser.parse_dependencies()
     parser.print_summary()
