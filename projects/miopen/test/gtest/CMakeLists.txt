@@ -382,7 +382,7 @@ set(DAPPER_FILES_TO_INSTALL
   message(STATUS "{DAPPER_ROOT_DIR} : '${DAPPER_ROOT_DIR}'") # TRJS
   message(STATUS "{DAPPER_SRC_DIR} : '${DAPPER_SRC_DIR}'") # TRJS
   message(STATUS "{DAPPER_WORK_DIR} : '${DAPPER_WORK_DIR}'") # TRJS
-  message(STATUS "{CMAKE_INSTALL_BINDIR}" : '${CMAKE_INSTALL_BINDIR}'") # TRJS
+  message(STATUS "{CMAKE_INSTALL_BINDIR} : '${CMAKE_INSTALL_BINDIR}'") # TRJS
 
   # leverage the fact that theROCK copies miopen_gtest* to the test machines
   if(DEFINED THEROCK_STAGE_INSTALL_ROOT)
