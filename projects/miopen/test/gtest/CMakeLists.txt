@@ -196,6 +196,7 @@ function(add_gtest TEST_NAME TEST_CPP)
 
     set(MIOPEN_GTEST_FILTER "${MIOPEN_GTEST_PREFIX}*${MIOPEN_GTEST_SUFFIX}*:${MIOPEN_GTEST_PREFIX}*NONE*${MIOPEN_GTEST_FILTER_NEGATIVE}")
 
+    set(MIOPEN_GTEST_FILTER "Full/GPU_GLU_fwd_FP32.*:Full/GPU_GLU_fwd_FP16.*:Full/GPU_GLU_fwd_BFP16.*:Full/GPU_GLU_bwd_FP32.*:Full/GPU_GLU_bwd_FP16.*:Full/GPU_GLU_bwd_BFP16.*")
     message(STATUS "MIOPEN_GTEST_FILTER ${MIOPEN_GTEST_FILTER}")
 
     # when building the single gtest, add them in a sharded manner
@@ -206,7 +207,7 @@ function(add_gtest TEST_NAME TEST_CPP)
 
     foreach(i RANGE 1 ${GTEST_PARALLEL_LEVEL})
       add_test(NAME ${GTEST_NAME}_shard${i}
-        COMMAND ${GTEST_NAME} --gtest_filter="Full/GPU_GLU_fwd_FP32.*:Full/GPU_GLU_fwd_FP16.*:Full/GPU_GLU_fwd_BFP16.*:Full/GPU_GLU_bwd_FP32.*:Full/GPU_GLU_bwd_FP16.*:Full/GPU_GLU_bwd_BFP16.*"
+        COMMAND ${GTEST_NAME} --gtest_filter=${MIOPEN_GTEST_FILTER}
         WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/${DATABASE_INSTALL_DIR}"
       )
       math(EXPR SHARD_INDEX "${i} - 1")
@@ -217,7 +218,6 @@ function(add_gtest TEST_NAME TEST_CPP)
 
   endif()
 
-  # COMMAND ${TEST_NAME} --gtest_filter=${MIOPEN_GTEST_FILTER}
   target_link_libraries(${GTEST_NAME} BZip2::BZip2)
   if(WIN32)
     # Refer to https://en.cppreference.com/w/cpp/language/types for details.
