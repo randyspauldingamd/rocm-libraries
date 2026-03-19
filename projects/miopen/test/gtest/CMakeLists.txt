@@ -292,12 +292,14 @@ file(WRITE "${INSTALL_TEST_FILE}"
 )
 
 #Enable the test categories in test_categories.yaml
-include(${ROCM_LIBRARIES_ROOT}/shared/ctest/TestCategories.cmake)
+set(MIOPEN_TEST_CATEGORIES_YAML ${ROCM_LIBRARIES_ROOT}/shared/ctest/TestCategories.cmake)
+include(${MIOPEN_TEST_CATEGORIES_YAML})
 if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_categories.yaml")
         message(STATUS "YAML-based test categorization")
+        message(STATUS "apply_test_category_labels(miopen_gtest ${CMAKE_CURRENT_SOURCE_DIR}/test_categories.yaml ${PROJECT_BINARY_DIR}/${DATABASE_INSTALL_DIR} ${INSTALL_TEST_FILE})")
         apply_test_category_labels(miopen_gtest "${CMAKE_CURRENT_SOURCE_DIR}/test_categories.yaml" "${PROJECT_BINARY_DIR}/${DATABASE_INSTALL_DIR}" "${INSTALL_TEST_FILE}")
 else()
-        message(STATUS "No test categorization (YAML missing)")
+        message(STATUS "No test categorization (${MIOPEN_TEST_CATEGORIES_YAML} missing)")
 endif()
 
 # Install CTestTestfile.cmake to bin/MIOpen/ subdirectory for TheRock distribution
