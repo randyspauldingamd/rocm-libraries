@@ -229,7 +229,7 @@ def main():
             print(f"# Category: {category_name}")
             print(f'# Description: {category_info.get("description", "")}')
             if dapper_json_file:
-                print(f'# Dependency Parser (dapper) is enabled for {category_name}, writing to {dapper_json_file}')
+                print(f"# Dependency Parser (dapper) is enabled for {category_name}, writing to '{dapper_json_file}'")
                 print(f"# The unfiltered category can be ran via the '{target_name}_{get_unfiltered_category_name(category_name)}_suite' target")
             else:
                 print(f'# Dependency Parser (dapper) is NOT enabled for {category_name}')
