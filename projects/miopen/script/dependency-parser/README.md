@@ -8,7 +8,7 @@ The parser:
 - Identifies all executables in the Ninja build.
 - Maps object files to their source and header dependencies using `ninja -t deps`.
 - Constructs a reverse mapping from each file to all dependent executables.
-- Handles multi-executable dependencies and supports parallel processing for scalability.
+- Automatically detects monorepo structure (`projects/<name>/`) and scopes analysis accordingly.
 - Exports results in CSV and JSON formats for integration with other tools.
 
 ## Features
@@ -16,19 +16,20 @@ The parser:
 - **Comprehensive Dependency Tracking**: Captures direct source file dependencies and, critically, all included header files via `ninja -t deps`.
 - **Executable to Object Mapping**: Parses the `build.ninja` file to understand how executables are linked from object files.
 - **Object to Source/Header Mapping**: Uses `ninja -t deps` for each object file to get a complete list of its dependencies.
+- **Monorepo Awareness**: Automatically detects `projects/<project>/` paths, strips them to project-relative paths, and scopes `git diff` to only the relevant subtree.
 - **File to Executable Inversion**: Inverts the dependency graph to map each file to the set of executables that depend on it.
 - **Parallel Processing**: Utilizes a `ThreadPoolExecutor` to run `ninja -t deps` commands in parallel, significantly speeding up analysis for projects with many object files.
-- **Filtering**: Option to filter out system files and focus on project-specific dependencies.
+- **Filtering**: Filters out system files (`/usr/`, `/opt/rocm/`, etc.) and focuses on project-specific dependencies.
 - **Multiple Output Formats**:
-    - **CSV**: `enhanced_file_executable_mapping.csv` - A comma-separated values file where each row lists a file and a semicolon-separated list of executables that depend on it.
-    - **JSON**: `enhanced_dependency_mapping.json` - A JSON file representing a dictionary where keys are file paths and values are lists of dependent executables.
+    - **CSV**: `enhanced_file_executable_mapping.csv` - Each row lists a file and a semicolon-separated list of dependent executables.
+    - **JSON**: `enhanced_dependency_mapping.json` - Includes file-to-executable mapping, executable-to-file mapping, repo metadata, and statistics.
 - **Robust Error Handling**: Includes error handling for missing files and failed subprocess commands.
 
 ## Prerequisites
 
 - **Python 3.7+**
 - **Ninja build system**: The `ninja` executable must be in the system's PATH or its path provided as an argument.
-- A **Ninja build directory** containing a `build.ninja` file and the compiled object files. The project should have been built at least once.
+- A **Ninja build directory** containing a `build.ninja` file. The project should have been built at least once (even partially) so that `ninja -t deps` has dependency data.
 
 ## Using CMake with Ninja
 
@@ -42,13 +43,17 @@ To use this tool effectively, your C++ project should be configured with CMake t
     - `-DCMAKE_EXPORT_COMPILE_COMMANDS=ON` is optional but useful for other tooling.
     - Ensure your CMakeLists.txt uses `target_include_directories` and proper dependency declarations for accurate results.
 
-2. **Build your project with Ninja:**
+2. **Build your project (full or partial):**
     ```bash
+    # Full build
     ninja
-    ```
-    - This step is required to generate all object files and dependency information (`.d` files) that the parser relies on.
 
-3. **Run the dependency parser tool:**
+    # Or build specific targets
+    ninja example_gemm_xdl_fp16 example_gemm_xdl_fp16_v3
+    ```
+    The parser only extracts dependencies for objects that were actually built.
+
+3. **Run the dependency parser:**
     ```bash
     python main.py parse /path/to/build.ninja --workspace-root /path/to/your/workspace
     ```
@@ -57,7 +62,7 @@ To use this tool effectively, your C++ project should be configured with CMake t
 
 ## Usage
 
-All features are available via the unified main.py CLI:
+All features are available via the unified `main.py` CLI:
 
 ```bash
 # Dependency parsing (now supports --workspace-root)
