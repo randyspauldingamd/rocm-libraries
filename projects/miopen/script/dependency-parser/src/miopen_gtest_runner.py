@@ -4,13 +4,6 @@ import subprocess
 import sys
 
 def split_gtest_filter_includes(filter_str):
-"""
-    Splits a --gtest_filter style string into positive and negative filter lists.
-    
-    Example:
-        "ABC.*:DEF.*:-XYZ.*:-123.*"
-        -> (['ABC.*', 'DEF.*'], ['XYZ.*', '123.*'])
-    """
     if not isinstance(filter_str, str):
         raise TypeError("filter_str must be a string")
 
@@ -20,14 +13,10 @@ def split_gtest_filter_includes(filter_str):
     if not filter_str:
         return [], []
 
-    # Split into positive and negative parts
+    # Split into positive and negative parts, and split the positives
     if '-' in filter_str:
         positive_part, *negative_part = filter_str.split('-')
         positives = [p for p in positive_part.split(':') if p]
-        # Note, we don't want the negatives split, but leave the code for reference
-#        negatives = []
-#        for neg in negative_part:
-#            negatives.extend([n for n in neg.split(':') if n])
     else:
         positives = [p for p in filter_str.split(':') if p]
         negative_parts = []
@@ -45,6 +34,9 @@ def matches_any_filter(s, filters):
 
 def run_gtest(gtest_executable: str, gtest_filter_json: str, category_name: str, category_filter: str):
     # Use a default filter during development
+    if os.path.isfile(file_path):
+        create_default_json()
+
     with open(gtest_filter_json, 'r') as f:
         json_data = json.load(f)
     dapper_gtest_filter = json_data['gtest_filter']
@@ -53,8 +45,8 @@ def run_gtest(gtest_executable: str, gtest_filter_json: str, category_name: str,
     category_filter_name = f"category_{category_name}_filter" if category_name else "category_name"
     json_data.append({category_filter_name: category_filter})
 
-    # The category filter can contain wildcards, but dapper only does at the beginning and
-    # end of each fixture, so it's easy to compare each dapper item for a category match.
+    # The category filter can contain wildcards anywhere, but dapper only does at the beginning
+    # and end of each fixture, so it's easy to compare each dapper item for a category match.
     # Also, dapper does not define negatives, so enforce this by ignoring them.
     dapper_positives, _ = split_gtest_filter(dapper_gtest_filter)
     category_positives, category_exclude = split_gtest_filter_includes(category_filter)

@@ -62,6 +62,9 @@ function(apply_test_category_labels target_name yaml_file working_dir)
     file(WRITE "${CATEGORY_CMAKE}" "${CMAKE_CATEGORY_CODE}")
 
     message(STATUS "Generated test category configuration: ${CATEGORY_CMAKE}")
+    if(install_test_file)
+        message(STATUS "Generated install category configuration: ${install_test_file}")
+    endif()
 
     # Verify the generated CMake file exists before including it
     if(NOT EXISTS "${CATEGORY_CMAKE}")
