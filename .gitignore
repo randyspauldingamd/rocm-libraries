@@ -1,14 +1,3 @@
-__pycache__
+.vscode/
+/.gitignore
 
-# Build directories
-_build/
-build/
-
-# User-specific CMake presets
-CMakeUserPresets.json
-
-# Miscellanous tools
-.cline_storage/
-
-# Miscellanous tools
-.cline_storage/
