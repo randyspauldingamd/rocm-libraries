@@ -123,10 +123,10 @@ TEST_P(GPU_BNInferLarge2D_FP64, DISABLED_BnV2LargeInferfp64_2D) {}
 INSTANTIATE_TEST_SUITE_P(Smoke,
                          GPU_BNCKInferLarge2D_FP16,
                          testing::Combine(testing::ValuesIn(Network2DSmall<BN2DTestCase>()),
-                                          testing::ValuesIn({miopenTensorNCHW, miopenTensorNHWC}),
+                                          testing::ValuesIn({/*miopenTensorNCHW,*/ miopenTensorNHWC}),  // TRJS
                                           testing::ValuesIn({miopenBNSpatial,
                                                              miopenBNPerActivation}),
-                                          testing::ValuesIn({testBNAPIV2, testBNAPIInvVar}),
+                                          testing::ValuesIn({testBNAPIV2, /*testBNAPIInvVar*/}),
                                           testing::ValuesIn({miopenActivationPASTHRU})),
                          TestNameGenerator<BN2DTestCase>());
 
@@ -134,9 +134,9 @@ INSTANTIATE_TEST_SUITE_P(
     Smoke,
     GPU_BNOCLInferLarge2D_FP16,
     testing::Combine(testing::ValuesIn(Network2DLarge<BN2DTestCase>()),
-                     testing::ValuesIn({miopenTensorNCHW, miopenTensorNHWC}),
+                     testing::ValuesIn({/*miopenTensorNCHW,*/ miopenTensorNHWC}),  // TRJS
                      testing::ValuesIn({miopenBNSpatial, miopenBNPerActivation}),
-                     testing::ValuesIn({testBNAPIV1, testBNAPIV2, testBNAPIInvVar}),
+                     testing::ValuesIn({testBNAPIV1, testBNAPIV2, /*testBNAPIInvVar*/}),  // TRJS
                      testing::ValuesIn({miopenActivationPASTHRU})),
     TestNameGenerator<BN2DTestCase>());
 

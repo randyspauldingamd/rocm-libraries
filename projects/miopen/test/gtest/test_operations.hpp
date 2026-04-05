@@ -195,7 +195,8 @@ void CompareTensor(const tensor<T>& output,
     auto error = miopen::rms_range(out_ref, output);
     EXPECT_FALSE(miopen::find_idx(out_ref, miopen::not_finite) >= 0)
         << "Non finite number found in the CPU data";
-    EXPECT_TRUE(error < threshold)
+    // TRJS
+    EXPECT_TRUE(error < 0.0 * threshold)
         << "Error beyond tolerance Error:" << error << ",  Threshold: " << threshold;
 }
 } // namespace test
