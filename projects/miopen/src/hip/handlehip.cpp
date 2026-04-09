@@ -87,41 +87,46 @@ void* default_allocator(void*, size_t sz)
         MIOPEN_LOG_I2("hipMalloc " << sz << " at " << ptr << " Ok");
         return ptr;
     }
-    // const auto status_host = hipHostMalloc(&ptr, sz);
-    // if(status_host == hipSuccess)
-    // {
-    //     MIOPEN_LOG_I2("hipHostMalloc " << sz << " at " << ptr << " Ok");
-    //     return ptr;
-    // }
-    MIOPEN_LOG_W("hipMalloc " << sz << " status: " << status);
-    // MIOPEN_THROW_HIP_STATUS(status_host, "hipHostMalloc " + std::to_string(sz));
+    MIOPEN_THROW_HIP_STATUS(status, "hipMalloc " + std::to_string(sz));
 }
+
+// NOLINTNEXTLINE (cppcoreguidelines-avoid-non-const-global-variables)
+std::unordered_map<void*, void*> device_to_host_ptrs;
 
 void* apu_allocator(void* ctx, size_t sz)
 {
-    size_t free, total;
-    auto status = hip_mem_get_info_wrapper(&free, &total);
-    if(status != hipSuccess)
-        MIOPEN_THROW_HIP_STATUS(status, "Failed getting GPU memory");
-
-    MIOPEN_LOG_I2("GetAvailableMemory " << free);
+    // size_t free, total;  // TRJS
+    // auto status = hip_mem_get_info_wrapper(&free, &total);
+    // if(status != hipSuccess)
+    //     MIOPEN_THROW_HIP_STATUS(status, "Failed getting GPU memory");
+    const auto available = GetAvailableMemory();
+    MIOPEN_LOG_I2("GetAvailableMemory " << available);
     if(sz > available)
         MIOPEN_LOG_I("GetAvailableMemory reports unsufficient memory to allocate " << sz);
-    void* ptr;
-    // const auto status = hipMalloc(&ptr, sz);
-    // if(status == hipSuccess)
-    // {
-    //     MIOPEN_LOG_I2("hipMalloc " << sz << " at " << ptr << " Ok");
-    //     return ptr;
-    // }
-    const auto status_host = hipHostMalloc(&ptr, sz);
-    if(status_host == hipSuccess)
+
+    void* host_ptr;
+    auto status = hipHostMalloc(&host_ptr, sz, hipHostMallocMapped);
+    if(status != hipSuccess)
     {
-        MIOPEN_LOG_I2("hipHostMalloc " << sz << " at " << ptr << " Ok");
-        return ptr;
+        MIOPEN_THROW_HIP_STATUS(status, "hipHostMalloc " + std::to_string(sz));
     }
-    // MIOPEN_LOG_W("hipMalloc " << sz << " status: " << status);
-    MIOPEN_THROW_HIP_STATUS(status_host, "hipHostMalloc " + std::to_string(sz));
+
+    MIOPEN_LOG_I2("hipHostMalloc " << sz << " at " << host_ptr << " Ok");
+
+    void* dvc_ptr;
+    status = hipHostGetDevicePointer(&dvc_ptr, host_ptr, 0);
+    if(status != hipSuccess)
+    {
+        (void)hipHostFree(host_ptr);
+        MIOPEN_THROW_HIP_STATUS(status, "hipHostGetDevicePointer for " + std::to_string(sz) + 
+        " bytes at " + std::to_string(reinterpret_cast<size_t>(host_ptr)));
+    }
+
+    MIOPEN_LOG_I2("hipHostGetDevicePointer " << dvc_ptr << " for host pointer " << host_ptr << " Ok");
+
+    device_to_host_ptrs[dvc_ptr] = host_ptr;
+
+    return dvc_ptr;
 }
 
 [[maybe_unused]] inline std::string to_string(void* const ptr)
@@ -131,20 +136,35 @@ void* apu_allocator(void* ctx, size_t sz)
     return oss.str();
 }
 
-void apu_deallocator(void*, void* mem)
+void apu_deallocator(void*, void* dvc_ptr)
 {
+    void* host_ptr = device_to_host_ptrs[dvc_ptr];
     size_t size = 0;
-    auto status = hipMemPtrGetInfo(mem, &size);
+    size_t host_size = 0;
+
+    auto status = hipMemPtrGetInfo(dvc_ptr, &size);
     if(status != hipSuccess)
-        MIOPEN_LOG_W("hipMemPtrGetInfo at " << mem << " status: " << status);
-    status = hipHostFree(mem);
+        MIOPEN_LOG_W("hipMemPtrGetInfo at " << dvc_ptr << " (dvc) status: " << status);
+
+    status = hipMemPtrGetInfo(host_ptr, &host_size);
+    if(status != hipSuccess)
+        MIOPEN_LOG_W("hipMemPtrGetInfo at " << host_ptr << " (host) status: " << status);
+
+    if(size != host_size)
+    {
+        MIOPEN_LOG_W("hipMemPtrGetInfo returned different sizes: " << size << " (dvc) != " << host_size << " (host)");
+    }
+
+    status = hipHostFree(host_ptr);
     if(status != hipSuccess)
     {
         MIOPEN_THROW_HIP_STATUS(status,
-                                "hipHostFree " + std::to_string(size) + " at " + to_string(mem));
+                                "hipHostFree " + std::to_string(size) + " at " + to_string(host_ptr) + " (host) -> "
+                                 + to_string(dvc_ptr) + " (dvc)"
+                            );
     }
     else
-        MIOPEN_LOG_I2("hipHostFree " << size << " at " << mem << " Ok");
+        MIOPEN_LOG_I2("hipHostFree " << size << " at " << host_ptr << " (host) -> " << dvc_ptr << " (dvc) Ok");
 }
 
 void default_deallocator(void*, void* mem)
@@ -254,9 +274,17 @@ struct HandleImpl
 
     int is_integrated() const
     {
+        static bool reported = false;
+
         hipDeviceProp_t props{};
         (void)hipGetDeviceProperties(&props, device);
-        MIOPEN_LOG_I2("integrated=" << sz);
+
+        if(!reported)
+        {
+            MIOPEN_LOG_I2("integrated=" << props.integrated);
+            reported = true;
+        }
+
         return props.integrated;
     }
 
@@ -442,11 +470,16 @@ void Handle::SetAllocator(miopenAllocatorFunction allocator,
                           miopenDeallocatorFunction deallocator,
                           void* allocatorContext) const
 {
-    this->impl->allocator.allocator   = allocator == nullptr ? 
-        (this->impl->is_integrated() ? apu_allocator : default_allocator)
-        : allocator;
-    if(allocator != nullptr) Init();    // TRJS
-    this->impl->allocator.deallocator = deallocator == nullptr ? default_deallocator : deallocator;
+    if(this->impl->is_integrated())
+    {
+        this->impl->allocator.allocator   = allocator == nullptr ? apu_allocator : allocator;
+        this->impl->allocator.deallocator = deallocator == nullptr ? apu_deallocator : deallocator;
+    }
+    else
+    {
+        this->impl->allocator.allocator   = allocator == nullptr ? default_allocator : allocator;
+        this->impl->allocator.deallocator = deallocator == nullptr ? default_deallocator : deallocator;
+    }
 
     this->impl->allocator.context = allocatorContext;
 }
