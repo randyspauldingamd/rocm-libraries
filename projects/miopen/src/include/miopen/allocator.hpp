@@ -49,6 +49,11 @@ struct Allocator
         }
         return ManageDataPtr{DataCast(result), AllocatorDeleter{deallocator, context}};
     }
+
+    void Init() // TRJS
+    {
+        (void)allocator(nullptr, 0);
+    }
 };
 
 } // namespace miopen

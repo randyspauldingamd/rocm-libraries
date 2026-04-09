@@ -87,13 +87,40 @@ void* default_allocator(void*, size_t sz)
         MIOPEN_LOG_I2("hipMalloc " << sz << " at " << ptr << " Ok");
         return ptr;
     }
+    // const auto status_host = hipHostMalloc(&ptr, sz);
+    // if(status_host == hipSuccess)
+    // {
+    //     MIOPEN_LOG_I2("hipHostMalloc " << sz << " at " << ptr << " Ok");
+    //     return ptr;
+    // }
+    MIOPEN_LOG_W("hipMalloc " << sz << " status: " << status);
+    // MIOPEN_THROW_HIP_STATUS(status_host, "hipHostMalloc " + std::to_string(sz));
+}
+
+void* apu_allocator(void* ctx, size_t sz)
+{
+    size_t free, total;
+    auto status = hip_mem_get_info_wrapper(&free, &total);
+    if(status != hipSuccess)
+        MIOPEN_THROW_HIP_STATUS(status, "Failed getting GPU memory");
+
+    MIOPEN_LOG_I2("GetAvailableMemory " << free);
+    if(sz > available)
+        MIOPEN_LOG_I("GetAvailableMemory reports unsufficient memory to allocate " << sz);
+    void* ptr;
+    // const auto status = hipMalloc(&ptr, sz);
+    // if(status == hipSuccess)
+    // {
+    //     MIOPEN_LOG_I2("hipMalloc " << sz << " at " << ptr << " Ok");
+    //     return ptr;
+    // }
     const auto status_host = hipHostMalloc(&ptr, sz);
     if(status_host == hipSuccess)
     {
         MIOPEN_LOG_I2("hipHostMalloc " << sz << " at " << ptr << " Ok");
         return ptr;
     }
-    MIOPEN_LOG_W("hipMalloc " << sz << " status: " << status);
+    // MIOPEN_LOG_W("hipMalloc " << sz << " status: " << status);
     MIOPEN_THROW_HIP_STATUS(status_host, "hipHostMalloc " + std::to_string(sz));
 }
 
@@ -102,6 +129,22 @@ void* default_allocator(void*, size_t sz)
     std::ostringstream oss;
     oss << ptr;
     return oss.str();
+}
+
+void apu_deallocator(void*, void* mem)
+{
+    size_t size = 0;
+    auto status = hipMemPtrGetInfo(mem, &size);
+    if(status != hipSuccess)
+        MIOPEN_LOG_W("hipMemPtrGetInfo at " << mem << " status: " << status);
+    status = hipHostFree(mem);
+    if(status != hipSuccess)
+    {
+        MIOPEN_THROW_HIP_STATUS(status,
+                                "hipHostFree " + std::to_string(size) + " at " + to_string(mem));
+    }
+    else
+        MIOPEN_LOG_I2("hipHostFree " << size << " at " << mem << " Ok");
 }
 
 void default_deallocator(void*, void* mem)
@@ -209,6 +252,14 @@ struct HandleImpl
         return name; // NOLINT (performance-no-automatic-move)
     }
 
+    int is_integrated() const
+    {
+        hipDeviceProp_t props{};
+        (void)hipGetDeviceProperties(&props, device);
+        MIOPEN_LOG_I2("integrated=" << sz);
+        return props.integrated;
+    }
+
     std::shared_timed_mutex stream_pool_mutex;
     // the main stream and main rocblas_handle rhandle_
 
@@ -267,6 +318,8 @@ struct HandleImpl
     bool enable_profiling  = false;
     float profiling_result = 0.0;
     int device             = -1;
+    size_t allocated_dedicated = 0; // TRJS
+    size_t allocated_shared = 0;
     Allocator allocator{};
     KernelCache cache;
     TargetProperties target_properties;
@@ -389,7 +442,10 @@ void Handle::SetAllocator(miopenAllocatorFunction allocator,
                           miopenDeallocatorFunction deallocator,
                           void* allocatorContext) const
 {
-    this->impl->allocator.allocator   = allocator == nullptr ? default_allocator : allocator;
+    this->impl->allocator.allocator   = allocator == nullptr ? 
+        (this->impl->is_integrated() ? apu_allocator : default_allocator)
+        : allocator;
+    if(allocator != nullptr) Init();    // TRJS
     this->impl->allocator.deallocator = deallocator == nullptr ? default_deallocator : deallocator;
 
     this->impl->allocator.context = allocatorContext;
