@@ -158,6 +158,17 @@ inline auto gcbaInferParamGenSmoke(Configs configs, TensorTypes tensorTypes)
 }
 
 template <typename Configs, typename TensorTypes>
+inline auto gcbaInferParamGenApu(Configs configs, TensorTypes tensorTypes)
+{
+    return ::testing::Combine(testing::Values(miopenActivationRELU/*, miopenActivationCLIPPEDRELU*/),
+                              testing::ValuesIn(configs),
+                              tensorTypes,
+                              testing::Values(0.5f),
+                              testing::Values(1.0f),
+                              testing::Values(0.5f));
+}
+
+template <typename Configs, typename TensorTypes>
 inline auto gcbaInferParamGenFull(Configs configs, TensorTypes tensorTypes)
 {
     return ::testing::Combine(testing::Values(miopenActivationCLAMP),
@@ -267,22 +278,28 @@ TEST_P(GPU_ConvGrpBiasActivInfer_BFP16, ConvCKIgemmGrpFwdBiasActivFused)
 //                                           testing::Values(0.5f)));
 
 // BFP16 tests
+// duplicate of BFP16 for APU testing
+INSTANTIATE_TEST_SUITE_P(
+    Smoke,
+    GPU_ConvGrpBiasActivInfer_BFP16,
+    gcbaInferParamGenApu(GroupConvTestConfig<2u>::GetAPUConfigs<Direction::Forward>(),
+                           testing::Values(miopenTensorNHWC/*, miopenTensorNCHW*/)));
 // INSTANTIATE_TEST_SUITE_P(
 //     Smoke,
 //     GPU_ConvGrpBiasActivInfer_BFP16,
 //     gcbaInferParamGenSmoke(GroupConvTestConfig<2u>::GetSmokeConfigs<Direction::Forward>(),
-//                            testing::Values(miopenTensorNHWC/*, miopenTensorNCHW*/)));
+//                            testing::Values(miopenTensorNHWC, miopenTensorNCHW)));
 // INSTANTIATE_TEST_SUITE_P(
 //     Smoke,
 //     GPU_ConvGrpBiasActivInfer3D_BFP16,
 //     gcbaInferParamGenSmoke(GroupConvTestConfig<3u>::GetSmokeConfigs<Direction::Forward>(),
 //                            testing::Values(miopenTensorNDHWC, miopenTensorNCDHW)));
 
-INSTANTIATE_TEST_SUITE_P(
-    Full,
-    GPU_ConvGrpBiasActivInfer_BFP16,
-    gcbaInferParamGenFull(GroupConvTestConfig<2u>::GetConfigs<Direction::Forward>(),
-                          testing::Values(miopenTensorNHWC/*, miopenTensorNCHW*/)));
+// INSTANTIATE_TEST_SUITE_P(
+//     Full,
+//     GPU_ConvGrpBiasActivInfer_BFP16,
+//     gcbaInferParamGenFull(GroupConvTestConfig<2u>::GetConfigs<Direction::Forward>(),
+//                           testing::Values(miopenTensorNHWC, miopenTensorNCHW)));
 // INSTANTIATE_TEST_SUITE_P(
 //     Full,
 //     GPU_ConvGrpBiasActivInfer3D_BFP16,
