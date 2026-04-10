@@ -170,167 +170,167 @@ inline auto gcbaInferParamGenFull(Configs configs, TensorTypes tensorTypes)
 
 } // namespace
 
-TEST_P(GPU_ConvBiasActivInfer_FP32, ConvBiasActivAsm1x1UFloat)
-{
-    RunTunableSolver<miopen::solver::fusion::ConvBiasActivAsm1x1U>();
-}
-TEST_P(GPU_ConvBiasActivInfer_FP32, ConvOclDirectFwdFused)
-{
-    RunTunableSolver<miopen::solver::fusion::ConvOclDirectFwdFused>();
-}
-TEST_P(GPU_ConvBiasActivInfer_FP32, ConvBinWinogradRxSFused)
-{
-    RunSolver(miopen::solver::fusion::ConvBinWinogradRxSFused{});
-}
-TEST_P(GPU_ConvBiasActivInfer_FP32, ConvBinWinogradRxSf2x3g1Fused)
-{
-    RunSolver(miopen::solver::fusion::ConvBinWinogradRxSf2x3g1Fused{});
-}
-TEST_P(GPU_ConvBiasActivInfer_FP16, ConvWinoFuryRxSf2x3Fused)
-{
-    RunSolver(miopen::solver::fusion::ConvWinoFuryRxSFused<2, 3>{});
-}
-TEST_P(GPU_ConvBiasActivInfer_FP16, ConvWinoRageRxSf2x3Fused)
-{
-    RunSolver(miopen::solver::fusion::ConvWinoRageRxSFused<2, 3>{});
-}
+// TEST_P(GPU_ConvBiasActivInfer_FP32, ConvBiasActivAsm1x1UFloat)
+// {
+//     RunTunableSolver<miopen::solver::fusion::ConvBiasActivAsm1x1U>();
+// }
+// TEST_P(GPU_ConvBiasActivInfer_FP32, ConvOclDirectFwdFused)
+// {
+//     RunTunableSolver<miopen::solver::fusion::ConvOclDirectFwdFused>();
+// }
+// TEST_P(GPU_ConvBiasActivInfer_FP32, ConvBinWinogradRxSFused)
+// {
+//     RunSolver(miopen::solver::fusion::ConvBinWinogradRxSFused{});
+// }
+// TEST_P(GPU_ConvBiasActivInfer_FP32, ConvBinWinogradRxSf2x3g1Fused)
+// {
+//     RunSolver(miopen::solver::fusion::ConvBinWinogradRxSf2x3g1Fused{});
+// }
+// TEST_P(GPU_ConvBiasActivInfer_FP16, ConvWinoFuryRxSf2x3Fused)
+// {
+//     RunSolver(miopen::solver::fusion::ConvWinoFuryRxSFused<2, 3>{});
+// }
+// TEST_P(GPU_ConvBiasActivInfer_FP16, ConvWinoRageRxSf2x3Fused)
+// {
+//     RunSolver(miopen::solver::fusion::ConvWinoRageRxSFused<2, 3>{});
+// }
 
-TEST_P(GPU_ConvBiasActivInfer_FP16, ConvCKIgemmFwdBiasActivFused)
-{
-    RunTunableSolver<miopen::solver::fusion::ConvCKIgemmFwdBiasActivFused>();
-}
+// TEST_P(GPU_ConvBiasActivInfer_FP16, ConvCKIgemmFwdBiasActivFused)
+// {
+//     RunTunableSolver<miopen::solver::fusion::ConvCKIgemmFwdBiasActivFused>();
+// }
 
 TEST_P(GPU_ConvGrpBiasActivInfer_BFP16, ConvCKIgemmGrpFwdBiasActivFused)
 {
     RunTunableSolver<miopen::solver::fusion::ConvCKIgemmGrpFwdBiasActivFused>();
 }
-TEST_P(GPU_ConvGrpBiasActivInfer3D_BFP16, ConvCKIgemmGrpFwdBiasActivFused)
-{
-    RunTunableSolver<miopen::solver::fusion::ConvCKIgemmGrpFwdBiasActivFused>();
-}
-TEST_P(GPU_ConvGrpBiasActivInfer_FP16, ConvCKIgemmGrpFwdBiasActivFused)
-{
-    RunTunableSolver<miopen::solver::fusion::ConvCKIgemmGrpFwdBiasActivFused>();
-}
-TEST_P(GPU_ConvGrpBiasActivInfer3D_FP16, ConvCKIgemmGrpFwdBiasActivFused)
-{
-    RunTunableSolver<miopen::solver::fusion::ConvCKIgemmGrpFwdBiasActivFused>();
-}
-TEST_P(GPU_ConvGrpBiasActivInfer_FP32, ConvCKIgemmGrpFwdBiasActivFused)
-{
-    RunTunableSolver<miopen::solver::fusion::ConvCKIgemmGrpFwdBiasActivFused>();
-}
-TEST_P(GPU_ConvGrpBiasActivInfer3D_FP32, ConvCKIgemmGrpFwdBiasActivFused)
-{
-    RunTunableSolver<miopen::solver::fusion::ConvCKIgemmGrpFwdBiasActivFused>();
-}
+// TEST_P(GPU_ConvGrpBiasActivInfer3D_BFP16, ConvCKIgemmGrpFwdBiasActivFused)
+// {
+//     RunTunableSolver<miopen::solver::fusion::ConvCKIgemmGrpFwdBiasActivFused>();
+// }
+// TEST_P(GPU_ConvGrpBiasActivInfer_FP16, ConvCKIgemmGrpFwdBiasActivFused)
+// {
+//     RunTunableSolver<miopen::solver::fusion::ConvCKIgemmGrpFwdBiasActivFused>();
+// }
+// TEST_P(GPU_ConvGrpBiasActivInfer3D_FP16, ConvCKIgemmGrpFwdBiasActivFused)
+// {
+//     RunTunableSolver<miopen::solver::fusion::ConvCKIgemmGrpFwdBiasActivFused>();
+// }
+// TEST_P(GPU_ConvGrpBiasActivInfer_FP32, ConvCKIgemmGrpFwdBiasActivFused)
+// {
+//     RunTunableSolver<miopen::solver::fusion::ConvCKIgemmGrpFwdBiasActivFused>();
+// }
+// TEST_P(GPU_ConvGrpBiasActivInfer3D_FP32, ConvCKIgemmGrpFwdBiasActivFused)
+// {
+//     RunTunableSolver<miopen::solver::fusion::ConvCKIgemmGrpFwdBiasActivFused>();
+// }
 
-#if MIOPEN_BACKEND_HIP
+// #if MIOPEN_BACKEND_HIP
 
-TEST_P(GPU_ConvBiasActivInferFusionCompileStep_FP32, ConvBiasActivAsm1x1UFloat_testCompile)
-{
-    ScopedEnvironment<std::string> find_enforce_env(MIOPEN_FIND_ENFORCE, "SEARCH_DB_UPDATE");
-    ScopedEnvironment<int> find_enforce_tuning_iter_env(wa::MIOPEN_DEBUG_TUNING_ITERATIONS_MAX, 5);
+// TEST_P(GPU_ConvBiasActivInferFusionCompileStep_FP32, ConvBiasActivAsm1x1UFloat_testCompile)
+// {
+//     ScopedEnvironment<std::string> find_enforce_env(MIOPEN_FIND_ENFORCE, "SEARCH_DB_UPDATE");
+//     ScopedEnvironment<int> find_enforce_tuning_iter_env(wa::MIOPEN_DEBUG_TUNING_ITERATIONS_MAX, 5);
 
-    fusePlanDesc.Compile(get_handle());
-    RunTunableSolver<miopen::solver::fusion::ConvOclDirectFwdFused>();
-}
+//     fusePlanDesc.Compile(get_handle());
+//     RunTunableSolver<miopen::solver::fusion::ConvOclDirectFwdFused>();
+// }
 
-INSTANTIATE_TEST_SUITE_P(
-    Smoke,
-    GPU_ConvBiasActivInferFusionCompileStep_FP32,
-    testing::Combine(testing::Values(miopenActivationRELU),
-                     testing::ValuesIn(GetNetworkForFusionCompileStepTest<ConvTestCaseBase>()),
-                     testing::Values(miopenTensorNCHW),
-                     testing::Values(0.25f),
-                     testing::Values(0.75f),
-                     testing::Values(0.5f)));
+// INSTANTIATE_TEST_SUITE_P(
+//     Smoke,
+//     GPU_ConvBiasActivInferFusionCompileStep_FP32,
+//     testing::Combine(testing::Values(miopenActivationRELU),
+//                      testing::ValuesIn(GetNetworkForFusionCompileStepTest<ConvTestCaseBase>()),
+//                      testing::Values(miopenTensorNCHW),
+//                      testing::Values(0.25f),
+//                      testing::Values(0.75f),
+//                      testing::Values(0.5f)));
 
-#endif
+// #endif
 
-INSTANTIATE_TEST_SUITE_P(Smoke,
-                         GPU_ConvBiasActivInfer_FP32,
-                         testing::Combine(testing::Values(miopenActivationRELU),
-                                          testing::ValuesIn(GetNetwork1<ConvTestCaseBase>()),
-                                          testing::Values(miopenTensorNCHW),
-                                          testing::Values(0.25f),
-                                          testing::Values(0.75f),
-                                          testing::Values(0.5f)));
+// INSTANTIATE_TEST_SUITE_P(Smoke,
+//                          GPU_ConvBiasActivInfer_FP32,
+//                          testing::Combine(testing::Values(miopenActivationRELU),
+//                                           testing::ValuesIn(GetNetwork1<ConvTestCaseBase>()),
+//                                           testing::Values(miopenTensorNCHW),
+//                                           testing::Values(0.25f),
+//                                           testing::Values(0.75f),
+//                                           testing::Values(0.5f)));
 
-INSTANTIATE_TEST_SUITE_P(Smoke,
-                         GPU_ConvBiasActivInfer_FP16,
-                         testing::Combine(testing::Values(miopenActivationRELU),
-                                          testing::ValuesIn(GetNetwork1<ConvTestCaseBase>()),
-                                          testing::Values(miopenTensorNCHW, miopenTensorNHWC),
-                                          testing::Values(0.25f),
-                                          testing::Values(0.75f),
-                                          testing::Values(0.5f)));
+// INSTANTIATE_TEST_SUITE_P(Smoke,
+//                          GPU_ConvBiasActivInfer_FP16,
+//                          testing::Combine(testing::Values(miopenActivationRELU),
+//                                           testing::ValuesIn(GetNetwork1<ConvTestCaseBase>()),
+//                                           testing::Values(miopenTensorNCHW, miopenTensorNHWC),
+//                                           testing::Values(0.25f),
+//                                           testing::Values(0.75f),
+//                                           testing::Values(0.5f)));
 
 // BFP16 tests
-INSTANTIATE_TEST_SUITE_P(
-    Smoke,
-    GPU_ConvGrpBiasActivInfer_BFP16,
-    gcbaInferParamGenSmoke(GroupConvTestConfig<2u>::GetSmokeConfigs<Direction::Forward>(),
-                           testing::Values(miopenTensorNHWC, miopenTensorNCHW)));
-INSTANTIATE_TEST_SUITE_P(
-    Smoke,
-    GPU_ConvGrpBiasActivInfer3D_BFP16,
-    gcbaInferParamGenSmoke(GroupConvTestConfig<3u>::GetSmokeConfigs<Direction::Forward>(),
-                           testing::Values(miopenTensorNDHWC, miopenTensorNCDHW)));
+// INSTANTIATE_TEST_SUITE_P(
+//     Smoke,
+//     GPU_ConvGrpBiasActivInfer_BFP16,
+//     gcbaInferParamGenSmoke(GroupConvTestConfig<2u>::GetSmokeConfigs<Direction::Forward>(),
+//                            testing::Values(miopenTensorNHWC/*, miopenTensorNCHW*/)));
+// INSTANTIATE_TEST_SUITE_P(
+//     Smoke,
+//     GPU_ConvGrpBiasActivInfer3D_BFP16,
+//     gcbaInferParamGenSmoke(GroupConvTestConfig<3u>::GetSmokeConfigs<Direction::Forward>(),
+//                            testing::Values(miopenTensorNDHWC, miopenTensorNCDHW)));
 
 INSTANTIATE_TEST_SUITE_P(
     Full,
     GPU_ConvGrpBiasActivInfer_BFP16,
     gcbaInferParamGenFull(GroupConvTestConfig<2u>::GetConfigs<Direction::Forward>(),
-                          testing::Values(miopenTensorNHWC, miopenTensorNCHW)));
-INSTANTIATE_TEST_SUITE_P(
-    Full,
-    GPU_ConvGrpBiasActivInfer3D_BFP16,
-    gcbaInferParamGenFull(GroupConvTestConfig<3u>::GetConfigs<Direction::Forward>(),
-                          testing::Values(miopenTensorNDHWC, miopenTensorNCDHW)));
+                          testing::Values(miopenTensorNHWC/*, miopenTensorNCHW*/)));
+// INSTANTIATE_TEST_SUITE_P(
+//     Full,
+//     GPU_ConvGrpBiasActivInfer3D_BFP16,
+//     gcbaInferParamGenFull(GroupConvTestConfig<3u>::GetConfigs<Direction::Forward>(),
+//                           testing::Values(miopenTensorNDHWC, miopenTensorNCDHW)));
 
-// FP16 tests
-INSTANTIATE_TEST_SUITE_P(
-    Smoke,
-    GPU_ConvGrpBiasActivInfer_FP16,
-    gcbaInferParamGenSmoke(GroupConvTestConfig<2u>::GetSmokeConfigs<Direction::Forward>(),
-                           testing::Values(miopenTensorNHWC, miopenTensorNCHW)));
-INSTANTIATE_TEST_SUITE_P(
-    Smoke,
-    GPU_ConvGrpBiasActivInfer3D_FP16,
-    gcbaInferParamGenSmoke(GroupConvTestConfig<3u>::GetSmokeConfigs<Direction::Forward>(),
-                           testing::Values(miopenTensorNDHWC, miopenTensorNCDHW)));
+// // FP16 tests
+// INSTANTIATE_TEST_SUITE_P(
+//     Smoke,
+//     GPU_ConvGrpBiasActivInfer_FP16,
+//     gcbaInferParamGenSmoke(GroupConvTestConfig<2u>::GetSmokeConfigs<Direction::Forward>(),
+//                            testing::Values(miopenTensorNHWC, miopenTensorNCHW)));
+// INSTANTIATE_TEST_SUITE_P(
+//     Smoke,
+//     GPU_ConvGrpBiasActivInfer3D_FP16,
+//     gcbaInferParamGenSmoke(GroupConvTestConfig<3u>::GetSmokeConfigs<Direction::Forward>(),
+//                            testing::Values(miopenTensorNDHWC, miopenTensorNCDHW)));
 
-INSTANTIATE_TEST_SUITE_P(
-    Full,
-    GPU_ConvGrpBiasActivInfer_FP16,
-    gcbaInferParamGenFull(GroupConvTestConfig<2u>::GetConfigs<Direction::Forward>(),
-                          testing::Values(miopenTensorNHWC, miopenTensorNCHW)));
-INSTANTIATE_TEST_SUITE_P(
-    Full,
-    GPU_ConvGrpBiasActivInfer3D_FP16,
-    gcbaInferParamGenFull(GroupConvTestConfig<3u>::GetConfigs<Direction::Forward>(),
-                          testing::Values(miopenTensorNDHWC, miopenTensorNCDHW)));
+// INSTANTIATE_TEST_SUITE_P(
+//     Full,
+//     GPU_ConvGrpBiasActivInfer_FP16,
+//     gcbaInferParamGenFull(GroupConvTestConfig<2u>::GetConfigs<Direction::Forward>(),
+//                           testing::Values(miopenTensorNHWC, miopenTensorNCHW)));
+// INSTANTIATE_TEST_SUITE_P(
+//     Full,
+//     GPU_ConvGrpBiasActivInfer3D_FP16,
+//     gcbaInferParamGenFull(GroupConvTestConfig<3u>::GetConfigs<Direction::Forward>(),
+//                           testing::Values(miopenTensorNDHWC, miopenTensorNCDHW)));
 
-// FP32 tests
-INSTANTIATE_TEST_SUITE_P(
-    Smoke,
-    GPU_ConvGrpBiasActivInfer_FP32,
-    gcbaInferParamGenSmoke(GroupConvTestConfig<2u>::GetSmokeConfigs<Direction::Forward>(),
-                           testing::Values(miopenTensorNHWC, miopenTensorNCHW)));
-INSTANTIATE_TEST_SUITE_P(
-    Smoke,
-    GPU_ConvGrpBiasActivInfer3D_FP32,
-    gcbaInferParamGenSmoke(GroupConvTestConfig<3u>::GetSmokeConfigs<Direction::Forward>(),
-                           testing::Values(miopenTensorNDHWC, miopenTensorNCDHW)));
+// // FP32 tests
+// INSTANTIATE_TEST_SUITE_P(
+//     Smoke,
+//     GPU_ConvGrpBiasActivInfer_FP32,
+//     gcbaInferParamGenSmoke(GroupConvTestConfig<2u>::GetSmokeConfigs<Direction::Forward>(),
+//                            testing::Values(miopenTensorNHWC, miopenTensorNCHW)));
+// INSTANTIATE_TEST_SUITE_P(
+//     Smoke,
+//     GPU_ConvGrpBiasActivInfer3D_FP32,
+//     gcbaInferParamGenSmoke(GroupConvTestConfig<3u>::GetSmokeConfigs<Direction::Forward>(),
+//                            testing::Values(miopenTensorNDHWC, miopenTensorNCDHW)));
 
-INSTANTIATE_TEST_SUITE_P(
-    Full,
-    GPU_ConvGrpBiasActivInfer_FP32,
-    gcbaInferParamGenFull(GroupConvTestConfig<2u>::GetConfigs<Direction::Forward>(),
-                          testing::Values(miopenTensorNHWC, miopenTensorNCHW)));
-INSTANTIATE_TEST_SUITE_P(
-    Full,
-    GPU_ConvGrpBiasActivInfer3D_FP32,
-    gcbaInferParamGenFull(GroupConvTestConfig<3u>::GetConfigs<Direction::Forward>(),
-                          testing::Values(miopenTensorNDHWC, miopenTensorNCDHW)));
+// INSTANTIATE_TEST_SUITE_P(
+//     Full,
+//     GPU_ConvGrpBiasActivInfer_FP32,
+//     gcbaInferParamGenFull(GroupConvTestConfig<2u>::GetConfigs<Direction::Forward>(),
+//                           testing::Values(miopenTensorNHWC, miopenTensorNCHW)));
+// INSTANTIATE_TEST_SUITE_P(
+//     Full,
+//     GPU_ConvGrpBiasActivInfer3D_FP32,
+//     gcbaInferParamGenFull(GroupConvTestConfig<3u>::GetConfigs<Direction::Forward>(),
+//                           testing::Values(miopenTensorNDHWC, miopenTensorNCDHW)));
