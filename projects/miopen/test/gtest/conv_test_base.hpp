@@ -370,30 +370,43 @@ struct ConvFwdSolverTestBase
 protected:
     void SetUpImpl(TConfig conv_config, miopenTensorLayout_t tensor_layout)
     {
+        MIOPEN_LOG_E("Creating input");
         input   = tensor<T>{tensor_layout, conv_config.GetInput()};
+        MIOPEN_LOG_E("Creating weights");
         weights = tensor<T>{tensor_layout, conv_config.GetWeights()};
+        MIOPEN_LOG_E("Generating input");
         input.generate(GenData<T>{});
+        MIOPEN_LOG_E("Generating weights");
         weights.generate(GenWeights<T>{});
 
-        conv_desc = conv_config.GetConv();
+         MIOPEN_LOG_E("GetConv");
+       conv_desc = conv_config.GetConv();
 
+         MIOPEN_LOG_E("GetForwardOutputTensor");
         miopen::TensorDescriptor output_desc =
             conv_desc.GetForwardOutputTensor(input.desc, weights.desc, miopen_type<T>{});
-
+            
+         MIOPEN_LOG_E("Creating output");
         output = tensor<T>{tensor_layout, output_desc.GetLengths()};
+         MIOPEN_LOG_E("Filling output");
         std::fill(output.begin(), output.end(), T(0));
 
         auto&& handle = get_handle();
+         MIOPEN_LOG_E("Writing in_dev");
         in_dev        = handle.Write(input.data);
+         MIOPEN_LOG_E("Writing wei_dev");
         wei_dev       = handle.Write(weights.data);
+         MIOPEN_LOG_E("Writing out_dev");
         out_dev       = handle.Write(output.data);
     }
 
     void TearDownConv()
     {
+         MIOPEN_LOG_E("Creating ref_out");
         ref_out = tensor<Tref>{output.desc.GetLayout_t(), output.desc.GetLengths()};
         if(use_cpu_ref)
         {
+         MIOPEN_LOG_E("cpu_convolution_forward");
             cpu_convolution_forward(conv_desc.GetSpatialDimension(),
                                     input,
                                     weights,
@@ -405,6 +418,7 @@ protected:
         }
         else
         {
+         MIOPEN_LOG_E("ref_conv_fwd");
             ref_out = ref_conv_fwd(input, weights, ref_out, conv_desc);
         }
     }
