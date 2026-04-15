@@ -26,6 +26,7 @@
 #pragma once
 
 #include <miopen/bfloat16.hpp>
+#include <miopen/memory_ecosystem.hpp>
 #include <miopen/miopen.h>
 #include <iostream>
 
@@ -157,8 +158,8 @@ struct GroupConvTestConfig<2u> : GroupConvTestConfigBase
               {4,  256, 192,  192,  {28, 28},   {1, 1}, {1, 1}, {2, 2}, {1, 1}},
               {8,  256, 384,  384,  {28, 28},   {1, 1}, {1, 1}, {2, 2}, {1, 1}},
               {32, 256, 1024, 2048, {28, 28},   {1, 1}, {1, 1}, {2, 2}, {1, 1}},
-              {1,  6,   448,  896,  {118, 182}, {1, 1}, {0, 0}, {2, 2}, {1, 1}},
               {4,  16,  224,  224,  {469, 724}, {3, 3}, {1, 1}, {2, 2}, {1, 1}},
+              {1,  6,   448,  896,  {118, 182}, {1, 1}, {0, 0}, {2, 2}, {1, 1}},
         };
             // clang-format on
         }
@@ -368,19 +369,17 @@ template <typename T,
 struct ConvFwdSolverTestBase
 {
 protected:
+    bool test_skipped = false;
+
     void SetUpImpl(TConfig conv_config, miopenTensorLayout_t tensor_layout)
     {
         MIOPEN_LOG_E("Creating input");
         input   = tensor<T>{tensor_layout, conv_config.GetInput()};
         MIOPEN_LOG_E("Creating weights");
         weights = tensor<T>{tensor_layout, conv_config.GetWeights()};
-        MIOPEN_LOG_E("Generating input");
-        input.generate(GenData<T>{});
-        MIOPEN_LOG_E("Generating weights");
-        weights.generate(GenWeights<T>{});
 
          MIOPEN_LOG_E("GetConv");
-       conv_desc = conv_config.GetConv();
+        conv_desc = conv_config.GetConv();
 
          MIOPEN_LOG_E("GetForwardOutputTensor");
         miopen::TensorDescriptor output_desc =
@@ -388,6 +387,35 @@ protected:
             
          MIOPEN_LOG_E("Creating output");
         output = tensor<T>{tensor_layout, output_desc.GetLengths()};
+
+        std::vector<size_t> gpu_bufs = {input.GetDataByteSize(), weights.GetDataByteSize(), output.GetDataByteSize()};
+        std::vector<size_t> cpu_bufs;
+        if(use_cpu_ref)
+            cpu_bufs = gpu_bufs;
+        else
+        {
+            auto tmp = gpu_bufs;
+            gpu_bufs.insert(gpu_bufs.end(), tmp.begin(), tmp.end());
+            cpu_bufs.push_back(output.GetDataByteSize());
+        }
+
+        if(!MemoryEcosystem::AbleToAllocate(gpu_bufs, cpu_bufs))
+        {
+            test_skipped = true;
+            GTEST_SKIP() << "Skipping due to unable to allocate enough memory";
+        }
+
+        MemoryEcosystemInfo info{0, "spoof 8040S-16GB", 400000000ULL, 6300000000ULL, 5700000000};
+        if(!MemoryEcosystem::AbleToAllocate(info, gpu_bufs, cpu_bufs))
+        {
+            test_skipped = true;
+            GTEST_SKIP() << "(SPOOF) Skipping due to unable to allocate enough memory";
+        }
+
+        MIOPEN_LOG_E("Generating input");
+        input.generate(GenData<T>{});
+        MIOPEN_LOG_E("Generating weights");
+        weights.generate(GenWeights<T>{});
          MIOPEN_LOG_E("Filling output");
         std::fill(output.begin(), output.end(), T(0));
 
@@ -398,11 +426,12 @@ protected:
         wei_dev       = handle.Write(weights.data);
          MIOPEN_LOG_E("Writing out_dev");
         out_dev       = handle.Write(output.data);
+         MIOPEN_LOG_E("Done");
     }
 
     void TearDownConv()
     {
-         MIOPEN_LOG_E("Creating ref_out");
+        MIOPEN_LOG_E("Creating ref_out");
         ref_out = tensor<Tref>{output.desc.GetLayout_t(), output.desc.GetLengths()};
         if(use_cpu_ref)
         {

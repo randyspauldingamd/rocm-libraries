@@ -52,11 +52,13 @@ struct ConvBiasActivInferTest : public ::testing::TestWithParam<std::tuple<miope
 protected:
     void SetUp() override
     {
-        test_skipped = false;
+        
         std::tie(activ_mode, conv_config, tensor_layout, activ_alpha, activ_beta, activ_gamma) =
-            this->GetParam();
-
+        this->GetParam();
+        
         cfsb::SetUpImpl(conv_config, tensor_layout);
+        if(cfsb::test_skipped) { MIOPEN_LOG_E("skipped from base"); return; }
+
         activ_desc = {activ_mode, activ_alpha, activ_beta, activ_gamma};
         int dim    = cfsb::output.desc.GetNumDims() - 2;
         if(dim == 3)
@@ -84,8 +86,8 @@ protected:
     }
     void TearDown() override
     {
-        if(test_skipped)
-            return;
+        if(cfsb::test_skipped) { MIOPEN_LOG_E("skipped from base!"); return; }  // TRJS
+
         conv_stats stats;
         cfsb::TearDownConv();
         cpu_bias_forward(cfsb::ref_out, bias);
@@ -102,7 +104,6 @@ protected:
     miopen::ActivationDescriptor activ_desc;
     tensor<T> bias;
     miopen::Allocator::ManageDataPtr bias_dev;
-    bool test_skipped = false;
     miopenActivationMode_t activ_mode;
     miopen::FusionPlanDescriptor fusePlanDesc;
     miopen::OperatorArgs params;
