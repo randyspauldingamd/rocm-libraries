@@ -42,16 +42,38 @@ def matches_any_filter(s, filters):
     # Use any() to check if at least one pattern matches the string
     return any(fnmatch.fnmatch(s, pattern) for pattern in filters)
 
+<<<<<<< HEAD
 
 def run_gtest(gtest_executable: str, gtest_filter_json: str, category_name: str, category_filter: str):
     # Use a default filter during development
+=======
+def filter_strings_by_both_sets(strings, filter_set1, filter_set2):
+    """
+    Filters a list of strings to include only those that match at least one
+    filter in BOTH filter_set1 and filter_set2.
+    """
+    # Use a list comprehension to build the result list
+    filtered_list = [s for s in strings if matches_any_filter(s, filter_set1) and matches_any_filter(s, filter_set2)]
+    return filtered_list
+
+
+print("Strings matching both filter sets:")
+for item in result:
+    print(item)
+
+def run_gtest(gtest_executable: str, gtest_filter_json: str, category_filter: str):
+>>>>>>> d0deade969 (chkpt)
     with open(gtest_filter_json, 'r') as f:
         json_data = json.load(f)
     dapper_gtest_filter = json_data['gtest_filter']
 
+<<<<<<< HEAD
     json_data.append({"category_name": category_name})
     category_filter_name = f"category_{category_name}_filter" if category_name else "category_name"
     json_data.append({category_filter_name: category_filter})
+=======
+    json_data.append({"category_filter": category_filter})
+>>>>>>> d0deade969 (chkpt)
 
     # The category filter can contain wildcards, but dapper only does at the beginning and
     # end of each fixture, so it's easy to compare each dapper item for a category match.
@@ -73,6 +95,7 @@ def run_gtest(gtest_executable: str, gtest_filter_json: str, category_name: str,
     print(f"Running {gtest_executable} with filter: {gtest_filter}", flush=True)
     subprocess.run([gtest_executable, f"--gtest_filter={gtest_filter}"], check=True)
 
+<<<<<<< HEAD
 
 def main():
     if len(sys.argv) < 3:
@@ -89,6 +112,16 @@ def main():
             category_filter = sys.argv[3]
 
     run_gtest(gtest_executable, gtest_filter_json, category_name, category_filter)
+=======
+def main():
+    gtest_executable = sys.argv[1]
+    gtest_filter_json = sys.argv[2]
+    category_filter = "*"
+    if len(sys.argv) > 3:
+        category_filter = sys.argv[3]
+
+    run_gtest(gtest_executable, gtest_filter_json, category_filter)
+>>>>>>> d0deade969 (chkpt)
 
 if __name__ == '__main__':
     main()
