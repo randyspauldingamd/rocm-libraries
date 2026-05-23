@@ -823,8 +823,22 @@ namespace TensileLite
                                size_t                  totalElements,
                                hipMemcpyKind           kind)
         {
-            HIP_CHECK_EXC(hipMemcpy(
-                dst, src, multiplyElementSize(totalElements, descriptor.elementBytes()), kind));
+            // If we have elements to copy, pointers must be valid
+            // Null pointers with non-zero totalElements indicates a bug upstream (allocation logic)
+            if(totalElements > 0 && (dst == nullptr || src == nullptr))
+            {
+                std::stringstream ss;
+                ss << "Invalid state in copyInputBuffers: totalElements=" << totalElements
+                   << " but dst=" << dst << " src=" << src
+                   << " for tensor " << descriptor.getName();
+                throw std::runtime_error(ss.str());
+            }
+
+            if(totalElements > 0)
+            {
+                HIP_CHECK_EXC(hipMemcpy(
+                    dst, src, multiplyElementSize(totalElements, descriptor.elementBytes()), kind));
+            }
             return dst;
         }
 
