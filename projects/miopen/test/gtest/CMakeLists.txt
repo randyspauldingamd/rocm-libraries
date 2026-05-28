@@ -9,6 +9,12 @@ elseif(NOT MIOPEN_TEST_DISCRETE)
   set(MIOPEN_TEST_SINGLE_GTEST 1)
 endif()
 
+message(STATUS "------------------------------------ CMAKE_CURRENT_LIST_DIR: ${CMAKE_CURRENT_LIST_DIR}")
+message(STATUS "------------------------------------ CMAKE_SOURCE_DIR:       ${CMAKE_SOURCE_DIR}")
+message(STATUS "------------------------------------ CMAKE_BINARY_DIR:       ${CMAKE_BINARY_DIR}")
+
+set(USER_BUILD_DIR ${CMAKE_BINARY_DIR})
+
 if(MIOPEN_USE_HIPBLASLT)
   find_package(hipblaslt REQUIRED PATHS /opt/rocm $ENV{HIP_PATH})
 endif()
@@ -312,10 +318,10 @@ set(FIXTURES_JSON "${USER_BUILD_DIR}/fixtures.json")
 set(PY_MAIN "/${DAPPER_DIR}/main")
 set(PY_FIXTURES "/${DAPPER_DIR}/src/all_gtest_fixtures")
 set(PY_RUN_GTEST "/${DAPPER_DIR}/src/run_gtest")
-set(BN_BASE_SHA c5946cf2382a46b280c402f4ff397e382df1516e)
-set(BN_TEST_SHA 21db4f318f39999b618b3f163941ea4ae378afe6)
-set(GLU_BASE_SHA b567476bbd4946c66d6d48d5910899d820796ec4)
-set(GLU_TEST_SHA 59d8b9dbd727a8030f1038b14f89e3baabf152ca)
+#set(BN_BASE_SHA c5946cf2382a46b280c402f4ff397e382df1516e)
+#set(BN_TEST_SHA 21db4f318f39999b618b3f163941ea4ae378afe6)
+#set(GLU_BASE_SHA b567476bbd4946c66d6d48d5910899d820796ec4)
+#set(GLU_TEST_SHA 59d8b9dbd727a8030f1038b14f89e3baabf152ca)
 
 # Generate fixtures
   add_custom_command(
@@ -337,6 +343,7 @@ set(GLU_TEST_SHA 59d8b9dbd727a8030f1038b14f89e3baabf152ca)
       VERBATIM
   )
 
+# TRJS hardcoded glu
 # Generate TESTS_TO_RUN_JSON file
   add_custom_command(
       OUTPUT "${TESTS_TO_RUN_JSON}"
@@ -378,7 +385,10 @@ file(WRITE "${INSTALL_TEST_FILE}"
 ]=]
 )
 
-#Enable the test categories in test_categories.yaml
+#Enable the test categories in test_categories.yaml with 'standard' default
+if (NOT MIOPEN_TEST_CATEGORY)
+  set(MIOPEN_TEST_CATEGORY standard)
+endif()
 set(MIOPEN_TEST_CATEGORIES_CMAKE ${ROCM_LIBRARIES_ROOT}/shared/ctest/TestCategories.cmake)
 include(${MIOPEN_TEST_CATEGORIES_CMAKE})
 message(STATUS "YAML-based test categorization:")
