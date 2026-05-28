@@ -294,7 +294,8 @@ set(MAPPING_JSON "${USER_BUILD_DIR}/enhanced_dependency_mapping.json")
 set(FIXTURES_JSON "${USER_BUILD_DIR}/fixtures.json")
 set(PY_MAIN "/${DAPPER_DIR}/main")
 set(PY_FIXTURES "/${DAPPER_DIR}/src/all_gtest_fixtures")
-set(PY_RUN_GTEST "/${DAPPER_DIR}/src/run_gtest")
+#set(PY_RUN_GTEST "/${DAPPER_DIR}/src/run_gtest")
+set(MIOPEN_GTEST_RUNNER "/${DAPPER_DIR}/src/miopen_gtest_runner")
 #set(BN_BASE_SHA c5946cf2382a46b280c402f4ff397e382df1516e)
 #set(BN_TEST_SHA 21db4f318f39999b618b3f163941ea4ae378afe6)
 #set(GLU_BASE_SHA b567476bbd4946c66d6d48d5910899d820796ec4)
@@ -326,7 +327,8 @@ set(PY_RUN_GTEST "/${DAPPER_DIR}/src/run_gtest")
       OUTPUT "${TESTS_TO_RUN_JSON}"
       COMMENT "Generating ${TESTS_TO_RUN_JSON}"
       COMMAND cp "${PY_MAIN}.py" "${PY_MAIN}" &&
-              python3 "${PY_MAIN}" select ${MAPPING_JSON} ${GLU_BASE_SHA} ${GLU_TEST_SHA}  --fixturemap=${FIXTURES_JSON}
+              python3 "${PY_MAIN}" select ${MAPPING_JSON}  --fixturemap=${FIXTURES_JSON}
+#              python3 "${PY_MAIN}" select ${MAPPING_JSON} --base-sha=${GLU_BASE_SHA} --feature-sha=${GLU_TEST_SHA}  --fixturemap=${FIXTURES_JSON}
       WORKING_DIRECTORY ${USER_BUILD_DIR}
       DEPENDS ${MAPPING_JSON} ${FIXTURES_JSON}
       VERBATIM
@@ -335,8 +337,8 @@ set(PY_RUN_GTEST "/${DAPPER_DIR}/src/run_gtest")
   add_custom_target(
       diff_check
       COMMENT "Running filtered gtests..."
-      COMMAND cp "${PY_RUN_GTEST}.py" "${PY_RUN_GTEST}" &&
-      python3 "${PY_RUN_GTEST}" "${USER_BUILD_DIR}/bin/miopen_gtest" "${TESTS_TO_RUN_JSON}"
+      COMMAND cp "${MIOPEN_GTEST_RUNNER}.py" "${MIOPEN_GTEST_RUNNER}" &&
+      python3 "${MIOPEN_GTEST_RUNNER}" "${USER_BUILD_DIR}/bin/miopen_gtest" "${TESTS_TO_RUN_JSON}"
       WORKING_DIRECTORY ${USER_BUILD_DIR}
       DEPENDS miopen_gtest tests "${TESTS_TO_RUN_JSON}"
       VERBATIM
@@ -362,7 +364,8 @@ file(WRITE "${INSTALL_TEST_FILE}"
 ]=]
 )
 
-#Enable the test categories in test_categories.yaml with 'standard' default
+# Enable the test categories in test_categories.yaml with 'standard' default
+# TODO: probably not needed (just create them all)
 if (NOT MIOPEN_TEST_CATEGORY)
   set(MIOPEN_TEST_CATEGORY standard)
 endif()

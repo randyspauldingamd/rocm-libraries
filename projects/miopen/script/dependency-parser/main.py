@@ -13,6 +13,7 @@ Features:
 """
 
 import argparse
+import subprocess
 import sys
 
 
@@ -28,6 +29,17 @@ def run_selective_test_filter(args):
 
     sys.argv = ["selective_test_filter.py"] + args
     filter_main()
+
+
+def get_git_sha(command):
+    try:
+        commit_sha = subprocess.check_output(
+            command,
+            stderr=subprocess.DEVNULL
+        ).decode("utf-8").strip()
+        return commit_sha
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
 
 
 def main():
@@ -53,8 +65,8 @@ def main():
         "select", help="Selective test filtering between git refs"
     )
     parser_test.add_argument("depmap_json", help="Path to dependency mapping JSON")
-    parser_test.add_argument("ref1", help="Source git ref")
-    parser_test.add_argument("ref2", help="Target git ref")
+    parser_test.add_argument("--base-sha", help="git base sha", default=get_git_sha(["git", "merge-base", "HEAD", "develop"]))
+    parser_test.add_argument("--feature-sha", help="git feature sha", default=get_git_sha(["git", "rev-parse", "HEAD"]))
     parser_test.add_argument(
         "--all", action="store_true", help="Include all executables"
     )
@@ -91,7 +103,7 @@ def main():
             parse_args.append(args.workspace_root)
         run_dependency_parser(parse_args)
     elif args.command == "select":
-        filter_args = [args.depmap_json, args.ref1, args.ref2]
+        filter_args = [args.depmap_json, args.base_sha, args.feature_sha]
         if args.test_prefix:
             filter_args.append("--test-prefix")
         if args.all:
