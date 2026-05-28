@@ -161,9 +161,10 @@ class EnhancedNinjaDependencyParser:
                 # Add all dependencies of this object file
                 if obj_file in self.object_to_all_deps:
                     for dep_file in self.object_to_all_deps[obj_file]:
+                        project_dep_file = dep_file[dep_file.find("miopen")+len("miopen/"):] if "miopen" in dep_file else dep_file
                         # Filter out system files and focus on project files
                         if self._is_project_file(dep_file):
-                            self.file_to_executables[dep_file].add(exe)
+                            self.file_to_executables[project_dep_file].add(exe)
                             
         print(f"Built mapping for {len(self.file_to_executables)} files")
         
