@@ -51,6 +51,7 @@ from Tensile.Components.CustomSchedule import hasCustomSchedule
 from ..Component import TensorDataMover
 from ..Components.TensorDataMover import TensorDataMoverLoad
 from .Utilities import reject, roundupRatio, pvar
+from .Validators.MXScaleFormat import validateMXScaleFormatCombination
 
 
 def _deriveAndValidateMXScaleLayoutAndTransport(state, asmCaps, archCaps, printRejectionReason):
@@ -2189,6 +2190,17 @@ class Solution(collections.abc.Mapping):
         state,
         isaInfoMap[isa].asmCaps,
         isaInfoMap[isa].archCaps,
+        printRejectionReason):
+      return
+
+    # MX scale-format combination validation. Rejects candidates whose joint
+    # (A type, A scale, B type, B scale) tuple is not legal on gfx1250's
+    # WMMA_V3 MX path (see `Validators.MXScaleFormat.validateMXScaleFormatCombination`
+    # / ROCm/llvm-project#2634). Gated on HasWMMA_V3 so non-gfx1250 arches
+    # are unaffected.
+    if not validateMXScaleFormatCombination(
+        state,
+        isaInfoMap[isa].asmCaps,
         printRejectionReason):
       return
 
