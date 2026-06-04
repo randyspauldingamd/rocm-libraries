@@ -303,7 +303,7 @@ def main():
     # Export results
     output_dir = os.path.dirname(build_file)
     csv_file = os.path.join(output_dir, 'enhanced_file_executable_mapping.csv')
-    json_file = os.path.join(output_dir, 'enhanced_dependency_mapping.json')
+    json_file = os.path.join(output_dir, 'miopen_dapper_mapping.json')
 
     parser.export_to_csv(csv_file)
     parser.export_to_json(json_file)

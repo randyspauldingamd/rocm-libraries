@@ -12,7 +12,7 @@ Usage:
   python selective_test_filter.py <depmap_json> <ref1> <ref2> [--all | --test-prefix] [--output <output_json>]
 
 Arguments:
-  <depmap_json>   Path to enhanced_dependency_mapping.json
+  <depmap_json>   Path to miopen_dapper_mapping.json
   <ref1>          Source git ref (branch or commit)
   <ref2>          Target git ref (branch or commit)
 
@@ -135,6 +135,8 @@ def main():
     output_json = "tests-to-run.json"
     path_to_folder = ""
     fixturemap_json = ""
+    shardsfile = ""
+    gtest_shards = []
 
     if "--test-prefix" in sys.argv:
         filter_mode = "test_prefix"
@@ -152,6 +154,10 @@ def main():
         idx = sys.argv.index("--fixturemap")
         if idx + 1 < len(sys.argv):
             fixturemap_json = sys.argv[idx + 1]
+    if "--shardsfile" in sys.argv:
+        idx = sys.argv.index("--shardsfile")
+        if idx + 1 < len(sys.argv):
+            shardsfile = sys.argv[idx + 1]
 
     if not os.path.exists(depmap_json):
         print(f"Dependency map JSON not found: {depmap_json}")
@@ -166,11 +172,13 @@ def main():
         file_to_executables = load_depmap(depmap_json)
         tests = select_tests(file_to_executables, changed_files, filter_mode)
         gtest_filter = create_gtest_filter(tests, fixturemap_json)
+        if shardsfile:
+            gtest_shards = open(shardsfile).read().splitlines()
 
     with open(output_json, "w") as f:
-        json.dump({"tests_to_run": tests, "gtest_filter": gtest_filter, "changed_files": sorted(changed_files)}, f, indent=2)
+        json.dump({"tests_to_run": tests, "dapper_filter": gtest_filter, "changed_files": sorted(changed_files), "gtest_shards": gtest_shards}, f, indent=2)
 
-    print(f"Exported {len(tests)} tests to run to {output_json}")
+    print(f"Exported {len(tests)} test fixtures to run to {output_json}")
 
 if __name__ == "__main__":
     main()

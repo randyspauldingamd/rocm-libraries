@@ -76,10 +76,13 @@ def main():
         help="Only include executables starting with 'test_'",
     )
     parser_test.add_argument(
-        "--output", help="Output JSON file", default="tests_to_run.json"
+        "--output", help="Output JSON file", default="miopen_dapper_tests.json"
     )
     parser_test.add_argument(
         "--fixturemap", help="Optional path to file containing the test <-> gtest fixture mapping", default=""
+    )
+    parser_test.add_argument(
+        "--shardsfile", help="Optional path to file containing a list of gtest shard output files", default=""
     )
 
     # Code auditing
@@ -112,6 +115,9 @@ def main():
             filter_args += ["--output", args.output]
         if args.fixturemap:
             filter_args += ["--fixturemap", args.fixturemap]
+        if args.shardsfile:
+            print(f"ADDED SHARDSFILE: {args.shardsfile}")
+            filter_args += ["--shardsfile", args.shardsfile]
         run_selective_test_filter(filter_args)
     elif args.command == "audit":
         run_selective_test_filter([args.depmap_json, "--audit"])

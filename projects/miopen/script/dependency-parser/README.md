@@ -21,7 +21,7 @@ The parser:
 - **Filtering**: Option to filter out system files and focus on project-specific dependencies.
 - **Multiple Output Formats**:
     - **CSV**: `enhanced_file_executable_mapping.csv` - A comma-separated values file where each row lists a file and a semicolon-separated list of executables that depend on it.
-    - **JSON**: `enhanced_dependency_mapping.json` - A JSON file representing a dictionary where keys are file paths and values are lists of dependent executables.
+    - **JSON**: `miopen_dapper_mapping.json` - A JSON file representing a dictionary where keys are file paths and values are lists of dependent executables.
 - **Robust Error Handling**: Includes error handling for missing files and failed subprocess commands.
 
 ## Prerequisites
@@ -64,13 +64,13 @@ All features are available via the unified main.py CLI:
 python main.py parse examples/build-ninja/build.ninja --workspace-root /path/to/your/workspace
 
 # Selective test filtering
-python main.py select enhanced_dependency_mapping.json <ref1> <ref2> [--all | --test-prefix] [--output <output_json>]
+python main.py select miopen_dapper_mapping.json <ref1> <ref2> [--all | --test-prefix] [--output <output_json>]
 
 # Code auditing
-python main.py audit enhanced_dependency_mapping.json
+python main.py audit miopen_dapper_mapping.json
 
 # Build optimization
-python main.py optimize enhanced_dependency_mapping.json <changed_file1> [<changed_file2> ...]
+python main.py optimize miopen_dapper_mapping.json <changed_file1> [<changed_file2> ...]
 ```
 
 **Arguments:**
@@ -139,7 +139,7 @@ Running the script will generate two files in the same directory as the input `b
     ...
     ```
 
--   **`enhanced_dependency_mapping.json`**:
+-   **`miopen_dapper_mapping.json`**:
     ```json
     {
       "/path/to/project/src/main.cpp": ["my_exe_1", "my_exe_2"],

@@ -90,7 +90,7 @@ if __name__ == "__main__":
         bin_dir = sys.argv[1]
 
     if len(sys.argv) < 3:
-        output_file = "fixtures.json"
+        output_file = "miopen_dapper_fixtures.json"
     else:
         output_file = sys.argv[2]
 
