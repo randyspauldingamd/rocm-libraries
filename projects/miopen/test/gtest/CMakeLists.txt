@@ -1,6 +1,7 @@
 find_package(GTest REQUIRED)
 
 include(GoogleTest)
+find_package(Python 3 REQUIRED COMPONENTS Interpreter)
 
 if(NOT MIOPEN_TEST_DISABLE_DAPPER)
   set(MIOPEN_TEST_DISCRETE 1)
@@ -13,7 +14,63 @@ message(STATUS "------------------------------------ CMAKE_CURRENT_LIST_DIR: ${C
 message(STATUS "------------------------------------ CMAKE_SOURCE_DIR:       ${CMAKE_SOURCE_DIR}")
 message(STATUS "------------------------------------ CMAKE_BINARY_DIR:       ${CMAKE_BINARY_DIR}")
 
-set(USER_BUILD_DIR ${CMAKE_BINARY_DIR})
+set(DAPPER_SRC_DIR "${CMAKE_BINARY_DIR}/../script/dependency-parser")
+set(DAPPER_OUT_DIR "${CMAKE_BINARY_DIR}")
+set(TESTS_TO_RUN_JSON "${DAPPER_OUT_DIR}/tests_to_run.json")
+set(BUILD_NINJA "${DAPPER_OUT_DIR}/build.ninja")
+set(MAPPING_JSON "${DAPPER_OUT_DIR}/miopen_dapper_mapping.json")
+set(FIXTURES_JSON "${DAPPER_OUT_DIR}/miopen_dapper_fixtures.json")
+set(PY_MAIN "/${DAPPER_DIR}/main")
+set(PY_FIXTURES "/${DAPPER_DIR}/src/extract_gtest_fixtures")
+#set(PY_RUN_GTEST "/${DAPPER_DIR}/src/run_gtest")
+set(MIOPEN_GTEST_RUNNER "/${DAPPER_DIR}/src/miopen_gtest_runner")
+#set(BN_BASE_SHA c5946cf2382a46b280c402f4ff397e382df1516e)
+#set(BN_TEST_SHA 21db4f318f39999b618b3f163941ea4ae378afe6)
+#set(GLU_BASE_SHA b567476bbd4946c66d6d48d5910899d820796ec4)
+#set(GLU_TEST_SHA 59d8b9dbd727a8030f1038b14f89e3baabf152ca)
+
+# Generate fixtures
+  add_custom_command(
+      OUTPUT ${FIXTURES_JSON}
+      COMMENT "Generating ${FIXTURES_JSON}"
+      COMMAND cp "${PY_FIXTURES}.py" "${PY_FIXTURES}" &&
+              python3 ${PY_FIXTURES} ${USER_BUILD_DIR}/bin
+      WORKING_DIRECTORY ${DAPPER_OUT_DIR}
+      VERBATIM
+  )
+
+# Generate mapping
+  add_custom_command(
+      OUTPUT ${MAPPING_JSON}
+      COMMENT "Generating ${MAPPING_JSON}"
+      COMMAND cp "${PY_MAIN}.py" "${PY_MAIN}" &&
+              python3 ${PY_MAIN} parse ${BUILD_NINJA}
+      WORKING_DIRECTORY ${USER_BDAPPER_OUT_DIRUILD_DIR}
+      VERBATIM
+  )
+
+# TRJS hardcoded glu
+# Generate TESTS_TO_RUN_JSON file
+  add_custom_command(
+      OUTPUT "${TESTS_TO_RUN_JSON}"
+      COMMENT "Generating ${TESTS_TO_RUN_JSON}"
+      COMMAND cp "${PY_MAIN}.py" "${PY_MAIN}" &&
+              python3 "${PY_MAIN}" select ${MAPPING_JSON}  --fixturemap=${FIXTURES_JSON}
+#              python3 "${PY_MAIN}" select ${MAPPING_JSON} --base-sha=${GLU_BASE_SHA} --feature-sha=${GLU_TEST_SHA}  --fixturemap=${FIXTURES_JSON}
+      WORKING_DIRECTORY ${USER_BUDAPPER_OUT_DIRILD_DIR}
+      DEPENDS ${MAPPING_JSON} ${FIXTURES_JSON}
+      VERBATIM
+  )
+
+  add_custom_target(
+      diff_check
+      COMMENT "Running filtered gtests..."
+      COMMAND cp "${MIOPEN_GTEST_RUNNER}.py" "${MIOPEN_GTEST_RUNNER}" &&
+      python3 "${MIOPEN_GTEST_RUNNER}" "${DAPPER_OUT_DIR}/bin/miopen_gtest" "${TESTS_TO_RUN_JSON}"
+      WORKING_DIRECTORY ${DAPPER_OUT_DIR}
+      DEPENDS miopen_gtest tests "${TESTS_TO_RUN_JSON}"
+      VERBATIM
+  )
 
 if(MIOPEN_USE_HIPBLASLT)
   find_package(hipblaslt REQUIRED PATHS /opt/rocm $ENV{HIP_PATH})
@@ -285,63 +342,6 @@ if(MIOPEN_TEST_SINGLE_GTEST)
   add_custom_target(
     miopen_gtest_check
     DEPENDS test_list
-  )
-
-set(DAPPER_DIR "${USER_BUILD_DIR}/../script/dependency-parser")
-set(TESTS_TO_RUN_JSON "${USER_BUILD_DIR}/tests_to_run.json")
-set(BUILD_NINJA "${USER_BUILD_DIR}/build.ninja")
-set(MAPPING_JSON "${USER_BUILD_DIR}/enhanced_dependency_mapping.json")
-set(FIXTURES_JSON "${USER_BUILD_DIR}/fixtures.json")
-set(PY_MAIN "/${DAPPER_DIR}/main")
-set(PY_FIXTURES "/${DAPPER_DIR}/src/all_gtest_fixtures")
-#set(PY_RUN_GTEST "/${DAPPER_DIR}/src/run_gtest")
-set(MIOPEN_GTEST_RUNNER "/${DAPPER_DIR}/src/miopen_gtest_runner")
-#set(BN_BASE_SHA c5946cf2382a46b280c402f4ff397e382df1516e)
-#set(BN_TEST_SHA 21db4f318f39999b618b3f163941ea4ae378afe6)
-#set(GLU_BASE_SHA b567476bbd4946c66d6d48d5910899d820796ec4)
-#set(GLU_TEST_SHA 59d8b9dbd727a8030f1038b14f89e3baabf152ca)
-
-# Generate fixtures
-  add_custom_command(
-      OUTPUT ${FIXTURES_JSON}
-      COMMENT "Generating ${FIXTURES_JSON}"
-      COMMAND cp "${PY_FIXTURES}.py" "${PY_FIXTURES}" &&
-              python3 ${PY_FIXTURES} ${USER_BUILD_DIR}/bin
-      WORKING_DIRECTORY ${USER_BUILD_DIR}
-      VERBATIM
-  )
-
-# Generate mapping
-  add_custom_command(
-      OUTPUT ${MAPPING_JSON}
-      COMMENT "Generating ${MAPPING_JSON}"
-      COMMAND cp "${PY_MAIN}.py" "${PY_MAIN}" &&
-              python3 ${PY_MAIN} parse ${BUILD_NINJA}
-      WORKING_DIRECTORY ${USER_BUILD_DIR}
-      VERBATIM
-  )
-
-# TRJS hardcoded glu
-# Generate TESTS_TO_RUN_JSON file
-  add_custom_command(
-      OUTPUT "${TESTS_TO_RUN_JSON}"
-      COMMENT "Generating ${TESTS_TO_RUN_JSON}"
-      COMMAND cp "${PY_MAIN}.py" "${PY_MAIN}" &&
-              python3 "${PY_MAIN}" select ${MAPPING_JSON}  --fixturemap=${FIXTURES_JSON}
-#              python3 "${PY_MAIN}" select ${MAPPING_JSON} --base-sha=${GLU_BASE_SHA} --feature-sha=${GLU_TEST_SHA}  --fixturemap=${FIXTURES_JSON}
-      WORKING_DIRECTORY ${USER_BUILD_DIR}
-      DEPENDS ${MAPPING_JSON} ${FIXTURES_JSON}
-      VERBATIM
-  )
-
-  add_custom_target(
-      diff_check
-      COMMENT "Running filtered gtests..."
-      COMMAND cp "${MIOPEN_GTEST_RUNNER}.py" "${MIOPEN_GTEST_RUNNER}" &&
-      python3 "${MIOPEN_GTEST_RUNNER}" "${USER_BUILD_DIR}/bin/miopen_gtest" "${TESTS_TO_RUN_JSON}"
-      WORKING_DIRECTORY ${USER_BUILD_DIR}
-      DEPENDS miopen_gtest tests "${TESTS_TO_RUN_JSON}"
-      VERBATIM
   )
 
   if( NOT ENABLE_ASAN_PACKAGING )
