@@ -7,6 +7,8 @@ if(NOT MIOPEN_TEST_DISABLE_DAPPER)
   set(MIOPEN_TEST_DISCRETE 1)
   set(MIOPEN_TEST_SINGLE_GTEST 1)
 elseif(NOT MIOPEN_TEST_DISCRETE)
+  message(STATUS "Dapper disabled: TRJS: Enabling single gtest and discrete")
+#  set(MIOPEN_TEST_DISCRETE 1)
   set(MIOPEN_TEST_SINGLE_GTEST 1)
 endif()
 
@@ -17,10 +19,11 @@ message(STATUS "------------------------------------ CMAKE_BINARY_DIR:       ${C
 set(MIOPEN_DAPPER_SRC_DIR "${CMAKE_BINARY_DIR}/../script/dependency-parser")
 set(MIOPEN_DAPPER_OUT_DIR "${CMAKE_BINARY_DIR}")
 set(SHARDS_FILE ${MIOPEN_DAPPER_OUT_DIR}/miopen_gtest_shards.txt)
-set(TESTS_TO_RUN_JSON "${MIOPEN_DAPPER_OUT_DIR}/tests_to_run.json")
+#set(TESTS_TO_RUN_JSON "${MIOPEN_DAPPER_OUT_DIR}/tests_to_run.json")
 set(BUILD_NINJA "${MIOPEN_DAPPER_OUT_DIR}/build.ninja")
 set(MAPPING_JSON "${MIOPEN_DAPPER_OUT_DIR}/miopen_dapper_mapping.json")
 set(FIXTURES_JSON "${MIOPEN_DAPPER_OUT_DIR}/miopen_dapper_fixtures.json")
+set(TESTS_JSON "${MIOPEN_DAPPER_OUT_DIR}/miopen_dapper_tests.json")
 set(PY_MAIN "/${MIOPEN_DAPPER_SRC_DIR}/main")
 set(PY_FIXTURES "/${MIOPEN_DAPPER_SRC_DIR}/src/extract_gtest_fixtures")
 set(MIOPEN_GTEST_RUNNER "/${MIOPEN_DAPPER_SRC_DIR}/src/miopen_gtest_runner")
@@ -43,14 +46,15 @@ add_custom_command(
     COMMAND cp "${PY_MAIN}.py" "${PY_MAIN}" &&
             python3 ${PY_MAIN} parse ${BUILD_NINJA}
     WORKING_DIRECTORY ${MIOPEN_DAPPER_OUT_DIR}
+    DEPENDS tests
     VERBATIM
 )
 
 # TRJS hardcoded glu
-# Generate TESTS_TO_RUN_JSON file
+# Generate TESTS_JSON file
 add_custom_command(
-    OUTPUT "${TESTS_TO_RUN_JSON}"
-    COMMENT "Generating ${TESTS_TO_RUN_JSON}"
+    OUTPUT "${TESTS_JSON}"
+    COMMENT "Generating ${TESTS_JSON}"
     COMMAND cp "${PY_MAIN}.py" "${PY_MAIN}" &&
             python3 "${PY_MAIN}" select ${MAPPING_JSON}  --fixturemap=${FIXTURES_JSON} --shardsfile=${SHARDS_FILE}
 #              python3 "${PY_MAIN}" select ${MAPPING_JSON} --base-sha=${GLU_BASE_SHA} --feature-sha=${GLU_TEST_SHA}  --fixturemap=${FIXTURES_JSON}
@@ -58,19 +62,21 @@ add_custom_command(
     DEPENDS ${MAPPING_JSON} ${FIXTURES_JSON}
     VERBATIM
 )
+add_custom_target(dapper_tests DEPENDS "${TESTS_JSON}")
+add_dependencies(check dapper_tests)
 
 add_custom_target(
     diff_check
     COMMENT "Running filtered gtests..."
     COMMAND cp "${MIOPEN_GTEST_RUNNER}.py" "${MIOPEN_GTEST_RUNNER}" &&
-    python3 "${MIOPEN_GTEST_RUNNER}" "${MIOPEN_DAPPER_OUT_DIR}/bin/miopen_gtest" "${TESTS_TO_RUN_JSON}"
+    python3 "${MIOPEN_GTEST_RUNNER}" "${MIOPEN_DAPPER_OUT_DIR}/bin/miopen_gtest" "${TESTS_JSON}"
     WORKING_DIRECTORY ${MIOPEN_DAPPER_OUT_DIR}
-    DEPENDS miopen_gtest tests "${TESTS_TO_RUN_JSON}"
+    DEPENDS miopen_gtest tests "${TESTS_JSON}"
     VERBATIM
 )
 
-add_test(miopen_gtest_sharded_dapper
-    COMMAND ${Python_EXECUTABLE} ${MIOPEN_DAPPER_DIFF}
+add_test(NAME miopen_gtest_sharded_dapper
+    COMMAND ${Python_EXECUTABLE} ${MIOPEN_DAPPER_DIFF} "${TESTS_JSON}" "${MIOPEN_DEBUG_CATEGORY}"  "${MIOPEN_DAPPER_FILTER}"
     WORKING_DIRECTORY ${MIOPEN_DAPPER_OUT_DIR}
 )
 
@@ -260,10 +266,14 @@ function(add_gtest TEST_NAME TEST_CPP)
     set(MIOPEN_CATEGORY_QUICK "Smoke/GPU_BNCKFWDTrainLarge2D_FP16*:Smoke/GPU_BNOCLFWDTrainLarge2D_FP16*:Smoke/GPU_BNOCLFWDTrainLarge3D_FP16*:Smoke/GPU_BNCKFWDTrainLarge2D_BFP16*:Smoke/GPU_BNOCLFWDTrainLarge2D_BFP16*:Smoke/GPU_BNOCLFWDTrainLarge3D_BFP16*:Smoke/GPU_UnitTestConvSolverImplicitGemmFwdXdlops_FP16*:Smoke/GPU_UnitTestConvSolverImplicitGemmFwdXdlops_BFP16*-Smoke/GPU_BNOCLFWDTrainLarge2D_BFP16*:Smoke/GPU_BNOCLInferLarge2D_BFP16*:*/GPU_MIOpenDriver*:*GPU_TestMhaFind20_FP32*:*GPU_TestMhaFind20_FP16*:Smoke/GPU_BNOCLInferLarge2D_BFP16*:Smoke/GPU_BNOCLFWDTrainLarge2D_BFP16*")
     if(DEFINED MIOPEN_DEBUG_CATEGORY)
       string(TOUPPER "${MIOPEN_DEBUG_CATEGORY}" MIOPEN_DEBUG_CATEGORY_UPPER)
+      message(STATUS "User-specified category='${MIOPEN_DEBUG_CATEGORY_UPPER}'")
       
       if(MIOPEN_DEBUG_CATEGORY_UPPER STREQUAL "QUICK")
           message(STATUS "Applying Category 'QUICK'")
-          set(MIOPEN_GTEST_FILTER "${MIOPEN_DEBUG_DAPPER_FILTER}:${MIOPEN_CATEGORY_QUICK}")
+          set(MIOPEN_DAPPER_FILTER "${MIOPEN_DEBUG_DAPPER_FILTER}:${MIOPEN_CATEGORY_QUICK}")
+          if(NOT MIOPEN_TEST_DISABLE_DAPPER)
+              set(MIOPEN_GTEST_FILTER "${MIOPEN_DAPPER_FILTER}")
+          endif()
       endif()
     endif()
 
@@ -275,8 +285,8 @@ function(add_gtest TEST_NAME TEST_CPP)
         set(GTEST_PARALLEL_LEVEL 4)
     endif()
 
-    file(REMOVE "${MIOPEN_DAPPER_SHARDS_FILE}")
-    file(TOUCH "${MIOPEN_DAPPER_SHARDS_FILE}")
+    file(REMOVE "${SHARDS_FILE}")
+    file(TOUCH "${SHARDS_FILE}")
     set(MIOPEN_GTEST_SHARDS "")
 
     foreach(i RANGE 1 ${GTEST_PARALLEL_LEVEL})
@@ -286,7 +296,7 @@ function(add_gtest TEST_NAME TEST_CPP)
         COMMAND ${TEST_NAME} --gtest_filter=${MIOPEN_GTEST_FILTER} --gtest_output=json:${MIOPEN_DAPPER_OUT_DIR}/${MIOPEN_GTEST_SHARD_JSON}
         WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/${DATABASE_INSTALL_DIR}"
       )
-      file(APPEND ${MIOPEN_DAPPER_SHARDS_FILE} "${MIOPEN_GTEST_SHARD_JSON}\n")
+      file(APPEND ${SHARDS_FILE} "${MIOPEN_GTEST_SHARD_JSON}\n")
       list(APPEND MIOPEN_GTEST_SHARDS ${MIOPEN_GTEST_SHARD})
       math(EXPR SHARD_INDEX "${i} - 1")
       set_tests_properties(${MIOPEN_GTEST_SHARD} PROPERTIES
@@ -319,7 +329,7 @@ endforeach()
 # Common static library speeds up test assembly.
 # Otherwise, all files in ${SOURCES} are rebuilt for each test.
 add_library(miopen_gtest_common STATIC ${SOURCES})
-target_include_directories(miopen_gtest_common PRIVATE ../.. ../../src/kernels)
+target_include_directories(miopen_gtest_common PRIVATE ../ ../.. ../../src/kernels)
 target_link_libraries(miopen_gtest_common PRIVATE GTest::gtest GTest::gmock MIOpen)
 if(WIN32)
   # Refer to https://en.cppreference.com/w/cpp/language/types for details.
@@ -346,6 +356,7 @@ if(MIOPEN_TEST_SINGLE_GTEST)
         # The include directories also dont propagate correctly when using the non aliased targets.
         # Manually including them fixes this problem for inline builds.
         target_include_directories(miopen_gtest SYSTEM PRIVATE
+            ../
             ${MIOPEN_CK_INCLUDE_DIR}
             ${MIOPEN_CK_BUILD_INCLUDE_DIR}
             ${MIOPEN_CK_LIBRARY_INCLUDE_DIR})
