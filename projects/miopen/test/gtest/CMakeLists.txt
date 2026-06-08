@@ -127,6 +127,9 @@ function(add_gtest TEST_NAME TEST_CPP)
   add_executable(${TEST_NAME} ${TEST_CPP})
   if(WIN32)
     target_compile_definitions(${TEST_NAME} PRIVATE NOMINMAX)
+    set(DAPPER_PP_FLAG "/P")
+  else()
+    set(DAPPER_PP_FLAG "-E")
   endif()
 
   add_dependencies(tests ${TEST_NAME})
@@ -293,15 +296,16 @@ endforeach()
 # Common static library speeds up test assembly.
 # Otherwise, all files in ${SOURCES} are rebuilt for each test.
 add_library(miopen_gtest_common STATIC ${SOURCES})
-target_include_directories(miopen_gtest_common PRIVATE ../ ../../src/kernels)
+target_include_directories(miopen_gtest_common PRIVATE ../.. ../../src/kernels)
 target_link_libraries(miopen_gtest_common PRIVATE GTest::gtest GTest::gmock MIOpen)
 if(WIN32)
   # Refer to https://en.cppreference.com/w/cpp/language/types for details.
   target_compile_options(miopen_gtest_common PRIVATE $<BUILD_INTERFACE:$<$<CXX_COMPILER_ID:Clang>:-U__LP64__>>)
 endif()
 
-if(MIOPEN_TEST_DISCRETE)
+if( MIOPEN_TEST_DISCRETE )
   foreach(TEST ${TESTS})
+  
     get_filename_component(BASE_NAME ${TEST} NAME_WE)
     add_gtest(test_${BASE_NAME} ${BASE_NAME}.cpp)
   endforeach()
