@@ -14,63 +14,65 @@ message(STATUS "------------------------------------ CMAKE_CURRENT_LIST_DIR: ${C
 message(STATUS "------------------------------------ CMAKE_SOURCE_DIR:       ${CMAKE_SOURCE_DIR}")
 message(STATUS "------------------------------------ CMAKE_BINARY_DIR:       ${CMAKE_BINARY_DIR}")
 
-set(DAPPER_SRC_DIR "${CMAKE_BINARY_DIR}/../script/dependency-parser")
-set(DAPPER_OUT_DIR "${CMAKE_BINARY_DIR}")
-set(TESTS_TO_RUN_JSON "${DAPPER_OUT_DIR}/tests_to_run.json")
-set(BUILD_NINJA "${DAPPER_OUT_DIR}/build.ninja")
-set(MAPPING_JSON "${DAPPER_OUT_DIR}/miopen_dapper_mapping.json")
-set(FIXTURES_JSON "${DAPPER_OUT_DIR}/miopen_dapper_fixtures.json")
-set(PY_MAIN "/${DAPPER_DIR}/main")
-set(PY_FIXTURES "/${DAPPER_DIR}/src/extract_gtest_fixtures")
-#set(PY_RUN_GTEST "/${DAPPER_DIR}/src/run_gtest")
-set(MIOPEN_GTEST_RUNNER "/${DAPPER_DIR}/src/miopen_gtest_runner")
-#set(BN_BASE_SHA c5946cf2382a46b280c402f4ff397e382df1516e)
-#set(BN_TEST_SHA 21db4f318f39999b618b3f163941ea4ae378afe6)
-#set(GLU_BASE_SHA b567476bbd4946c66d6d48d5910899d820796ec4)
-#set(GLU_TEST_SHA 59d8b9dbd727a8030f1038b14f89e3baabf152ca)
+set(MIOPEN_DAPPER_SRC_DIR "${CMAKE_BINARY_DIR}/../script/dependency-parser")
+set(MIOPEN_DAPPER_OUT_DIR "${CMAKE_BINARY_DIR}")
+set(SHARDS_FILE ${MIOPEN_DAPPER_OUT_DIR}/miopen_gtest_shards.txt)
+set(TESTS_TO_RUN_JSON "${MIOPEN_DAPPER_OUT_DIR}/tests_to_run.json")
+set(BUILD_NINJA "${MIOPEN_DAPPER_OUT_DIR}/build.ninja")
+set(MAPPING_JSON "${MIOPEN_DAPPER_OUT_DIR}/miopen_dapper_mapping.json")
+set(FIXTURES_JSON "${MIOPEN_DAPPER_OUT_DIR}/miopen_dapper_fixtures.json")
+set(PY_MAIN "/${MIOPEN_DAPPER_SRC_DIR}/main")
+set(PY_FIXTURES "/${MIOPEN_DAPPER_SRC_DIR}/src/extract_gtest_fixtures")
+set(MIOPEN_GTEST_RUNNER "/${MIOPEN_DAPPER_SRC_DIR}/src/miopen_gtest_runner")
+set(MIOPEN_DAPPER_DIFF ${MIOPEN_DAPPER_SRC_DIR}/src/dapper_diff.py)
 
 # Generate fixtures
-  add_custom_command(
-      OUTPUT ${FIXTURES_JSON}
-      COMMENT "Generating ${FIXTURES_JSON}"
-      COMMAND cp "${PY_FIXTURES}.py" "${PY_FIXTURES}" &&
-              python3 ${PY_FIXTURES} ${USER_BUILD_DIR}/bin
-      WORKING_DIRECTORY ${DAPPER_OUT_DIR}
-      VERBATIM
-  )
+add_custom_command(
+    OUTPUT ${FIXTURES_JSON}
+    COMMENT "Generating ${FIXTURES_JSON}"
+    COMMAND cp "${PY_FIXTURES}.py" "${PY_FIXTURES}" &&
+            python3 ${PY_FIXTURES}
+    WORKING_DIRECTORY ${MIOPEN_DAPPER_OUT_DIR}
+    VERBATIM
+)
 
 # Generate mapping
-  add_custom_command(
-      OUTPUT ${MAPPING_JSON}
-      COMMENT "Generating ${MAPPING_JSON}"
-      COMMAND cp "${PY_MAIN}.py" "${PY_MAIN}" &&
-              python3 ${PY_MAIN} parse ${BUILD_NINJA}
-      WORKING_DIRECTORY ${USER_BDAPPER_OUT_DIRUILD_DIR}
-      VERBATIM
-  )
+add_custom_command(
+    OUTPUT ${MAPPING_JSON}
+    COMMENT "Generating ${MAPPING_JSON}"
+    COMMAND cp "${PY_MAIN}.py" "${PY_MAIN}" &&
+            python3 ${PY_MAIN} parse ${BUILD_NINJA}
+    WORKING_DIRECTORY ${MIOPEN_DAPPER_OUT_DIR}
+    VERBATIM
+)
 
 # TRJS hardcoded glu
 # Generate TESTS_TO_RUN_JSON file
-  add_custom_command(
-      OUTPUT "${TESTS_TO_RUN_JSON}"
-      COMMENT "Generating ${TESTS_TO_RUN_JSON}"
-      COMMAND cp "${PY_MAIN}.py" "${PY_MAIN}" &&
-              python3 "${PY_MAIN}" select ${MAPPING_JSON}  --fixturemap=${FIXTURES_JSON}
+add_custom_command(
+    OUTPUT "${TESTS_TO_RUN_JSON}"
+    COMMENT "Generating ${TESTS_TO_RUN_JSON}"
+    COMMAND cp "${PY_MAIN}.py" "${PY_MAIN}" &&
+            python3 "${PY_MAIN}" select ${MAPPING_JSON}  --fixturemap=${FIXTURES_JSON} --shardsfile=${SHARDS_FILE}
 #              python3 "${PY_MAIN}" select ${MAPPING_JSON} --base-sha=${GLU_BASE_SHA} --feature-sha=${GLU_TEST_SHA}  --fixturemap=${FIXTURES_JSON}
-      WORKING_DIRECTORY ${USER_BUDAPPER_OUT_DIRILD_DIR}
-      DEPENDS ${MAPPING_JSON} ${FIXTURES_JSON}
-      VERBATIM
-  )
+    WORKING_DIRECTORY ${MIOPEN_DAPPER_OUT_DIR}
+    DEPENDS ${MAPPING_JSON} ${FIXTURES_JSON}
+    VERBATIM
+)
 
-  add_custom_target(
-      diff_check
-      COMMENT "Running filtered gtests..."
-      COMMAND cp "${MIOPEN_GTEST_RUNNER}.py" "${MIOPEN_GTEST_RUNNER}" &&
-      python3 "${MIOPEN_GTEST_RUNNER}" "${DAPPER_OUT_DIR}/bin/miopen_gtest" "${TESTS_TO_RUN_JSON}"
-      WORKING_DIRECTORY ${DAPPER_OUT_DIR}
-      DEPENDS miopen_gtest tests "${TESTS_TO_RUN_JSON}"
-      VERBATIM
-  )
+add_custom_target(
+    diff_check
+    COMMENT "Running filtered gtests..."
+    COMMAND cp "${MIOPEN_GTEST_RUNNER}.py" "${MIOPEN_GTEST_RUNNER}" &&
+    python3 "${MIOPEN_GTEST_RUNNER}" "${MIOPEN_DAPPER_OUT_DIR}/bin/miopen_gtest" "${TESTS_TO_RUN_JSON}"
+    WORKING_DIRECTORY ${MIOPEN_DAPPER_OUT_DIR}
+    DEPENDS miopen_gtest tests "${TESTS_TO_RUN_JSON}"
+    VERBATIM
+)
+
+add_test(miopen_gtest_sharded_dapper
+    COMMAND ${Python_EXECUTABLE} ${MIOPEN_DAPPER_DIFF}
+    WORKING_DIRECTORY ${MIOPEN_DAPPER_OUT_DIR}
+)
 
 if(MIOPEN_USE_HIPBLASLT)
   find_package(hipblaslt REQUIRED PATHS /opt/rocm $ENV{HIP_PATH})
@@ -253,6 +255,20 @@ function(add_gtest TEST_NAME TEST_CPP)
     # loop over GTEST_PARALLEL_LEVEL
     set(MIOPEN_GTEST_FILTER "${MIOPEN_GTEST_PREFIX}*${MIOPEN_GTEST_SUFFIX}*:${MIOPEN_GTEST_PREFIX}*NONE*${MIOPEN_GTEST_FILTER_NEGATIVE}")
 
+# TODO Dapper default minimal run if no work to do
+# TODO Dapper hardcode categories
+# TODO Dapper add extra filters
+
+    set(MIOPEN_CATEGORY_QUICK "Smoke/GPU_BNCKFWDTrainLarge2D_FP16*:Smoke/GPU_BNOCLFWDTrainLarge2D_FP16*:Smoke/GPU_BNOCLFWDTrainLarge3D_FP16*:Smoke/GPU_BNCKFWDTrainLarge2D_BFP16*:Smoke/GPU_BNOCLFWDTrainLarge2D_BFP16*:Smoke/GPU_BNOCLFWDTrainLarge3D_BFP16*:Smoke/GPU_UnitTestConvSolverImplicitGemmFwdXdlops_FP16*:Smoke/GPU_UnitTestConvSolverImplicitGemmFwdXdlops_BFP16*-Smoke/GPU_BNOCLFWDTrainLarge2D_BFP16*:Smoke/GPU_BNOCLInferLarge2D_BFP16*:*/GPU_MIOpenDriver*:*GPU_TestMhaFind20_FP32*:*GPU_TestMhaFind20_FP16*:Smoke/GPU_BNOCLInferLarge2D_BFP16*:Smoke/GPU_BNOCLFWDTrainLarge2D_BFP16*")
+    if(DEFINED MIOPEN_DEBUG_CATEGORY)
+      string(TOUPPER "${MIOPEN_DEBUG_CATEGORY}" MIOPEN_DEBUG_CATEGORY_UPPER)
+      
+      if(MIOPEN_DEBUG_CATEGORY_UPPER STREQUAL "QUICK")
+          message(STATUS "Applying Category 'QUICK'")
+          set(MIOPEN_GTEST_FILTER "${MIOPEN_DEBUG_DAPPER_FILTER}:${MIOPEN_CATEGORY_QUICK}")
+      endif()
+    endif()
+
     message(STATUS "MIOPEN_GTEST_FILTER ${MIOPEN_GTEST_FILTER}")
 
     # when building the single gtest, add them in a sharded manner
@@ -261,17 +277,26 @@ function(add_gtest TEST_NAME TEST_CPP)
         set(GTEST_PARALLEL_LEVEL 4)
     endif()
 
+    file(REMOVE "${MIOPEN_DAPPER_SHARDS_FILE}")
+    file(TOUCH "${MIOPEN_DAPPER_SHARDS_FILE}")
+    set(MIOPEN_GTEST_SHARDS "")
+
     foreach(i RANGE 1 ${GTEST_PARALLEL_LEVEL})
-      add_test(NAME ${TEST_NAME}_shard${i}
-        COMMAND ${TEST_NAME} --gtest_filter=${MIOPEN_GTEST_FILTER}
+      set(MIOPEN_GTEST_SHARD ${TEST_NAME}_shard${i})
+      set(MIOPEN_GTEST_SHARD_JSON ${TEST_NAME}_shard${i}).json
+      add_test(NAME ${MIOPEN_GTEST_SHARD}
+        COMMAND ${TEST_NAME} --gtest_filter=${MIOPEN_GTEST_FILTER} --gtest_output=json:${MIOPEN_DAPPER_OUT_DIR}/${MIOPEN_GTEST_SHARD_JSON}
         WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/${DATABASE_INSTALL_DIR}"
       )
+      file(APPEND {MIOPEN_DAPPER_SHARDS_FILE} "${MIOPEN_GTEST_SHARD_JSON}\n")
+      list(APPEND MIOPEN_GTEST_SHARDS ${MIOPEN_GTEST_SHARD})
       math(EXPR SHARD_INDEX "${i} - 1")
-      set_tests_properties(${TEST_NAME}_shard${i} PROPERTIES
+      set_tests_properties({MIOPEN_GTEST_SHARD} PROPERTIES
         ENVIRONMENT "MIOPEN_USER_DB_PATH=${CMAKE_CURRENT_BINARY_DIR};MIOPEN_INVOKED_FROM_CTEST=1;GTEST_TOTAL_SHARDS=${GTEST_PARALLEL_LEVEL};GTEST_SHARD_INDEX=${SHARD_INDEX}"
       )
     endforeach()
 
+    set_tests_properties(miopen_gtest_sharded_dapper PROPERTIES DEPENDS ${MIOPEN_GTEST_SHARDS})
   endif()
   target_link_libraries(${TEST_NAME} BZip2::BZip2)
   if(WIN32)
