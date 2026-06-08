@@ -256,8 +256,6 @@ function(add_gtest TEST_NAME TEST_CPP)
     set(MIOPEN_GTEST_FILTER "${MIOPEN_GTEST_PREFIX}*${MIOPEN_GTEST_SUFFIX}*:${MIOPEN_GTEST_PREFIX}*NONE*${MIOPEN_GTEST_FILTER_NEGATIVE}")
 
 # TODO Dapper default minimal run if no work to do
-# TODO Dapper hardcode categories
-# TODO Dapper add extra filters
 
     set(MIOPEN_CATEGORY_QUICK "Smoke/GPU_BNCKFWDTrainLarge2D_FP16*:Smoke/GPU_BNOCLFWDTrainLarge2D_FP16*:Smoke/GPU_BNOCLFWDTrainLarge3D_FP16*:Smoke/GPU_BNCKFWDTrainLarge2D_BFP16*:Smoke/GPU_BNOCLFWDTrainLarge2D_BFP16*:Smoke/GPU_BNOCLFWDTrainLarge3D_BFP16*:Smoke/GPU_UnitTestConvSolverImplicitGemmFwdXdlops_FP16*:Smoke/GPU_UnitTestConvSolverImplicitGemmFwdXdlops_BFP16*-Smoke/GPU_BNOCLFWDTrainLarge2D_BFP16*:Smoke/GPU_BNOCLInferLarge2D_BFP16*:*/GPU_MIOpenDriver*:*GPU_TestMhaFind20_FP32*:*GPU_TestMhaFind20_FP16*:Smoke/GPU_BNOCLInferLarge2D_BFP16*:Smoke/GPU_BNOCLFWDTrainLarge2D_BFP16*")
     if(DEFINED MIOPEN_DEBUG_CATEGORY)
@@ -283,20 +281,20 @@ function(add_gtest TEST_NAME TEST_CPP)
 
     foreach(i RANGE 1 ${GTEST_PARALLEL_LEVEL})
       set(MIOPEN_GTEST_SHARD ${TEST_NAME}_shard${i})
-      set(MIOPEN_GTEST_SHARD_JSON ${TEST_NAME}_shard${i}).json
+      set(MIOPEN_GTEST_SHARD_JSON ${TEST_NAME}_shard${i}.json)
       add_test(NAME ${MIOPEN_GTEST_SHARD}
         COMMAND ${TEST_NAME} --gtest_filter=${MIOPEN_GTEST_FILTER} --gtest_output=json:${MIOPEN_DAPPER_OUT_DIR}/${MIOPEN_GTEST_SHARD_JSON}
         WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/${DATABASE_INSTALL_DIR}"
       )
-      file(APPEND {MIOPEN_DAPPER_SHARDS_FILE} "${MIOPEN_GTEST_SHARD_JSON}\n")
+      file(APPEND ${MIOPEN_DAPPER_SHARDS_FILE} "${MIOPEN_GTEST_SHARD_JSON}\n")
       list(APPEND MIOPEN_GTEST_SHARDS ${MIOPEN_GTEST_SHARD})
       math(EXPR SHARD_INDEX "${i} - 1")
-      set_tests_properties({MIOPEN_GTEST_SHARD} PROPERTIES
+      set_tests_properties(${MIOPEN_GTEST_SHARD} PROPERTIES
         ENVIRONMENT "MIOPEN_USER_DB_PATH=${CMAKE_CURRENT_BINARY_DIR};MIOPEN_INVOKED_FROM_CTEST=1;GTEST_TOTAL_SHARDS=${GTEST_PARALLEL_LEVEL};GTEST_SHARD_INDEX=${SHARD_INDEX}"
       )
     endforeach()
 
-    set_tests_properties(miopen_gtest_sharded_dapper PROPERTIES DEPENDS ${MIOPEN_GTEST_SHARDS})
+    set_tests_properties(miopen_gtest_sharded_dapper PROPERTIES DEPENDS "${MIOPEN_GTEST_SHARDS}")
   endif()
   target_link_libraries(${TEST_NAME} BZip2::BZip2)
   if(WIN32)
