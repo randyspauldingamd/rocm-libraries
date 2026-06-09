@@ -182,8 +182,9 @@ def main():
     if len(sys.argv) > 1:
         input_file=sys.argv[1]
     # If dapper test json file, category name, and filter are all given, calculate and record the union
-    if len(sys.argv) > 4:
-        calc_union_filter(sys.argv[2], sys.argv[3], sys.argv[4])
+    if len(sys.argv) > 3:
+        test_type = sys.argv[4] if (len(sys.argv) > 4) else ""
+        calc_union_filter(sys.argv[1], sys.argv[2], sys.argv[3], test_type)
 
     _ = analyze_sharded_gtest(input_file)
 
