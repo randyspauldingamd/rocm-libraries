@@ -15,7 +15,6 @@ message(STATUS "------------------------------------ CMAKE_BINARY_DIR:       ${C
 set(MIOPEN_DAPPER_SRC_DIR "${CMAKE_BINARY_DIR}/../script/dependency-parser")
 set(MIOPEN_DAPPER_OUT_DIR "${CMAKE_BINARY_DIR}")
 set(SHARDS_FILE ${MIOPEN_DAPPER_OUT_DIR}/miopen_gtest_shards.txt)
-#set(TESTS_TO_RUN_JSON "${MIOPEN_DAPPER_OUT_DIR}/tests_to_run.json")
 set(BUILD_NINJA "${MIOPEN_DAPPER_OUT_DIR}/build.ninja")
 set(MAPPING_JSON "${MIOPEN_DAPPER_OUT_DIR}/miopen_dapper_mapping.json")
 set(FIXTURES_JSON "${MIOPEN_DAPPER_OUT_DIR}/miopen_dapper_fixtures.json")
@@ -72,7 +71,7 @@ add_test(NAME miopen_gtest_sharded_dapper
 
 # TRJS dapper_diff may be redundant; 'miopen_gtest_sharded_dapper' is ran automatically by ctest
 add_custom_target(dapper_diff
-    COMMAND ${Python_EXECUTABLE} ${MIOPEN_DAPPER_DIFF} "${TESTS_JSON}" "${MIOPEN_DEBUG_CATEGORY}" "${MIOPEN_DAPPER_FILTER}" "${MIOPEN_GTEST_SUFFIX}"
+    COMMAND ${Python_EXECUTABLE} ${MIOPEN_DAPPER_DIFF} "${TESTS_JSON}" "${MIOPEN_DEBUG_CATEGORY}" "${MIOPEN_DAPPER_FILTER}"
     WORKING_DIRECTORY ${MIOPEN_DAPPER_OUT_DIR}
     DEPENDS check
     VERBATIM

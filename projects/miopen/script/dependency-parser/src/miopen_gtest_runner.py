@@ -32,7 +32,7 @@ def matches_any_filter(s, filters):
     return any(fnmatch.fnmatch(s, pattern) for pattern in filters)
 
 
-def calc_union_filter(gtest_filter_json: str, category_name: str, category_filter: str, test_type: str):
+def calc_union_filter(gtest_filter_json: str, category_name: str, category_filter: str):
     with open(gtest_filter_json, 'r') as f:
         json_data = json.load(f)
     # super-minimal default test if there's nothing to do:
@@ -50,8 +50,6 @@ def calc_union_filter(gtest_filter_json: str, category_name: str, category_filte
     dapper_positives, _ = split_gtest_filter_includes(dapper_filter)
     category_positives, category_exclude = split_gtest_filter_includes(category_filter)
 
-    # TRJS don't think I need test_type after all
-    test_type = test_type + "*" if test_type else test_type
     union_positives = [df for df in dapper_positives if matches_any_filter(df.strip('*'), category_positives)]
     union_filter = ":".join(union_positives)
     if category_exclude:
@@ -78,9 +76,8 @@ def main():
     category_filter = "*"
     if len(sys.argv) > 4:
         category_filter = sys.argv[4]
-    test_type = sys.argv[5] if len(sys.argv) > 5 else ""
 
-    gtest_filter = calc_union_filter(gtest_filter_json, category_name, category_filter, test_type)
+    gtest_filter = calc_union_filter(gtest_filter_json, category_name, category_filter)
     run_gtest(gtest_executable, gtest_filter)
 
 
