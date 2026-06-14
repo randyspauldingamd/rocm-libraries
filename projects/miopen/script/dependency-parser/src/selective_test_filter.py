@@ -30,6 +30,7 @@ import sys
 import subprocess
 
 
+
 def get_changed_files(ref1, ref2, path_to_folder):
     """Return a set of files changed between two git refs."""
     args = ["git", "diff", "--name-only", ref1, ref2]
@@ -42,6 +43,7 @@ def get_changed_files(ref1, ref2, path_to_folder):
     except subprocess.CalledProcessError as e:
         print(f"Error running git diff: {e}")
         sys.exit(1)
+
 
 def load_depmap(depmap_json):
     """Load the dependency mapping JSON."""
@@ -61,6 +63,7 @@ def load_fixturemap(fixturemap_json):
             if not fixture.endswith('*'):
                 fixtures[i] = fixture + '*'
     return fixturemap
+
 
 def select_tests(file_to_executables, changed_files, filter_mode):
     """Return a set of test executables affected by changed files."""
@@ -106,7 +109,9 @@ def main():
 
     if "--optimize-build" in sys.argv:
         if len(sys.argv) < 3:
-            print("Usage: python selective_test_filter.py <depmap_json> --optimize-build <changed_file1> [<changed_file2> ...]")
+            print(
+                "Usage: python selective_test_filter.py <depmap_json> --optimize-build <changed_file1> [<changed_file2> ...]"
+            )
             sys.exit(1)
         depmap_json = sys.argv[1]
         changed_files = set(sys.argv[sys.argv.index("--optimize-build") + 1 :])
@@ -125,7 +130,9 @@ def main():
         sys.exit(0)
 
     if len(sys.argv) < 4:
-        print("Usage: python selective_test_filter.py <depmap_json> <ref1> <ref2> [--all | --test-prefix] [--output <output_json>] [--folder <path_to_folder>]")
+        print(
+            "Usage: python selective_test_filter.py <depmap_json> <ref1> <ref2> [--all | --test-prefix] [--output <output_json>] [--folder <path_to_folder>]"
+        )
         sys.exit(1)
 
     depmap_json = sys.argv[1]
@@ -179,6 +186,7 @@ def main():
         json.dump({"tests_to_run": tests, "dapper_filter": gtest_filter, "changed_files": sorted(changed_files), "gtest_shards": gtest_shards}, f, indent=2)
 
     print(f"Exported {len(tests)} test fixtures to run to {output_json}")
+
 
 if __name__ == "__main__":
     main()

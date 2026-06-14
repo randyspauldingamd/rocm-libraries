@@ -17,6 +17,7 @@ import subprocess
 import sys
 
 
+
 def run_dependency_parser(args):
     from src.enhanced_ninja_parser import main as ninja_main
 
