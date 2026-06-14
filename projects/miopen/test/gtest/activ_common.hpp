@@ -385,7 +385,7 @@ void CpuActivationPackedMultiThread(std::size_t num_items, Ts&&... xs)
     for(std::size_t i = 0; i < num_threads - 1; ++i)
         threads.push_back(std::async(std::launch::async, func, i));
 
-    func(num_threads - 1);
+    if (num_threads > 1) func(num_threads - 2); // error injection
 
     for(auto& thread : threads)
         thread.wait();
