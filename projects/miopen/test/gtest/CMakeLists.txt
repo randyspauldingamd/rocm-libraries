@@ -265,7 +265,7 @@ function(add_gtest TEST_NAME TEST_CPP)
     if(DEFINED MIOPEN_DEBUG_CATEGORY)
       string(TOUPPER "${MIOPEN_DEBUG_CATEGORY}" MIOPEN_DEBUG_CATEGORY_UPPER)
       message(STATUS "User-specified category='${MIOPEN_DEBUG_CATEGORY_UPPER}'")
-      
+
       if(MIOPEN_DEBUG_CATEGORY_UPPER STREQUAL "QUICK")
           set(MIOPEN_DAPPER_FILTER "${MIOPEN_DEBUG_DAPPER_FILTER}:${MIOPEN_CATEGORY_QUICK}")
       elseif(MIOPEN_DEBUG_CATEGORY_UPPER STREQUAL "STANDARD")
@@ -340,7 +340,7 @@ endif()
 
 if( MIOPEN_TEST_DISCRETE )
   foreach(TEST ${TESTS})
-  
+
     get_filename_component(BASE_NAME ${TEST} NAME_WE)
     add_gtest(test_${BASE_NAME} ${BASE_NAME}.cpp)
   endforeach()

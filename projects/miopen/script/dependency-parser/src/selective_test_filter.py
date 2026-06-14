@@ -30,7 +30,6 @@ import sys
 import subprocess
 
 
-
 def get_changed_files(ref1, ref2, path_to_folder):
     """Return a set of files changed between two git refs."""
     args = ["git", "diff", "--name-only", ref1, ref2]
@@ -38,7 +37,11 @@ def get_changed_files(ref1, ref2, path_to_folder):
         args += ["--", path_to_folder]
     try:
         result = subprocess.run(args, capture_output=True, text=True, check=True)
-        files = set(str(Path(*Path(line).parts[2:])).strip() for line in result.stdout.splitlines() if line.strip())
+        files = set(
+            str(Path(*Path(line).parts[2:])).strip()
+            for line in result.stdout.splitlines()
+            if line.strip()
+        )
         return files
     except subprocess.CalledProcessError as e:
         print(f"Error running git diff: {e}")
@@ -54,14 +57,15 @@ def load_depmap(depmap_json):
         return depmap["file_to_executables"]
     return depmap
 
+
 def load_fixturemap(fixturemap_json):
     """Load the dependency mapping JSON."""
     with open(fixturemap_json, "r") as f:
         fixturemap = json.load(f)
     for test, fixtures in fixturemap.items():
         for i, fixture in enumerate(fixtures):
-            if not fixture.endswith('*'):
-                fixtures[i] = fixture + '*'
+            if not fixture.endswith("*"):
+                fixtures[i] = fixture + "*"
     return fixturemap
 
 
@@ -80,6 +84,7 @@ def select_tests(file_to_executables, changed_files, filter_mode):
                     affected.add(exe)
     return sorted(affected)
 
+
 def create_gtest_filter(tests_to_run, fixturemap_json):
     gtest_filter = ""
     if fixturemap_json:
@@ -91,6 +96,7 @@ def create_gtest_filter(tests_to_run, fixturemap_json):
     else:
         gtest_filter = "*"
     return gtest_filter
+
 
 def main():
     if "--audit" in sys.argv:
@@ -183,7 +189,16 @@ def main():
             gtest_shards = open(shardsfile).read().splitlines()
 
     with open(output_json, "w") as f:
-        json.dump({"tests_to_run": tests, "dapper_filter": gtest_filter, "changed_files": sorted(changed_files), "gtest_shards": gtest_shards}, f, indent=2)
+        json.dump(
+            {
+                "tests_to_run": tests,
+                "dapper_filter": gtest_filter,
+                "changed_files": sorted(changed_files),
+                "gtest_shards": gtest_shards,
+            },
+            f,
+            indent=2,
+        )
 
     print(f"Exported {len(tests)} test fixtures to run to {output_json}")
 
