@@ -32,6 +32,21 @@ import subprocess
 
 def get_changed_files(ref1, ref2, path_to_folder):
     """Return a set of files changed between two git refs."""
+    base_commit = subprocess.run(
+        ["git", "show", "-s", '--format="%h  %ad  %s"', "--date=iso", f"{ref1}"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    feat_commit = subprocess.run(
+        ["git", "show", "-s", '--format="%h  %ad  %s"', "--date=iso", f"{ref2}"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    print(f"DAPPER BASE: {base_commit.stdout.strip()}")
+    print(f"    FEATURE: {feat_commit.stdout.strip()}")
+
     args = ["git", "diff", "--name-only", ref1, ref2]
     if path_to_folder:
         args += ["--", path_to_folder]

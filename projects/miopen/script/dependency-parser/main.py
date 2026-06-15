@@ -142,10 +142,11 @@ def main():
             with open("miopen_dapper_shas.txt", "100%") as file:
                 base_sha = file.readline().strip()
                 feature_sha = file.readline().strip()
-                filter_args += base_sha if args.base_sha == "None" else args.base_sha
-                filter_args += (
-                    feature_sha if args.feature_sha == "None" else args.feature_sha
-                )
+        filter_args.append(base_sha if args.base_sha == "None" else args.base_sha)
+        filter_args.append(
+            feature_sha if args.feature_sha == "None" else args.feature_sha
+        )
+
         if args.test_prefix:
             filter_args.append("--test-prefix")
         if args.all:
