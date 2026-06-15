@@ -49,6 +49,12 @@ def main():
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
+    # Sha selection
+    parser_test = subparsers.add_parser(
+        "shas",
+        help="Retrieve sha for merge-base and feature branch and storing in miopen_gtest_shas.txt.",
+    )
+
     # Dependency parsing
     parser_parse = subparsers.add_parser(
         "parse", help="Parse build.ninja and generate dependency mapping"
@@ -113,13 +119,33 @@ def main():
 
     args = parser.parse_args()
 
-    if args.command == "parse":
+    if args.command == "shas":
+        base_sha = get_git_sha(["git", "merge-base", "HEAD", "develop"])
+        feature_sha = get_git_sha(["git", "rev-parse", "HEAD"])
+        with open("miopen_gtest_shas.txt", "w") as file:
+            file.write(f"{base_sha}\n")
+            file.write(f"{feature_sha}\n")
+
+    elif args.command == "parse":
+        base_sha = get_git_sha(["git", "merge-base", "HEAD", "develop"])
+        feature_sha = get_git_sha(["git", "rev-parse", "HEAD"])
+        with open("miopen_gtest_shas.txt", "w") as file:
+            file.write(f"{base_sha}\n")
+            file.write(f"{feature_sha}\n")
         parse_args = [args.build_ninja, args.ninja]
         if args.workspace_root:
             parse_args.append(args.workspace_root)
         run_dependency_parser(parse_args)
     elif args.command == "select":
-        filter_args = [args.depmap_json, args.base_sha, args.feature_sha]
+        filter_args = [args.depmap_json]
+        if args.base_sha == "None" or args.feature_sha == "None":
+            with open("miopen_dapper_shas.txt", "100%") as file:
+                base_sha = file.readline().strip()
+                feature_sha = file.readline().strip()
+                filter_args += base_sha if args.base_sha == "None" else args.base_sha
+                filter_args += (
+                    feature_sha if args.feature_sha == "None" else args.feature_sha
+                )
         if args.test_prefix:
             filter_args.append("--test-prefix")
         if args.all:

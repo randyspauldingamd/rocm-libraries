@@ -52,12 +52,12 @@ def preprocess_and_find_gtests(gtest):
     return new_fixtures
 
 
-def extract_gtext_fixtures(json_path: str, output_file: str, pp_folder: str):
+def extract_gtext_fixtures(compile_commands: str, output_file: str, pp_folder: str):
     exes = []
     gtests = []
 
     try:
-        with open(json_path, "r", encoding="utf-8") as f:
+        with open(compile_commands, "r", encoding="utf-8") as f:
             data = json.load(f)
 
             for entry in data:
@@ -73,10 +73,11 @@ def extract_gtext_fixtures(json_path: str, output_file: str, pp_folder: str):
                     gtests.append(entry.get("command"))
 
     except FileNotFoundError:
-        print(f"Error: {json_path} not found.")
+        print(f"Error: {compile_commands} not found.")
     except json.JSONDecodeError:
-        print(f"Error: {json_path} is not a valid JSON file.")
+        print(f"Error: {compile_commands} is not a valid JSON file.")
 
+    # spoof gtest.h so macros are not expanded
     gtest_hpp = Path(pp_folder) / "gtest" / "gtest.h"
     gtest_hpp.parent.mkdir(parents=True, exist_ok=True)
     with open(gtest_hpp, "w") as f:

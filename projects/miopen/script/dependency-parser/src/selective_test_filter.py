@@ -90,8 +90,13 @@ def create_gtest_filter(tests_to_run, fixturemap_json):
     if fixturemap_json:
         fixturemap = load_fixturemap(fixturemap_json)
         for file in tests_to_run:
-            for test in fixturemap[file]:
-                gtest_filter += test + ":"
+            if file not in fixturemap:
+                print(
+                    f"Warning: binary {file} was marked for run, but no gtests were found"
+                )
+            else:
+                for test in fixturemap[file]:
+                    gtest_filter += test + ":"
         gtest_filter = gtest_filter[:-1]
     else:
         gtest_filter = "*"

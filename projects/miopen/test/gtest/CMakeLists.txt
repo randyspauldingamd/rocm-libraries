@@ -16,6 +16,7 @@ set(MIOPEN_DAPPER_SRC_DIR "${CMAKE_BINARY_DIR}/../script/dependency-parser")
 set(MIOPEN_DAPPER_OUT_DIR "${CMAKE_BINARY_DIR}")
 set(SHARDS_FILE ${MIOPEN_DAPPER_OUT_DIR}/miopen_gtest_shards.txt)
 set(BUILD_NINJA "${MIOPEN_DAPPER_OUT_DIR}/build.ninja")
+set(SHAS_JSON "${MIOPEN_DAPPER_OUT_DIR}/miopen_dapper_shas.txt")
 set(MAPPING_JSON "${MIOPEN_DAPPER_OUT_DIR}/miopen_dapper_mapping.json")
 set(FIXTURES_JSON "${MIOPEN_DAPPER_OUT_DIR}/miopen_dapper_fixtures.json")
 set(TESTS_JSON "${MIOPEN_DAPPER_OUT_DIR}/miopen_dapper_tests.json")
@@ -23,6 +24,15 @@ set(PY_MAIN "/${MIOPEN_DAPPER_SRC_DIR}/main.py")
 set(PY_FIXTURES "/${MIOPEN_DAPPER_SRC_DIR}/src/extract_gtest_fixtures.py")
 set(MIOPEN_GTEST_RUNNER "/${MIOPEN_DAPPER_SRC_DIR}/src/miopen_gtest_runner.py")
 set(MIOPEN_DAPPER_DIFF ${MIOPEN_DAPPER_SRC_DIR}/src/dapper_diff.py)
+
+# Get shas
+add_custom_command(
+    OUTPUT ${SHAS_JSON}
+    COMMENT "Generating ${SHAS_JSON}"
+    COMMAND ${Python_EXECUTABLE} ${PY_MAIN} shas
+    WORKING_DIRECTORY ${MIOPEN_DAPPER_OUT_DIR}
+    VERBATIM
+)
 
 # Generate fixtures
 add_custom_command(
