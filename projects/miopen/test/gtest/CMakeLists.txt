@@ -75,19 +75,6 @@ add_custom_target(
     VERBATIM
 )
 
-add_test(NAME miopen_gtest_sharded_dapper
-    COMMAND ${Python_EXECUTABLE} ${MIOPEN_DAPPER_DIFF} "${TESTS_JSON}" "${MIOPEN_DEBUG_CATEGORY}" "${MIOPEN_DAPPER_FILTER}"
-    WORKING_DIRECTORY ${MIOPEN_DAPPER_OUT_DIR}
-)
-
-# TRJS dapper_diff may be redundant; 'miopen_gtest_sharded_dapper' is ran automatically by ctest
-add_custom_target(dapper_diff
-    COMMAND ${Python_EXECUTABLE} ${MIOPEN_DAPPER_DIFF} "${TESTS_JSON}" "${MIOPEN_DEBUG_CATEGORY}" "${MIOPEN_DAPPER_FILTER}"
-    WORKING_DIRECTORY ${MIOPEN_DAPPER_OUT_DIR}
-    DEPENDS check
-    VERBATIM
-)
-
 if(MIOPEN_USE_HIPBLASLT)
   find_package(hipblaslt REQUIRED PATHS /opt/rocm $ENV{HIP_PATH})
 endif()
@@ -318,6 +305,19 @@ function(add_gtest TEST_NAME TEST_CPP)
     endforeach()
 
     set_tests_properties(miopen_gtest_sharded_dapper PROPERTIES DEPENDS "${MIOPEN_GTEST_SHARDS}")
+
+    add_test(NAME miopen_gtest_sharded_dapper
+        COMMAND ${Python_EXECUTABLE} ${MIOPEN_DAPPER_DIFF} "${TESTS_JSON}" "${MIOPEN_DEBUG_CATEGORY}" "${MIOPEN_DAPPER_FILTER}"
+        WORKING_DIRECTORY ${MIOPEN_DAPPER_OUT_DIR}
+    )
+
+    # TRJS dapper_diff may be redundant; 'miopen_gtest_sharded_dapper' is ran automatically by ctest
+    add_custom_target(dapper_diff
+        COMMAND ${Python_EXECUTABLE} ${MIOPEN_DAPPER_DIFF} "${TESTS_JSON}" "${MIOPEN_DEBUG_CATEGORY}" "${MIOPEN_DAPPER_FILTER}"
+        WORKING_DIRECTORY ${MIOPEN_DAPPER_OUT_DIR}
+        DEPENDS check
+        VERBATIM
+    )
   endif()
   target_link_libraries(${TEST_NAME} BZip2::BZip2)
   if(WIN32)

@@ -44,9 +44,33 @@ def get_git_sha(command):
         return None
 
 
+def get_git_origin_url(repo_path="."):
+    """
+    Returns the Git origin URL for the given repository path.
+    :param repo_path: Path to the local Git repository (default: current directory)
+    :return: Origin URL as a string, or None if not found
+    """
+    try:
+        # Run the git command to get the origin URL
+        result = subprocess.run(
+            ["git", "-C", repo_path, "remote", "get-url", "origin"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return result.stdout.strip()
+    except subprocess.CalledProcessError:
+        print("Error: Not a valid Git repository or 'origin' remote not set.")
+    except FileNotFoundError:
+        print("Error: Git is not installed or not found in PATH.")
+    return None
+
+
 def write_shas_file(context, shas_file):
+    origin = get_git_origin_url()
+    print(f"{context}: origin={origin}")
     feature_sha = get_git_sha(["git", "rev-parse", "HEAD"])
-    base_sha = get_git_sha(["git", "merge-base", feature_sha, "develop"])
+    base_sha = get_git_sha(["git", "merge-base", "HEAD", "origin/develop"])
     with open(shas_file, "w") as file:
         file.write(f"{base_sha}\n")
         file.write(f"{feature_sha}\n")
