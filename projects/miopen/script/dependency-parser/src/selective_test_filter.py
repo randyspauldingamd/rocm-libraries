@@ -32,6 +32,7 @@ import subprocess
 
 def get_changed_files(ref1, ref2, path_to_folder):
     """Return a set of files changed between two git refs."""
+    print(f"get_changed_files: {ref1} {ref2} {path_to_folder}")
     base_commit = subprocess.run(
         ["git", "show", "-s", '--format="%h  %ad  %s"', "--date=iso", f"{ref1}"],
         capture_output=True,

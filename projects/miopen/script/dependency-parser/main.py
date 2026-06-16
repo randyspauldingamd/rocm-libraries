@@ -138,14 +138,20 @@ def main():
         run_dependency_parser(parse_args)
     elif args.command == "select":
         filter_args = [args.depmap_json]
+        with open("miopen_dapper_shas.txt", "100%") as file:
+            base_sha = file.readline().strip()
+            feature_sha = file.readline().strip()
+            print(f"MAIN.PY READ SHAS: {base_sha} {feature_sha}")
+            filter_args.append(base_sha)
+            filter_args.append(feature_sha)
         if args.base_sha == "None" or args.feature_sha == "None":
-            with open("miopen_dapper_shas.txt", "100%") as file:
-                base_sha = file.readline().strip()
-                feature_sha = file.readline().strip()
-        filter_args.append(base_sha if args.base_sha == "None" else args.base_sha)
-        filter_args.append(
-            feature_sha if args.feature_sha == "None" else args.feature_sha
-        )
+            print(
+                f"args.base_sha = {args.base_sha}, args.feature_sha = {args.feature_sha}"
+            )
+        #        filter_args.append(base_sha if args.base_sha == "None" else args.base_sha)
+        #        filter_args.append(
+        #            feature_sha if args.feature_sha == "None" else args.feature_sha
+        #        )
 
         if args.test_prefix:
             filter_args.append("--test-prefix")
