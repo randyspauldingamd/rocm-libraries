@@ -45,8 +45,8 @@ def get_git_sha(command):
 
 
 def write_shas_file(context, shas_file):
-    base_sha = get_git_sha(["git", "merge-base", "HEAD", "develop"])
     feature_sha = get_git_sha(["git", "rev-parse", "HEAD"])
+    base_sha = get_git_sha(["git", "merge-base", feature_sha, "develop"])
     with open(shas_file, "w") as file:
         file.write(f"{base_sha}\n")
         file.write(f"{feature_sha}\n")
