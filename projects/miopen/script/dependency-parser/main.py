@@ -13,6 +13,7 @@ Features:
 """
 
 import argparse
+import os
 import subprocess
 import sys
 
@@ -43,6 +44,23 @@ def get_git_sha(command):
         return None
 
 
+def write_shas_file(context, shas_file):
+    base_sha = get_git_sha(["git", "merge-base", "HEAD", "develop"])
+    feature_sha = get_git_sha(["git", "rev-parse", "HEAD"])
+    with open(shas_file, "w") as file:
+        file.write(f"{base_sha}\n")
+        file.write(f"{feature_sha}\n")
+    print(f"{context}: {base_sha} <- {feature_sha}")
+
+
+def read_shas_file(context, shas_file):
+    with open(shas_file, "r") as file:
+        base_sha = file.readline().strip()
+        feature_sha = file.readline().strip()
+    print(f"{context}: {base_sha} <- {feature_sha}")
+    return (base_sha, feature_sha)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Unified Ninja Dependency & Selective Testing Tool"
@@ -50,7 +68,7 @@ def main():
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # Sha selection
-    parser_test = subparsers.add_parser(
+    parser_shas = subparsers.add_parser(
         "shas",
         help="Retrieve sha for merge-base and feature branch and storing in miopen_gtest_shas.txt.",
     )
@@ -75,12 +93,12 @@ def main():
     parser_test.add_argument(
         "--base-sha",
         help="git base sha",
-        default=get_git_sha(["git", "merge-base", "HEAD", "develop"]),
+        default="None",
     )
     parser_test.add_argument(
         "--feature-sha",
         help="git feature sha",
-        default=get_git_sha(["git", "rev-parse", "HEAD"]),
+        default="None",
     )
     parser_test.add_argument(
         "--all", action="store_true", help="Include all executables"
@@ -118,41 +136,22 @@ def main():
     parser_opt.add_argument("changed_files", nargs="+", help="List of changed files")
 
     args = parser.parse_args()
+    shas_file = "miopen_dapper_shas.txt"
 
     if args.command == "shas":
-        base_sha = get_git_sha(["git", "merge-base", "HEAD", "develop"])
-        feature_sha = get_git_sha(["git", "rev-parse", "HEAD"])
-        with open("miopen_gtest_shas.txt", "w") as file:
-            file.write(f"{base_sha}\n")
-            file.write(f"{feature_sha}\n")
-
+        write_shas_file("MAIN SHAS: ", shas_file)
     elif args.command == "parse":
-        base_sha = get_git_sha(["git", "merge-base", "HEAD", "develop"])
-        feature_sha = get_git_sha(["git", "rev-parse", "HEAD"])
-        with open("miopen_gtest_shas.txt", "w") as file:
-            file.write(f"{base_sha}\n")
-            file.write(f"{feature_sha}\n")
+        if not os.path.isfile(shas_file):
+            write_shas_file("MAIN PARSE: ", shas_file)
         parse_args = [args.build_ninja, args.ninja]
         if args.workspace_root:
             parse_args.append(args.workspace_root)
         run_dependency_parser(parse_args)
     elif args.command == "select":
         filter_args = [args.depmap_json]
-        with open("miopen_dapper_shas.txt", "100%") as file:
-            base_sha = file.readline().strip()
-            feature_sha = file.readline().strip()
-            print(f"MAIN.PY READ SHAS: {base_sha} {feature_sha}")
-            filter_args.append(base_sha)
-            filter_args.append(feature_sha)
-        if args.base_sha == "None" or args.feature_sha == "None":
-            print(
-                f"args.base_sha = {args.base_sha}, args.feature_sha = {args.feature_sha}"
-            )
-        #        filter_args.append(base_sha if args.base_sha == "None" else args.base_sha)
-        #        filter_args.append(
-        #            feature_sha if args.feature_sha == "None" else args.feature_sha
-        #        )
-
+        (base_sha, feature_sha) = read_shas_file("MAIN SELECT", shas_file)
+        filter_args.append(base_sha)
+        filter_args.append(feature_sha)
         if args.test_prefix:
             filter_args.append("--test-prefix")
         if args.all:
