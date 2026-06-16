@@ -304,12 +304,11 @@ function(add_gtest TEST_NAME TEST_CPP)
       )
     endforeach()
 
-    set_tests_properties(miopen_gtest_sharded_dapper PROPERTIES DEPENDS "${MIOPEN_GTEST_SHARDS}")
-
     add_test(NAME miopen_gtest_sharded_dapper
         COMMAND ${Python_EXECUTABLE} ${MIOPEN_DAPPER_DIFF} "${TESTS_JSON}" "${MIOPEN_DEBUG_CATEGORY}" "${MIOPEN_DAPPER_FILTER}"
         WORKING_DIRECTORY ${MIOPEN_DAPPER_OUT_DIR}
     )
+    set_tests_properties(miopen_gtest_sharded_dapper PROPERTIES DEPENDS "${MIOPEN_GTEST_SHARDS}")
 
     # TRJS dapper_diff may be redundant; 'miopen_gtest_sharded_dapper' is ran automatically by ctest
     add_custom_target(dapper_diff
