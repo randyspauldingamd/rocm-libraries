@@ -40,6 +40,7 @@ add_custom_command(
     COMMENT "Generating ${FIXTURES_JSON}"
     COMMAND ${Python_EXECUTABLE} ${PY_FIXTURES}
     WORKING_DIRECTORY ${MIOPEN_DAPPER_OUT_DIR}
+    DEPENDS ${SHAS_JSON}
     VERBATIM
 )
 
