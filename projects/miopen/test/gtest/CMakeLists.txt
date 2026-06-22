@@ -314,7 +314,7 @@ function(add_gtest TEST_NAME TEST_CPP)
     add_custom_target(dapper_diff
         COMMAND ${Python_EXECUTABLE} ${MIOPEN_DAPPER_DIFF} "${TESTS_JSON}" "${MIOPEN_DEBUG_CATEGORY}" "${MIOPEN_DAPPER_FILTER}"
         WORKING_DIRECTORY ${MIOPEN_DAPPER_OUT_DIR}
-        DEPENDS check
+        DEPENDS check test_immed_conv3d test_tensor_vec test_conv3d_find2
         VERBATIM
     )
   endif()

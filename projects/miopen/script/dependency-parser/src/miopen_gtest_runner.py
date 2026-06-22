@@ -19,6 +19,7 @@ def split_gtest_filter_includes(filter_str):
     if "-" in filter_str:
         positive_part, *negative_part = filter_str.split("-")
         positives = [p for p in positive_part.split(":") if p]
+        negatives = negative_part
     else:
         positives = [p for p in filter_str.split(":") if p]
         negatives = []

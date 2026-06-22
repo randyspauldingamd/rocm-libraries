@@ -2,6 +2,7 @@ import json
 import os
 import re
 import sys
+import time
 from miopen_gtest_runner import calc_union_filter
 
 
@@ -17,6 +18,8 @@ def analyze_sharded_gtest(input_file):
 
     dapper_filter = config.get("dapper_filter", "")
     union_filter = config.get("union_filter", "")
+    print(f"DAPPER ANALYZER FILTER IN: {dapper_filter}")
+    print(f"DAPPER ANALYZER UNION IN : {union_filter}")
     shard_log_files = config.get("gtest_shards", [])
     if not shard_log_files:
         print(f"Warning: No shard logs found in {input_file} (json key=gtest_shards)")
@@ -197,6 +200,7 @@ def analyze_sharded_gtest(input_file):
 
 
 def main():
+    time.sleep(1)  # ctest summary is still printing; delay so dapper is at the bottom
     input_file = "miopen_dapper_tests.json"
     if len(sys.argv) > 1:
         input_file = sys.argv[1]
