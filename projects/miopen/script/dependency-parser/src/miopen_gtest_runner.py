@@ -61,13 +61,15 @@ def calc_union_filter(gtest_filter_json: str, category_name: str, category_filte
     ]
     union_filter = ":".join(union_positives)
     if category_exclude:
-        union_filter = union_filter + "-" + category_exclude
+        category_exclude_filter = ":".join(category_exclude)
+        union_filter = union_filter + "-" + category_exclude_filter
 
     json_data["union_filter"] = union_filter
 
     with open(gtest_filter_json, "w") as f:
         json.dump(json_data, f, indent=2)
 
+    print(f"================= calc_union_filter: union_filter={union_filter}")
     return union_filter
 
 

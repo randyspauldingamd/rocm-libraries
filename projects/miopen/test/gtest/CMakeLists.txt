@@ -3,11 +3,12 @@ find_package(GTest REQUIRED)
 include(GoogleTest)
 find_package(Python 3 REQUIRED COMPONENTS Interpreter)
 
-# Dapper currently requires all tests to be built. This may change prior to moving to TheRock CI,
+# TRJS Dapper currently requires all tests to be built. This may change prior to moving to TheRock CI,
 # so leave the logic and hardwire them on temporarily.
 set(MIOPEN_TEST_DISCRETE 1)
 set(MIOPEN_TEST_SINGLE_GTEST 1)
 
+# TRJS
 message(STATUS "------------------------------------ CMAKE_CURRENT_LIST_DIR: ${CMAKE_CURRENT_LIST_DIR}")
 message(STATUS "------------------------------------ CMAKE_SOURCE_DIR:       ${CMAKE_SOURCE_DIR}")
 message(STATUS "------------------------------------ CMAKE_BINARY_DIR:       ${CMAKE_BINARY_DIR}")
@@ -255,10 +256,12 @@ function(add_gtest TEST_NAME TEST_CPP)
     # when building the single gtest, add them in a sharded manner
     # loop over GTEST_PARALLEL_LEVEL
     set(MIOPEN_GTEST_FILTER "${MIOPEN_GTEST_PREFIX}*${MIOPEN_GTEST_SUFFIX}*:${MIOPEN_GTEST_PREFIX}*NONE*${MIOPEN_GTEST_FILTER_NEGATIVE}")
+    message(STATUS "Base MIOPEN_GTEST_FILTER : ${MIOPEN_GTEST_FILTER}") # TRJS
 
 # TODO Fix Dapper default minimal run if no work to do. It's in calc_union_filter but in mici this is ran by dapper_diff which does not run until after check
 
-    set(MIOPEN_CATEGORY_QUICK "Smoke/GPU_BNCKFWDTrainLarge2D_FP16*:Smoke/GPU_BNOCLFWDTrainLarge2D_FP16*:Smoke/GPU_BNOCLFWDTrainLarge3D_FP16*:Smoke/GPU_BNCKFWDTrainLarge2D_BFP16*:Smoke/GPU_BNOCLFWDTrainLarge2D_BFP16*:Smoke/GPU_BNOCLFWDTrainLarge3D_BFP16*:Smoke/GPU_UnitTestConvSolverImplicitGemmFwdXdlops_FP16*:Smoke/GPU_UnitTestConvSolverImplicitGemmFwdXdlops_BFP16*-Smoke/GPU_BNOCLFWDTrainLarge2D_BFP16*:Smoke/GPU_BNOCLInferLarge2D_BFP16*:*/GPU_MIOpenDriver*:*GPU_TestMhaFind20_FP32*:*GPU_TestMhaFind20_FP16*:Smoke/GPU_BNOCLInferLarge2D_BFP16*:Smoke/GPU_BNOCLFWDTrainLarge2D_BFP16*")
+    set(MIOPEN_CATEGORY_QUICK1 "Smoke/GPU_BNCKFWDTrainLarge2D_FP16*:Smoke/GPU_BNOCLFWDTrainLarge2D_FP16*:Smoke/GPU_BNOCLFWDTrainLarge3D_FP16*:Smoke/GPU_BNCKFWDTrainLarge2D_BFP16*:Smoke/GPU_BNOCLFWDTrainLarge2D_BFP16*:Smoke/GPU_BNOCLFWDTrainLarge3D_BFP16*:Smoke/GPU_UnitTestConvSolverImplicitGemmFwdXdlops_FP16*:Smoke/GPU_UnitTestConvSolverImplicitGemmFwdXdlops_BFP16*-Smoke/GPU_BNOCLFWDTrainLarge2D_BFP16*:Smoke/GPU_BNOCLInferLarge2D_BFP16*:*/GPU_MIOpenDriver*:*GPU_TestMhaFind20_FP32*:*GPU_TestMhaFind20_FP16*:Smoke/GPU_BNOCLInferLarge2D_BFP16*:Smoke/GPU_BNOCLFWDTrainLarge2D_BFP16*")
+    set(MIOPEN_CATEGORY_QUICK "*/GPU_MIOpenDriver*:*GPU_TestMhaFind20_FP32*:*GPU_TestMhaFind20_FP16*")
     set(MIOPEN_CATEGORY_STANDARD "*Fusion*:*/GPU_BNBWD*_*:*/GPU_BNOCLBWD*_*:*/GPU_BNFWD*_*:*/GPU_BNOCLFWD*_*:*/GPU_BNInfer*_*:*/GPU_BNActivInfer_*:*/GPU_BNOCLInfer*_*:*/GPU_bn_infer*_*:CPU_*:*/CPU_*:*/GPU_Cat_*:*/GPU_ConvBiasActiv*:*/GPU_Conv*:*/GPU_conv*:*/GPU_UnitTestConv*:*/GPU_GetitemBwd*:*/GPU_GLU_*:*/GPU_GroupConv*:*/GPU_GroupNorm_*:*/GPU_GRUExtra_*:*/GPU_TestActivation*:*/GPU_HipBLASLtGEMMTest*:*/GPU_KernelTuningNetTestConv*:*/GPU_Kthvalue_*:*/GPU_LayerNormTest*:*/GPU_LayoutTransposeTest_*:*/GPU_Lrn*:*/GPU_lstm_extra*:*/GPU_MultiMarginLoss_*:*/GPU_ConvNonpack*:*/GPU_PerfConfig_HipImplicitGemm*:*/GPU_AsymPooling2d_*:*/GPU_WidePooling2d_*:*/GPU_PReLU_*:*/GPU_Reduce*:*/GPU_reduce_custom_*:*/GPU_regression_issue_*:*/GPU_RNNExtra_*:*/GPU_RoPE*:*/GPU_SoftMarginLoss*:*/GPU_T5LayerNormTest_*:*/GPU_Op4dTensorGenericTest_*:*/GPU_TernaryTensorOps_*:*/GPU_unaryTensorOps_*:*/GPU_Transformers*:*/GPU_TunaNetTest_*:*/")
     if(DEFINED MIOPEN_DEBUG_CATEGORY)
       string(TOUPPER "${MIOPEN_DEBUG_CATEGORY}" MIOPEN_DEBUG_CATEGORY_UPPER)
@@ -277,7 +280,9 @@ function(add_gtest TEST_NAME TEST_CPP)
       endif()
     endif()
 
-    message(STATUS "MIOPEN_GTEST_FILTER ${MIOPEN_GTEST_FILTER}")
+    if(NOT MIOPEN_TEST_ENABLE_DAPPER)
+      message(STATUS "MIOPEN_DAPPER_FILTER: ${MIOPEN_DAPPER_FILTER}")
+    endif()
 
     # when building the single gtest, add them in a sharded manner
     # loop over GTEST_PARALLEL_LEVEL
@@ -293,7 +298,7 @@ function(add_gtest TEST_NAME TEST_CPP)
       set(MIOPEN_GTEST_SHARD ${TEST_NAME}_shard${i})
       set(MIOPEN_GTEST_SHARD_JSON ${TEST_NAME}_shard${i}.json)
       add_test(NAME ${MIOPEN_GTEST_SHARD}
-        COMMAND ${TEST_NAME} --gtest_filter=${MIOPEN_GTEST_FILTER} --gtest_output=json:${MIOPEN_DAPPER_OUT_DIR}/${MIOPEN_GTEST_SHARD_JSON}
+        COMMAND ${TEST_NAME} --gtest_filter=${MIOPEN_GTEST_FILTER} --gtest_output=json:${MIOPEN_DAPPER_OUT_DIR}/${MIOPEN_GTEST_SHARD_JSON} ; echo "--SHARD {i} done."
         WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/${DATABASE_INSTALL_DIR}"
       )
       file(APPEND ${SHARDS_FILE} "${MIOPEN_GTEST_SHARD_JSON}\n")
