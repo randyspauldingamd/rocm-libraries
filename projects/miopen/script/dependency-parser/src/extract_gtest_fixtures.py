@@ -48,6 +48,7 @@ def preprocess_and_find_gtests(gtest):
     new_fixtures = re.findall(
         r"\b(?:TEST_F|TEST_P|TYPED_TEST)\s*\(\s*(\w+)", result.stdout
     )
+    new_fixtures = list(dict.fromkeys(new_fixtures))
 
     return new_fixtures
 

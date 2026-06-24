@@ -59,6 +59,11 @@ def calc_union_filter(gtest_filter_json: str, category_name: str, category_filte
         for df in dapper_positives
         if matches_any_filter(df.strip("*"), category_positives)
     ]
+    deduped = list(dict.fromkeys(union_positives))
+    duplicates_removed = len(union_positives) - len(deduped)
+    if duplicates_removed:
+        print(f"Removed {duplicates_removed} duplicate entries from union_positives")
+    union_positives = deduped
     union_filter = ":".join(union_positives)
     if category_exclude:
         category_exclude_filter = ":".join(category_exclude)
