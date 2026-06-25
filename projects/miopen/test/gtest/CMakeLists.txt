@@ -256,7 +256,7 @@ function(add_gtest TEST_NAME TEST_CPP)
           --gtest_output=xml:${MIOPEN_GTEST_SHARD_XML}
         WORKING_DIRECTORY "${KERNELS_BINARY_DIR}"
       )
-      file(APPEND ${SHARDS_FILE} "${MIOPEN_GTEST_SHARD_JSON}\n")
+      file(APPEND ${SHARDS_FILE} "${MIOPEN_GTEST_SHARD_XML}\n")
       list(APPEND MIOPEN_GTEST_SHARDS ${MIOPEN_GTEST_SHARD})
 
       set_tests_properties(${MIOPEN_GTEST_SHARD} PROPERTIES

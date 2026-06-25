@@ -28,6 +28,7 @@ import os
 from pathlib import Path
 import sys
 import subprocess
+import xml.etree.ElementTree as ET
 
 
 def get_changed_files(ref1, ref2, path_to_folder):
@@ -119,6 +120,29 @@ def create_gtest_filter(tests_to_run, fixturemap_json):
     return gtest_filter
 
 
+def load_shards(shardsfile):
+    converted = []
+    for shard in open(shardsfile).read().splitlines():
+        p = Path(shard)
+        if p.suffix.lower() == ".xml":
+            tree = ET.parse(p)
+            root = tree.getroot()
+            data = {
+                "name": root.tag,
+                "attributes": root.attrib,
+                "children": [
+                    {"tag": child.tag, "attributes": child.attrib, "text": child.text}
+                    for child in root
+                ],
+            }
+            json_path = p.with_suffix(".json")
+            json_path.write_text(json.dumps(data, indent=2))
+            converted.append(str(json_path))
+        else:
+            converted.append(shard)
+    return converted
+
+
 def main():
     if "--audit" in sys.argv:
         if len(sys.argv) < 2:
@@ -207,7 +231,7 @@ def main():
         tests = select_tests(file_to_executables, changed_files, filter_mode)
         gtest_filter = create_gtest_filter(tests, fixturemap_json)
         if shardsfile:
-            gtest_shards = open(shardsfile).read().splitlines()
+            gtest_shards = load_shards(shardsfile)
 
     with open(output_json, "w") as f:
         json.dump(
