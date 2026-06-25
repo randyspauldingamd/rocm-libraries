@@ -194,7 +194,7 @@ function(add_gtest TEST_NAME TEST_CPP)
     file(TOUCH "${SHARDS_FILE}")
     set(MIOPEN_GTEST_SHARDS "")
 
-    dapper_define_categories()
+    dapper_dev_filters()
 
     foreach(i RANGE 1 ${GTEST_PARALLEL_LEVEL})
       set(MIOPEN_GTEST_SHARD ${TEST_NAME}_shard${i})
