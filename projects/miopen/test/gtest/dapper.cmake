@@ -1,5 +1,6 @@
 macro(dapper_init)
     set(MIOPEN_TEST_SINGLE_GTEST 1)
+    set(MIOPEN_TEST_DISCRETE 1)
 
     # TRJS
     message(STATUS "------------------------------------ CMAKE_CURRENT_LIST_DIR: ${CMAKE_CURRENT_LIST_DIR}")

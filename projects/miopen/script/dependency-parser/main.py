@@ -185,7 +185,7 @@ def main():
         if args.fixturemap:
             filter_args += ["--fixturemap", args.fixturemap]
         if args.shardsfile:
-            print(f"ADDED SHARDSFILE: {args.shardsfile}")
+            print(f"main: ADDED SHARDSFILE: {args.shardsfile}")
             filter_args += ["--shardsfile", args.shardsfile]
         run_selective_test_filter(filter_args)
     elif args.command == "audit":

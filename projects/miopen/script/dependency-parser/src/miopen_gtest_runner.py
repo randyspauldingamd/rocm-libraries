@@ -1,7 +1,9 @@
 import fnmatch
 import json
+import os
 import subprocess
 import sys
+from pathlib import Path
 
 
 def split_gtest_filter_includes(filter_str):
@@ -34,9 +36,35 @@ def matches_any_filter(s, filters):
     return any(fnmatch.fnmatch(s, pattern) for pattern in filters)
 
 
+def _convert_xml_shards(json_data):
+    """Convert any XML shard paths in json_data['gtest_shards'] to JSON, updating the list in place."""
+    from selective_test_filter import _xml_to_gtest_json
+
+    shards = json_data.get("gtest_shards", [])
+    converted = []
+    changed = False
+    for shard in shards:
+        p = Path(shard)
+        if p.suffix.lower() == ".xml":
+            if not p.exists():
+                print(f"Warning: XML shard {shard} not found. Skipping conversion.")
+                converted.append(shard)
+                continue
+            data = _xml_to_gtest_json(p)
+            json_path = p.with_suffix(".json")
+            json_path.write_text(json.dumps(data, indent=2))
+            converted.append(str(json_path))
+            changed = True
+        else:
+            converted.append(shard)
+    if changed:
+        json_data["gtest_shards"] = converted
+
+
 def calc_union_filter(gtest_filter_json: str, category_name: str, category_filter: str):
     with open(gtest_filter_json, "r") as f:
         json_data = json.load(f)
+    _convert_xml_shards(json_data)
     # super-minimal default test if there's nothing to do:
     dapper_filter = "CPU_HandleHipDevice_NONE*"
     if "dapper_filter" in json_data:

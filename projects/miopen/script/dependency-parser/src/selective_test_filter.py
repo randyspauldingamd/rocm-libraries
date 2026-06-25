@@ -95,10 +95,15 @@ def select_tests(file_to_executables, changed_files, filter_mode):
             print(f"     {f} found in file_to_executables")
             for exe in file_to_executables[f]:
                 if filter_mode == "all":
-                    affected.add(exe)
-                elif filter_mode == "test_prefix" and exe.startswith("bin/test_"):
                     print(f"     {f} requires {exe} to be tested")
                     affected.add(exe)
+                elif filter_mode == "test_prefix" and (
+                    exe.startswith("bin/test_") or exe == "bin/miopen_gtest"
+                ):
+                    print(f"     {f} requires {exe} to be tested")
+                    affected.add(exe)
+                else:
+                    print(f"     {f} references {exe} which shall not be tested")
     return sorted(affected)
 
 
@@ -108,9 +113,10 @@ def create_gtest_filter(tests_to_run, fixturemap_json):
         fixturemap = load_fixturemap(fixturemap_json)
         for file in tests_to_run:
             if file not in fixturemap:
-                print(
-                    f"Warning: binary {file} was marked for run, but no gtests were found"
-                )
+                if file != "bin/miopen_gtest":
+                    print(
+                        f"Warning: binary {file} was marked for run, but no gtests were found"
+                    )
             else:
                 for test in fixturemap[file]:
                     gtest_filter += test + ":"
@@ -120,27 +126,85 @@ def create_gtest_filter(tests_to_run, fixturemap_json):
     return gtest_filter
 
 
+def _xml_timestamp(ts):
+    return ts.split(".")[0] + "Z"
+
+
+def _xml_time(t):
+    return t + "s"
+
+
+def _xml_testcase(case):
+    a = case.attrib
+    tc = {
+        "name": a["name"],
+        "file": a["file"],
+        "line": int(a["line"]),
+        "status": a["status"].upper(),
+        "result": a["result"].upper(),
+        "timestamp": _xml_timestamp(a["timestamp"]),
+        "time": _xml_time(a["time"]),
+        "classname": a["classname"],
+    }
+    if "value_param" in a:
+        tc["value_param"] = a["value_param"]
+    failure_elems = [c for c in case if c.tag == "failure"]
+    if failure_elems:
+        tc["failures"] = [
+            {"failure": f.attrib["message"], "type": f.attrib.get("type", "")}
+            for f in failure_elems
+        ]
+    # reorder to match gtest json field order
+    ordered = {}
+    for key in (
+        "name",
+        "value_param",
+        "file",
+        "line",
+        "status",
+        "result",
+        "timestamp",
+        "time",
+        "classname",
+        "failures",
+    ):
+        if key in tc:
+            ordered[key] = tc[key]
+    return ordered
+
+
+def _xml_testsuite(suite):
+    a = suite.attrib
+    return {
+        "name": a["name"],
+        "tests": int(a["tests"]),
+        "failures": int(a["failures"]),
+        "disabled": int(a["disabled"]),
+        "errors": int(a["errors"]),
+        "timestamp": _xml_timestamp(a["timestamp"]),
+        "time": _xml_time(a["time"]),
+        "testsuite": [_xml_testcase(c) for c in suite if c.tag == "testcase"],
+    }
+
+
+def _xml_to_gtest_json(xml_path):
+    root = ET.parse(xml_path).getroot()
+    a = root.attrib
+    return {
+        "tests": int(a["tests"]),
+        "failures": int(a["failures"]),
+        "disabled": int(a["disabled"]),
+        "errors": int(a["errors"]),
+        "timestamp": _xml_timestamp(a["timestamp"]),
+        "time": _xml_time(a["time"]),
+        "name": a["name"],
+        "testsuites": [_xml_testsuite(s) for s in root if s.tag == "testsuite"],
+    }
+
+
 def load_shards(shardsfile):
-    converted = []
-    for shard in open(shardsfile).read().splitlines():
-        p = Path(shard)
-        if p.suffix.lower() == ".xml":
-            tree = ET.parse(p)
-            root = tree.getroot()
-            data = {
-                "name": root.tag,
-                "attributes": root.attrib,
-                "children": [
-                    {"tag": child.tag, "attributes": child.attrib, "text": child.text}
-                    for child in root
-                ],
-            }
-            json_path = p.with_suffix(".json")
-            json_path.write_text(json.dumps(data, indent=2))
-            converted.append(str(json_path))
-        else:
-            converted.append(shard)
-    return converted
+    """Read shard filenames from shardsfile; store xml paths as-is (conversion happens later)."""
+    return [line for line in open(shardsfile).read().splitlines() if line.strip()]
 
 
 def main():
