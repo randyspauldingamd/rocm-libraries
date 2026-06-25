@@ -9,12 +9,6 @@ macro(dapper_init)
     message(STATUS "------------------------------------ CMAKE_SOURCE_DIR:       ${CMAKE_SOURCE_DIR}")
     message(STATUS "------------------------------------ CMAKE_BINARY_DIR:       ${CMAKE_BINARY_DIR}")
 
-    if(WIN32)
-        set(DAPPER_PP_FLAG "/P")
-    else()
-        set(DAPPER_PP_FLAG "-E")
-    endif()
-
     set(MIOPEN_DAPPER_SRC_DIR "${CMAKE_BINARY_DIR}/../script/dependency-parser")
     set(MIOPEN_DAPPER_OUT_DIR "${CMAKE_BINARY_DIR}")
     set(SHARDS_FILE ${MIOPEN_DAPPER_OUT_DIR}/miopen_gtest_shards.txt)
