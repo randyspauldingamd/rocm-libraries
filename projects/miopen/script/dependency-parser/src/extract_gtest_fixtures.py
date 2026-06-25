@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import concurrent.futures
+import time
 import json
 import os
 import re
@@ -11,7 +12,7 @@ import sys
 from pathlib import Path
 
 
-def preprocess_and_find_gtests(gtest):
+def preprocess_and_find_gtests_thread(gtest):
     pp_folder = "test/gtest/pp"
     build_command = shlex.split(gtest)
     build_command.insert(1, "/P" if sys.platform == "win32" else "-E")
@@ -78,15 +79,15 @@ def extract_gtext_fixtures(compile_commands: str, output_file: str, pp_folder: s
     except json.JSONDecodeError:
         print(f"Error: {compile_commands} is not a valid JSON file.")
 
-    # spoof gtest.h so macros are not expanded
+    # spoof gtest.h so TEST* macros are not expanded
     gtest_hpp = Path(pp_folder) / "gtest" / "gtest.h"
     gtest_hpp.parent.mkdir(parents=True, exist_ok=True)
     with open(gtest_hpp, "w") as f:
         pass
 
-    thread_count = 384
+    thread_count = 128
     with concurrent.futures.ThreadPoolExecutor(max_workers=thread_count) as executor:
-        all_fixtures = executor.map(preprocess_and_find_gtests, gtests)
+        all_fixtures = executor.map(preprocess_and_find_gtests_thread, gtests)
 
     results = {}
     fixture_count = 0
@@ -126,7 +127,10 @@ def main():
         output_file = sys.argv[2]
 
     pp_folder = "test/gtest/pp"
+    t0 = time.monotonic()
     extract_gtext_fixtures(compile_commands, output_file, pp_folder)
+    elapsed = time.monotonic() - t0
+    print(f"extract_gtext_fixtures completed in {elapsed:.1f}s")
 
 
 if __name__ == "__main__":
