@@ -1,7 +1,4 @@
 macro(dapper_init)
-    # TRJS Dapper currently requires all tests to be built. This may change prior to moving to TheRock CI,
-    # so leave the logic and hardwire them on temporarily.
-#    set(MIOPEN_TEST_DISCRETE 0)
     set(MIOPEN_TEST_SINGLE_GTEST 1)
 
     # TRJS
