@@ -235,7 +235,9 @@ def main():
     if len(sys.argv) > 3:
         calc_union_filter(sys.argv[1], sys.argv[2], sys.argv[3])
 
-    _ = analyze_sharded_gtest(input_file)
+    report = analyze_sharded_gtest(input_file)
+    if report["results"]["dapper_test_result"] == "FAIL":
+        sys.exit(1)
 
 
 if __name__ == "__main__":
