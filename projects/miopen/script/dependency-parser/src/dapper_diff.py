@@ -76,7 +76,7 @@ def analyze_sharded_gtest(input_file):
     total_skips = 0
     total_time = 0.0
 
-    dapper_fixtures = {}
+    dapper_fixtures_ran = {}
     other_fixtures = {}
 
     for log_file in shard_log_files:
@@ -94,7 +94,7 @@ def analyze_sharded_gtest(input_file):
         for test_suite in data.get("testsuites", []):
             suite_name = test_suite.get("name")
             in_dapper = is_in_dapper(suite_name)
-            fixtures = dapper_fixtures if in_dapper else other_fixtures
+            fixtures = dapper_fixtures_ran if in_dapper else other_fixtures
             if suite_name not in fixtures:
                 fixtures[suite_name] = {
                     "passes": 0,
@@ -135,7 +135,7 @@ def analyze_sharded_gtest(input_file):
     # 3. Calculate execution times
     dapper_time = sum(
         f_data["time"]
-        for f_name, f_data in dapper_fixtures.items()
+        for f_name, f_data in dapper_fixtures_ran.items()
         if is_in_dapper(f_name)
     )
     dapper_time_savings = total_time - dapper_time
@@ -150,14 +150,14 @@ def analyze_sharded_gtest(input_file):
     other_failures = 0
     executed_in_dapper = set()
 
-    for dapper_fixture in dapper_fixtures:
-        executed_in_dapper.add(dapper_fixture)
-        print(f"...Dapper fixture ran: {dapper_fixture}")
-        if dapper_fixtures[dapper_fixture]["failures"] > 0:
+    for dapper_fixture_ran in dapper_fixtures_ran:
+        executed_in_dapper.add(dapper_fixture_ran)
+        print(f"...Dapper fixture ran: {dapper_fixture_ran}")
+        if dapper_fixtures_ran[dapper_fixture_ran]["failures"] > 0:
             dapper_failures += 1
 
         # Check if it was negatively matched in union_filter
-        if matches_any(dapper_fixture, union_neg):
+        if matches_any(dapper_fixture_ran, union_neg):
             negated_in_union += 1
 
     for other_fixture in other_fixtures:
@@ -168,7 +168,6 @@ def analyze_sharded_gtest(input_file):
         p.pattern.replace("^", "").replace("$", "").replace(".*", "*")
         for p in dapper_pos
     }
-    dapper_fixtures_ran = len(executed_in_dapper)
     missing_in_union = sum(
         1 for p in dapper_pos if not any(p.match(f) for f in executed_in_dapper)
     )
@@ -191,7 +190,7 @@ def analyze_sharded_gtest(input_file):
         },
         "dapper_compliance": {
             "dapper_fixtures_count": len(dapper_fixtures_set),
-            "dapper_fixtures_ran": dapper_fixtures_ran,
+            "dapper_fixtures_ran": len(executed_in_dapper),
             "fixtures_negated_in_union": negated_in_union,
             "fixtures_missing_in_union": missing_in_union,
             "all_dapper_executed": all_dapper_executed,
@@ -204,7 +203,7 @@ def analyze_sharded_gtest(input_file):
             "actual_test_result": actual_test_result,
             "dapper_test_result": dapper_test_result,
         },
-        "dapper_fixtures": dapper_fixtures,
+        "dapper_fixtures_ran": dapper_fixtures_ran,
         "other_fixtures": other_fixtures,
     }
 
