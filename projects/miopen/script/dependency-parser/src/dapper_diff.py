@@ -6,11 +6,6 @@ import time
 from miopen_gtest_runner import calc_union_filter
 
 
-def vprint(line):
-    if True:
-        print(line)
-
-
 def fixture_filter_to_regex(filter):
     filter = re.sub(r"\.\*$", "*", filter.strip())
     return filter.replace("*", ".*")
@@ -23,12 +18,6 @@ def analyze_sharded_gtest(input_file):
 
     dapper_filter = config.get("dapper_filter", "")
     union_filter = config.get("union_filter", "")
-    vprint(
-        f"\n dapper_diff: analyze_sharded_gtest:\nDAPPER ANALYZER FILTER IN: {dapper_filter}"
-    )  # TRJS
-    vprint(
-        f"\n dapper_diff: analyze_sharded_gtest:\nDAPPER ANALYZER UNION IN : {union_filter}"
-    )  # TRJS
     shard_log_files = config.get("gtest_shards", [])
     if not shard_log_files:
         print(f"Warning: No shard logs found in {input_file} (json key=gtest_shards)")
@@ -61,13 +50,6 @@ def analyze_sharded_gtest(input_file):
         return any(p.match(test_name) for p in pattern_set)
 
     def is_in_dapper(fixture_name):
-        if False:  # TRJS
-            in_dapper = (
-                "DAPPER MATCH:    "
-                if any(p.match(fixture_name) for p in dapper_pos)
-                else "NO DAPPER MATCH: "
-            )
-            vprint(f"{in_dapper} '{fixture_name}' in '{dapper_pos}'")
         return any(p.match(fixture_name) for p in dapper_pos)
 
     # 2. Load all shard logs and aggregate
@@ -103,15 +85,6 @@ def analyze_sharded_gtest(input_file):
                     "tests": [],
                     "time": 0.0,
                 }
-                if in_dapper:  # TRJS
-                    vprint(f"NEW fixture in dapper : {suite_name}")
-                else:
-                    vprint(f"NEW NON-dapper fixture: {suite_name}")
-            else:
-                if in_dapper:
-                    vprint(f"UPDATE fixture in dapper : {suite_name}")
-                else:
-                    vprint(f"UPDATE NON-dapper fixture: {suite_name}")
 
             fixtures[suite_name]["time"] += float(
                 test_suite.get("time", "0s").replace("s", "")
@@ -171,13 +144,18 @@ def analyze_sharded_gtest(input_file):
         p.pattern.replace("^", "").replace("$", "").replace(".*", "*")
         for p in dapper_pos
     }
-    missing_in_union = len(dapper_pos) - len(covered_dapper_patterns)
-    negated_in_union = len(negated_union_patterns)
-    all_dapper_executed = missing_in_union == 0
 
     # 5. Determine overall and Dapper results
     actual_test_result = "FAIL" if total_failures > 0 else "PASS"
     dapper_test_result = "FAIL" if dapper_failures > 0 else "PASS"
+    missing_in_union = len(dapper_pos) - len(covered_dapper_patterns)
+    negated_in_union = len(negated_union_patterns)
+    dapper_compliance_viable = missing_in_union == 0
+    dapper_compliance_result = (
+        "COMPLIANT"
+        if dapper_compliance_viable and dapper_test_result == "PASS"
+        else "FAIL" if dapper_test_result == "FAIL" else "NOT VIABLE"
+    )
 
     # 6. Self-validation: forward count must equal reverse count.
     # Forward: len(dapper_pos) - missing_in_union = len(covered_dapper_patterns)
@@ -202,7 +180,8 @@ def analyze_sharded_gtest(input_file):
             "dapper_fixtures_ran": len(dapper_fixtures_ran),
             "fixtures_negated_in_union": negated_in_union,
             "fixtures_missing_in_union": missing_in_union,
-            "all_dapper_executed": all_dapper_executed,
+            "dapper_compliance_viable": dapper_compliance_viable,
+            "dapper_compliance_result": dapper_compliance_result,
         },
         "failures": {
             "dapper_fixtures_with_failures": dapper_failures,
@@ -227,7 +206,6 @@ def analyze_sharded_gtest(input_file):
     print(
         f"Time Dapper would have saved               : {dapper_time_savings:.3f}s ({dapper_time_pct_saved:.3f}%)"
     )
-    print(f"All Dapper Fixtures Executed?              : {all_dapper_executed}")
     print(f"Dapper fixtures not in category filter     : {missing_in_union}")
     print(f"Dapper fixtures negated by category filter : {negated_in_union}")
     print(f"Overall Test Result                        : {actual_test_result}")
@@ -235,7 +213,11 @@ def analyze_sharded_gtest(input_file):
     print(f"Covered dapper patterns (forward)          : {expected_covered}")
     print(f"Covered dapper patterns (reverse)          : {net_covered_union}")
     print(
-        f"Validation Result                          : {'PASS' if validation_ok else 'FAIL'}"
+        f"Minimal Compliance Achieved?               : {dapper_compliance_result == "COMPLIANT"}"
+    )
+    print(f"Dapper Compliance                          : {dapper_compliance_result}")
+    print(
+        f"Validation Result                          : {'VALID' if validation_ok else 'FAIL'}"
     )
 
     # Write to dapper_results.json
