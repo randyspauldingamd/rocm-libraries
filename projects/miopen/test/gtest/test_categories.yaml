@@ -107,7 +107,7 @@ test_categories:
 
   standard:
     description: "Core functionality - Run on every PR (target: < 30 min)"
-    enable_dapper: "yep"
+    enable_dapper: "False"
     dapper_json_file: ""
     test_patterns: *positive_patterns
 
