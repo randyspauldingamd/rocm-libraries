@@ -143,41 +143,50 @@ def analyze_sharded_gtest(input_file):
         (dapper_time_savings / total_time * 100) if total_time > 0 else 0.0
     )
 
-    # 4. Compare test results with gtest filters
-    negated_in_union = 0
-    missing_in_union = 0
+    # 4. Compare test results with gtest filters, and collect sets for validation.
     dapper_failures = 0
     other_failures = 0
-    executed_in_dapper = set()
+    covered_dapper_patterns = set()  # dapper_pos patterns matched by a ran suite
+    covered_union_patterns = set()  # union_pos patterns matched by a ran suite
+    negated_union_patterns = set()  # union_pos patterns whose suite was also negated
 
-    for dapper_fixture_ran in dapper_fixtures_ran:
-        executed_in_dapper.add(dapper_fixture_ran)
-        print(f"...Dapper fixture ran: {dapper_fixture_ran}")
-        if dapper_fixtures_ran[dapper_fixture_ran]["failures"] > 0:
+    for suite, data in dapper_fixtures_ran.items():
+        print(f"...Dapper fixture ran: {suite}")
+        if data["failures"] > 0:
             dapper_failures += 1
+        for p in dapper_pos:
+            if p.match(suite):
+                covered_dapper_patterns.add(p.pattern)
+        for p in union_pos:
+            if p.match(suite):
+                covered_union_patterns.add(p.pattern)
+                if matches_any(suite, union_neg):
+                    negated_union_patterns.add(p.pattern)
 
-        # Check if it was negatively matched in union_filter
-        if matches_any(dapper_fixture_ran, union_neg):
-            negated_in_union += 1
-
-    for other_fixture in other_fixtures:
-        if other_fixtures[other_fixture]["failures"] > 0:
+    for data in other_fixtures.values():
+        if data["failures"] > 0:
             other_failures += 1
 
     dapper_fixtures_set = {
         p.pattern.replace("^", "").replace("$", "").replace(".*", "*")
         for p in dapper_pos
     }
-    missing_in_union = sum(
-        1 for p in dapper_pos if not any(p.match(f) for f in executed_in_dapper)
-    )
+    missing_in_union = len(dapper_pos) - len(covered_dapper_patterns)
+    negated_in_union = len(negated_union_patterns)
     all_dapper_executed = missing_in_union == 0
 
     # 5. Determine overall and Dapper results
     actual_test_result = "FAIL" if total_failures > 0 else "PASS"
     dapper_test_result = "FAIL" if dapper_failures > 0 else "PASS"
 
-    # 6. Build report & output string
+    # 6. Self-validation: forward count must equal reverse count.
+    # Forward: len(dapper_pos) - missing_in_union = len(covered_dapper_patterns)
+    # Reverse: union patterns covered minus those negated
+    net_covered_union = len(covered_union_patterns) - len(negated_union_patterns)
+    expected_covered = len(covered_dapper_patterns)
+    validation_ok = net_covered_union == expected_covered
+
+    # 7. Build report & output
     report = {
         "summary": {
             "total_passes": total_passes,
@@ -190,7 +199,7 @@ def analyze_sharded_gtest(input_file):
         },
         "dapper_compliance": {
             "dapper_fixtures_count": len(dapper_fixtures_set),
-            "dapper_fixtures_ran": len(executed_in_dapper),
+            "dapper_fixtures_ran": len(dapper_fixtures_ran),
             "fixtures_negated_in_union": negated_in_union,
             "fixtures_missing_in_union": missing_in_union,
             "all_dapper_executed": all_dapper_executed,
@@ -203,11 +212,15 @@ def analyze_sharded_gtest(input_file):
             "actual_test_result": actual_test_result,
             "dapper_test_result": dapper_test_result,
         },
+        "validation": {
+            "covered_dapper_patterns": len(covered_dapper_patterns),
+            "covered_union_patterns": net_covered_union,
+            "validation_ok": validation_ok,
+        },
         "dapper_fixtures_ran": dapper_fixtures_ran,
         "other_fixtures": other_fixtures,
     }
 
-    # Print to standard output
     print("========== Dapper Gtest Sharded Analysis ========================")
     print(f"Total Test Time                            : {total_time:.3f}s")
     print(f"Dapper Time                                : {dapper_time:.3f}s")
@@ -219,46 +232,11 @@ def analyze_sharded_gtest(input_file):
     print(f"Dapper fixtures negated by category filter : {negated_in_union}")
     print(f"Overall Test Result                        : {actual_test_result}")
     print(f"Dapper Test Result                         : {dapper_test_result}")
-
-    # 7. Self-validation: recompute missing_in_union from the opposite direction.
-    #
-    # Forward path (already computed above): for each pattern p in dapper_pos, check
-    # whether any suite name in executed_in_dapper matches it.  Unmatched patterns
-    # contribute to missing_in_union.
-    #
-    # Reverse path: start from the suite names themselves.  For each suite name in
-    # executed_in_dapper find every union_pos pattern it satisfies and collect those
-    # patterns into a set.  Subtract patterns that are also matched by union_neg.
-    # The resulting set size should equal (len(dapper_pos) - missing_in_union).
-    covered_union_patterns = set()
-    for suite in executed_in_dapper:
-        for p in union_pos:
-            if p.match(suite):
-                covered_union_patterns.add(p.pattern)
-    negated_union_patterns = {
-        p.pattern
-        for p in union_pos
-        if any(
-            n.match(suite)
-            for suite in executed_in_dapper
-            for n in union_neg
-            if p.match(suite)
-        )
-    }
-    net_covered_union = len(covered_union_patterns) - len(negated_union_patterns)
-    expected_covered = len(dapper_pos) - missing_in_union
-    validation_ok = net_covered_union == expected_covered
     print(f"Covered dapper patterns (forward)          : {expected_covered}")
     print(f"Covered dapper patterns (reverse)          : {net_covered_union}")
     print(
         f"Validation Result                          : {'PASS' if validation_ok else 'FAIL'}"
     )
-
-    report["validation"] = {
-        "covered_union_patterns": net_covered_union,
-        "expected_covered_dapper_patterns": expected_covered,
-        "validation_ok": validation_ok,
-    }
 
     # Write to dapper_results.json
     with open("dapper_results.json", "w") as out_f:
