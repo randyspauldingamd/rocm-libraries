@@ -220,6 +220,46 @@ def analyze_sharded_gtest(input_file):
     print(f"Overall Test Result                        : {actual_test_result}")
     print(f"Dapper Test Result                         : {dapper_test_result}")
 
+    # 7. Self-validation: recompute missing_in_union from the opposite direction.
+    #
+    # Forward path (already computed above): for each pattern p in dapper_pos, check
+    # whether any suite name in executed_in_dapper matches it.  Unmatched patterns
+    # contribute to missing_in_union.
+    #
+    # Reverse path: start from the suite names themselves.  For each suite name in
+    # executed_in_dapper find every union_pos pattern it satisfies and collect those
+    # patterns into a set.  Subtract patterns that are also matched by union_neg.
+    # The resulting set size should equal (len(dapper_pos) - missing_in_union).
+    covered_union_patterns = set()
+    for suite in executed_in_dapper:
+        for p in union_pos:
+            if p.match(suite):
+                covered_union_patterns.add(p.pattern)
+    negated_union_patterns = {
+        p.pattern
+        for p in union_pos
+        if any(
+            n.match(suite)
+            for suite in executed_in_dapper
+            for n in union_neg
+            if p.match(suite)
+        )
+    }
+    net_covered_union = len(covered_union_patterns) - len(negated_union_patterns)
+    expected_covered = len(dapper_pos) - missing_in_union
+    validation_ok = net_covered_union == expected_covered
+    print(f"Covered dapper patterns (forward)          : {expected_covered}")
+    print(f"Covered dapper patterns (reverse)          : {net_covered_union}")
+    print(
+        f"Validation Result                          : {'PASS' if validation_ok else 'FAIL'}"
+    )
+
+    report["validation"] = {
+        "covered_union_patterns": net_covered_union,
+        "expected_covered_dapper_patterns": expected_covered,
+        "validation_ok": validation_ok,
+    }
+
     # Write to dapper_results.json
     with open("dapper_results.json", "w") as out_f:
         json.dump(report, out_f, indent=2)
@@ -237,7 +277,7 @@ def main():
         calc_union_filter(sys.argv[1], sys.argv[2], sys.argv[3])
 
     report = analyze_sharded_gtest(input_file)
-    if report["results"]["dapper_test_result"] == "FAIL":
+    if not report["validation"]["validation_ok"]:
         sys.exit(1)
 
 
