@@ -1,5 +1,4 @@
-.vscode/
-/.gitignore
+__pycache__
 
 # Build directories
 _build/

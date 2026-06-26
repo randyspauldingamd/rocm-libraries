@@ -229,7 +229,8 @@ def add_categorized_targets(
     nice_dapper_json_file = ""
 
     if dapper_json_file:
-        # Add the unfiltered category, primarily for debugging so none of the standard labels
+        # If dapper is enabled, a 2nd set of 'unfiltered' categories is added.
+        # This is primarily for debugging, so we don't use the standard labels.
         add_categorized_targets(
             target_name,
             "",

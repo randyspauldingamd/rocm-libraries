@@ -134,7 +134,7 @@ function(add_gtest TEST_NAME TEST_CPP)
   if(NOT MIOPEN_EMBED_DB STREQUAL "")
       target_link_libraries(${TEST_NAME} $<BUILD_INTERFACE:miopen_data>)
   endif()
-# Individual test binaries are only added if single gtest is not being created.
+# Individual binary test are not added if single gtest is being created.
   if(NOT MIOPEN_TEST_SINGLE_GTEST)
     string(CONCAT TEST_ENVIRONMENT_VARIABLES
     "ENVIRONMENT;MIOPEN_USER_DB_PATH=${CMAKE_CURRENT_BINARY_DIR};"
