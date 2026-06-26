@@ -169,7 +169,9 @@ def analyze_sharded_gtest(input_file):
         for p in dapper_pos
     }
     dapper_fixtures_ran = len(executed_in_dapper)
-    missing_in_union = len(dapper_fixtures_set) - dapper_fixtures_ran
+    missing_in_union = sum(
+        1 for p in dapper_pos if not any(p.match(f) for f in executed_in_dapper)
+    )
     all_dapper_executed = missing_in_union == 0
 
     # 5. Determine overall and Dapper results
