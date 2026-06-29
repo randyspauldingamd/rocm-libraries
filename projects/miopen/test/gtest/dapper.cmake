@@ -129,7 +129,7 @@ macro(dapper_add_sharded_test)
         FIXTURES_REQUIRED dapper_tests_fixture
     )
 
-    # TRJS dapper_diff may be redundant; 'miopen_gtest_sharded_dapper' is ran automatically by ctest
+    # CMake target equivalent to miopen_gtest_sharded_dapper
     add_custom_target(dapper_diff
         COMMAND ${Python_EXECUTABLE} ${MIOPEN_DAPPER_DIFF} "${TESTS_JSON}" "${MIOPEN_CATEGORY}" "${MIOPEN_GTEST_FILTER}"
         WORKING_DIRECTORY ${MIOPEN_DAPPER_OUT_DIR}
