@@ -33,7 +33,6 @@ import xml.etree.ElementTree as ET
 
 def get_changed_files(ref1, ref2, path_to_folder):
     """Return a set of files changed between two git refs."""
-    print(f"get_changed_files: {ref1} {ref2} {path_to_folder}")
     base_commit = subprocess.run(
         ["git", "show", "-s", '--format="%h  %ad  %s"', "--date=iso", f"{ref1}"],
         capture_output=True,
@@ -46,8 +45,8 @@ def get_changed_files(ref1, ref2, path_to_folder):
         text=True,
         check=True,
     )
-    print(f"DAPPER BASE: {base_commit.stdout.strip()}")
-    print(f"    FEATURE: {feat_commit.stdout.strip()}")
+    print(f"DAPPER branches: MERGE-BASE: {base_commit.stdout.strip()}")
+    print(f"                    FEATURE: {feat_commit.stdout.strip()}")
 
     args = ["git", "diff", "--name-only", ref1, ref2]
     if path_to_folder:
@@ -90,20 +89,14 @@ def select_tests(file_to_executables, changed_files, filter_mode):
     """Return a set of test executables affected by changed files."""
     affected = set()
     for f in changed_files:
-        print(f"File {f} modified")
         if f in file_to_executables:
-            print(f"     {f} found in file_to_executables")
             for exe in file_to_executables[f]:
                 if filter_mode == "all":
-                    print(f"     {f} requires {exe} to be tested")
                     affected.add(exe)
                 elif filter_mode == "test_prefix" and (
                     exe.startswith("bin/test_") or exe == "bin/miopen_gtest"
                 ):
-                    print(f"     {f} requires {exe} to be tested")
                     affected.add(exe)
-                else:
-                    print(f"     {f} references {exe} which shall not be tested")
     return sorted(affected)
 
 

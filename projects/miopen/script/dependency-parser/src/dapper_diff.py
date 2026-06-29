@@ -124,7 +124,6 @@ def analyze_sharded_gtest(input_file):
     negated_union_patterns = set()  # union_pos patterns whose suite was also negated
 
     for suite, data in dapper_fixtures_ran.items():
-        print(f"...Dapper fixture ran: {suite}")
         if data["failures"] > 0:
             dapper_failures += 1
         for p in dapper_pos:
@@ -210,8 +209,9 @@ def analyze_sharded_gtest(input_file):
     print(f"Dapper fixtures negated by category filter : {negated_in_union}")
     print(f"Overall Test Result                        : {actual_test_result}")
     print(f"Dapper Test Result                         : {dapper_test_result}")
-    print(f"Covered dapper patterns (forward)          : {expected_covered}")
-    print(f"Covered dapper patterns (reverse)          : {net_covered_union}")
+    print(
+        f"Covered dapper fixture (forward|reverse)   : {expected_covered}|{net_covered_union}"
+    )
     print(
         f"Minimal Compliance Achieved?               : {dapper_compliance_result == "COMPLIANT"}"
     )

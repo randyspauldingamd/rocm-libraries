@@ -37,7 +37,7 @@ def matches_any_filter(s, filters):
 
 
 def _convert_xml_shards(json_data):
-    """Convert any XML shard paths in json_data['gtest_shards'] to JSON, updating the list in place."""
+    """Convert XML shard paths to JSON, preferring an existing .json over the .xml source."""
     from selective_test_filter import _xml_to_gtest_json
 
     shards = json_data.get("gtest_shards", [])
@@ -46,15 +46,27 @@ def _convert_xml_shards(json_data):
     for shard in shards:
         p = Path(shard)
         if p.suffix.lower() == ".xml":
-            if not p.exists():
-                print(f"Warning: XML shard {shard} not found. Skipping conversion.")
-                converted.append(shard)
-                continue
-            data = _xml_to_gtest_json(p)
             json_path = p.with_suffix(".json")
-            json_path.write_text(json.dumps(data, indent=2))
-            converted.append(str(json_path))
-            changed = True
+            if json_path.exists():
+                print(
+                    f"Using existing JSON shard {json_path} (skipping XML conversion)."
+                )
+                converted.append(str(json_path))
+                changed = True
+            elif p.exists():
+                data = _xml_to_gtest_json(p)
+                json_path.write_text(json.dumps(data, indent=2))
+                converted.append(str(json_path))
+                changed = True
+            else:
+                print(
+                    f"Error: shard '{p.stem}' is missing both its .json and .xml outputs."
+                )
+                print(
+                    "Either run the tests to generate shard outputs, or copy valid shard"
+                )
+                print(f"files ({json_path.name} or {p.name}) into: {p.parent}")
+                sys.exit(1)
         else:
             converted.append(shard)
     if changed:

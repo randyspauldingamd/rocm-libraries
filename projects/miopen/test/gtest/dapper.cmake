@@ -136,4 +136,35 @@ macro(dapper_add_sharded_test)
         DEPENDS check test_immed_conv3d test_tensor_vec test_conv3d_find2
         VERBATIM
     )
+
+    # Full dapper pipeline using only existing shard and fixtures outputs — no rebuild.
+    # Errors immediately if miopen_dapper_fixtures.json is missing (run dapper_fix_diff instead).
+    add_custom_target(dapper_only_diff
+        COMMENT "Running full dapper pipeline on existing shard outputs (no rebuild)..."
+        COMMAND ${Python_EXECUTABLE} -c
+            "import sys, pathlib; f=pathlib.Path('${FIXTURES_JSON}'); f.exists() or (print(f'Error: {f.name} not found. Run dapper_fix_diff to regenerate it via the preprocessor, or copy a valid file into: {f.parent}'), sys.exit(1))"
+        COMMAND ${Python_EXECUTABLE} ${PY_MAIN} shas
+        COMMAND ${Python_EXECUTABLE} ${PY_MAIN} parse ${BUILD_NINJA}
+        COMMAND ${Python_EXECUTABLE} ${PY_MAIN} select ${MAPPING_JSON}
+            --fixturemap=${FIXTURES_JSON} --shardsfile=${SHARDS_FILE}
+        COMMAND ${Python_EXECUTABLE} ${MIOPEN_DAPPER_DIFF}
+            ${TESTS_JSON} ${MIOPEN_CATEGORY} ${MIOPEN_GTEST_FILTER}
+        WORKING_DIRECTORY ${MIOPEN_DAPPER_OUT_DIR}
+        VERBATIM
+    )
+
+    # Same as dapper_only_diff but regenerates miopen_dapper_fixtures.json via the C preprocessor.
+    # Use this when fixture mappings may be stale or the file is missing.
+    add_custom_target(dapper_fix_diff
+        COMMENT "Running full dapper pipeline, regenerating fixtures (no rebuild)..."
+        COMMAND ${Python_EXECUTABLE} ${PY_MAIN} shas
+        COMMAND ${Python_EXECUTABLE} ${PY_FIXTURES}
+        COMMAND ${Python_EXECUTABLE} ${PY_MAIN} parse ${BUILD_NINJA}
+        COMMAND ${Python_EXECUTABLE} ${PY_MAIN} select ${MAPPING_JSON}
+            --fixturemap=${FIXTURES_JSON} --shardsfile=${SHARDS_FILE}
+        COMMAND ${Python_EXECUTABLE} ${MIOPEN_DAPPER_DIFF}
+            ${TESTS_JSON} ${MIOPEN_CATEGORY} ${MIOPEN_GTEST_FILTER}
+        WORKING_DIRECTORY ${MIOPEN_DAPPER_OUT_DIR}
+        VERBATIM
+    )
 endmacro()
