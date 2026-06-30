@@ -85,7 +85,7 @@ def extract_gtext_fixtures(compile_commands: str, output_file: str, pp_folder: s
     with open(gtest_hpp, "w") as f:
         pass
 
-    thread_count = 128
+    thread_count = os.cpu_count()
     with concurrent.futures.ThreadPoolExecutor(max_workers=thread_count) as executor:
         all_fixtures = executor.map(preprocess_and_find_gtests_thread, gtests)
 
