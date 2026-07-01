@@ -127,6 +127,12 @@ macro(dapper_add_sharded_test)
     )
     set_tests_properties(miopen_gtest_sharded_dapper PROPERTIES
         FIXTURES_REQUIRED dapper_tests_fixture
+        FIXTURES_CLEANUP  dapper_final_fixture
+    )
+
+    # Ensure all shards must complete before miopen_gtest_sharded_dapper runs
+    set_tests_properties(${MIOPEN_GTEST_SHARDS} PROPERTIES
+        FIXTURES_REQUIRED dapper_final_fixture
     )
 
     # CMake target equivalent to miopen_gtest_sharded_dapper
