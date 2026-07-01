@@ -131,7 +131,7 @@ class EnhancedNinjaDependencyParser:
             # Run ninja -t deps for this object file
             cmd = [self.ninja_executable, "-t", "deps", object_file]
             result = subprocess.run(
-                cmd, cwd=self.build_dir, capture_output=True, text=True, timeout=30
+                cmd, cwd=self.build_dir, capture_output=True, text=True, timeout=60
             )
 
             if result.returncode != 0:
