@@ -17,10 +17,28 @@ def preprocess_and_find_gtests_thread(gtest):
     build_command = shlex.split(gtest)
     build_command.insert(1, "/P" if sys.platform == "win32" else "-E")
 
+    # Flags that trigger the HIP/offload codegen toolchain or are otherwise
+    # irrelevant to preprocessing. Dropping them avoids per-file driver overhead
+    # so the source is preprocessed as plain C++ (files are .cpp).
     preprocess_command = []
     flagged = False
     skip = -1
+    drop_next = False
     for index, token in enumerate(build_command):
+        if drop_next:
+            drop_next = False
+            continue
+
+        if token == "-x":
+            drop_next = True  # also drop the language value (e.g. "hip")
+            continue
+        if (
+            token.startswith("--offload-arch")
+            or token == "--hip-link"
+            or token.startswith("-O")
+        ):
+            continue
+
         if token.startswith("-I") and not flagged:
             preprocess_command.append(f"-I{pp_folder}")
             preprocess_command.append("-I../test")
