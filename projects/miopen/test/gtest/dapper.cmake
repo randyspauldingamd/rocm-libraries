@@ -57,7 +57,13 @@ macro(dapper_init)
     # ctest test after the shard tests have written their XML output.
     add_custom_target(dapper_prebuild)
     add_dependencies(dapper_prebuild dapper_fixtures dapper_mapping)
-    add_dependencies(check dapper_prebuild)
+    # Order dapper_prebuild before the ctest command itself (miopen-check), NOT merely as a
+    # sibling of the `check` alias. As a sibling, `ninja -j check` may launch ctest before the
+    # mapping is built; the dapper_tests_generate ctest test then fails "mapping not found".
+    # That race is usually masked because dapper_tests_generate DEPENDS on the long shard tests,
+    # but it surfaces when the shards run fast (e.g. no GPU). `check` DEPENDS miopen-check, so
+    # this also covers `ninja check`.
+    add_dependencies(miopen-check dapper_prebuild)
 
     add_custom_target(
         diff_check
