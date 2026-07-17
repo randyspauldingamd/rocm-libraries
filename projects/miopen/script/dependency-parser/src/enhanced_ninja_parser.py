@@ -41,6 +41,18 @@ class EnhancedNinjaDependencyParser:
         """Main method to parse all dependencies."""
         print(f"Parsing ninja dependencies from: {self.build_file_path}")
 
+        # Resolve the project source root once. workspace_root may be relative
+        # (in-source CI build: ".." -> parent of the build dir) or absolute
+        # (TheRock out-of-source build: the MIOpen source dir, passed explicitly).
+        # All dep/source paths are canonicalized relative to this root so they
+        # match the form of git-diff changed files (e.g. test/gtest/x.cpp).
+        ws = getattr(self, "workspace_root", "..")
+        self._source_root = (
+            os.path.abspath(ws)
+            if os.path.isabs(ws)
+            else os.path.abspath(os.path.join(self.build_dir, ws))
+        )
+
         # Step 1: Parse build file for executable -> object mappings
         self._parse_build_file()
 
@@ -147,13 +159,12 @@ class EnhancedNinjaDependencyParser:
             for line in lines[1:]:  # Skip first line with metadata
                 line = line.strip()
                 if line and not line.startswith("#"):
-                    # Convert absolute paths to relative paths from workspace root
-                    dep_file = line
-                    ws_root = getattr(self, "workspace_root", "..")
-                    ws_prefix = ws_root.rstrip("/") + "/"
-                    if dep_file.startswith(ws_prefix):
-                        dep_file = dep_file[len(ws_prefix) :]
-                    dependencies.append(dep_file)
+                    # Keep the raw path (absolute, or relative to the build dir).
+                    # Canonicalization to project-relative happens in
+                    # _to_project_relative during mapping construction, so both
+                    # in-source (CI) and out-of-source (TheRock) builds normalize
+                    # to the same form.
+                    dependencies.append(line)
 
             return dependencies
 
@@ -161,12 +172,24 @@ class EnhancedNinjaDependencyParser:
             print(f"Error getting dependencies for {object_file}: {e}")
             return []
 
-    @staticmethod
-    def _project_relative(path):
-        """Normalize a build path to a project-relative path (strip up to 'miopen/')."""
-        return (
-            path[path.find("miopen") + len("miopen/") :] if "miopen" in path else path
+    def _to_project_relative(self, path):
+        """Canonicalize a dep/source path to a path relative to the project source root.
+
+        Matches git-diff changed files (e.g. ``test/gtest/x.cpp``,
+        ``include/miopen/y.hpp``). Handles absolute paths (TheRock out-of-source
+        builds) and build-dir-relative paths (in-source CI builds) uniformly.
+        Paths outside the source tree come back with a leading ``..``, so callers
+        can skip them (system/build headers, cross-project deps).
+        """
+        abs_path = (
+            path
+            if os.path.isabs(path)
+            else os.path.abspath(os.path.join(self.build_dir, path))
         )
+        try:
+            return os.path.relpath(abs_path, self._source_root)
+        except ValueError:
+            return path  # different drive (Windows); leave as-is
 
     @staticmethod
     def _is_gtest_source(source_path):
@@ -178,11 +201,15 @@ class EnhancedNinjaDependencyParser:
         )
 
     def _attribute_object_deps(self, obj_file, key):
-        """Attribute all project-file dependencies of one object to `key`."""
+        """Attribute all in-source dependencies of one object to `key`."""
         for dep_file in self.object_to_all_deps.get(obj_file, []):
-            # Filter out system files and focus on project files
-            if self._is_project_file(dep_file):
-                self.file_to_executables[self._project_relative(dep_file)].add(key)
+            rel = self._to_project_relative(dep_file)
+            # Skip anything outside the project source tree (system/build headers,
+            # cross-project deps) and non-project files.
+            if rel.startswith(".."):
+                continue
+            if self._is_project_file(rel):
+                self.file_to_executables[rel].add(key)
 
     def _add_single_gtest_synthetic_keys(self):
         """Attribute each test/gtest source object to a synthetic bin/test_<stem> key.
@@ -284,11 +311,18 @@ class EnhancedNinjaDependencyParser:
             "executable_to_files": {
                 exe: sorted(files) for exe, files in exe_to_files.items()
             },
-            # Every source compiled anywhere in the build (project-relative). Used by
-            # selective_test_filter to classify a changed source as compiled-in (and
-            # thus test-relevant) even when it maps to no fixtures.
+            # Every in-source source compiled anywhere in the build (project-relative).
+            # Used by selective_test_filter to classify a changed source as compiled-in
+            # (and thus test-relevant) even when it maps to no fixtures.
             "compiled_sources": sorted(
-                {self._project_relative(s) for s in self.object_to_source.values()}
+                {
+                    rel
+                    for rel in (
+                        self._to_project_relative(s)
+                        for s in self.object_to_source.values()
+                    )
+                    if not rel.startswith("..")
+                }
             ),
             "statistics": {
                 "total_files": len(self.file_to_executables),
