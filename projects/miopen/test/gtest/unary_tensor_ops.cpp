@@ -78,7 +78,7 @@ protected:
 
         auto&& handle  = get_handle();
         auto super_dev = handle.Write(superCpu);
-        gpuOp(handle, subDesc, super_dev.get(), &alpha, offset);
+        gpuOp(handle, subDesc, super_dev.get(), &alpha, offset * 1.1);
         auto result = handle.Read<T>(super_dev, dataSize);
 
         operate_over_subtensor(dataOp, superCpu, subDesc, offset);
