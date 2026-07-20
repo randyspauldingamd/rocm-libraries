@@ -1,7 +1,3 @@
 // NERFED!
-#include <iostream>
-int main()
-{
-    std::cout << "CTEST  << __FILE__ <<  has been nerfed!" << std::endl;
-    return 0;
-}
+#include <gtest/gtest.h>
+TEST(CPU_test_gtest_hip_graph_exist_cpp_NONE, nerfed) {}
